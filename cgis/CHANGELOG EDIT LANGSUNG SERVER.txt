@@ -1,0 +1,10 @@
+09 - 10 - 2023 Ersa
+
+/home/tpk_ipc/cgis/handheld/models/M_operation.php
+	line
+	1.	489 - 494
+	2.	668 - 653
+	3. 1346
+	4. 1503
+	5. 2492
+	6. 2537

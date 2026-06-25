@@ -1,0 +1,146 @@
+******************************************************************************
+*                 +----------------------------------------+                 *
+*                 |              UN/EDIFACT                |                 *
+*                 |                                        |                 *
+* H  H DDDD  FFFF | Container discharge/loading report msg | H  H DDDD  FFFF *
+* H  H D   D F    |                                        | H  H D   D F    *
+* HHHH D   D FFF  |         Version D Release 95B          | HHHH D   D FFF  *
+* H  H D   D F    |                                        | H  H D   D F    *
+* H  H DDDD  F    |   House Data Format Definition File    | H  H DDDD  F    *
+*                 +----------------------------------------+                 *
+*                                                                            *
+*             Electronic Data Interchange (EDI) Indonesia Inc. Ltd.          *
+*                                                                            *
+*  File Name   : CSCAR98B.HDF                                                *
+*  Created  by : PT EDI Indonesia  on August 2016                            *
+******************************************************************************
+
+*=====================Parameter Nilai Default=====================*
+PRM,ENV00101,P010,UNOA                          Syntax Rules Identifier
+PRM,ENV00101,UNB0040,XXXXXSNRFXXXXX             Interchange Control Reference
+PRM,ENV00101,*DATE,XXXXXDATEXXXXX               Date
+PRM,ENV00101,*TIME,XXXXXTIMEXXXXX               Time
+PRM,ENV00101,P100,PASSWORD                      Password Receivers Reference
+PRM,HDEC0101,P170,CUSDEC                        Message Type
+PRM,HDEC0101,P180,D                             Message Version
+PRM,HDEC0101,P190,14B                           Release Number
+PRM,HDEC0101,P200,UN                            Controlling Agency (Coded)
+PRM,HDEC0101,P240,913                           Document/Message Name (Coded)
+PRM,HDEC0101,P242,PIB                           Document/Message Name
+PRM,HDEC0101,*MSRF,1                            Message Reference Number
+PRM,DDEC0801,QVR1010,1
+PRM,UNZ00101,*NOSG,XXXXXNOSGXXXXX               Number of Segments in Message
+PRM,UNZ00101,*MSRF,1                            Message Reference Number
+PRM,UNZ00101,*NMST,1                            Interchange Control Count
+PRM,UNZ00101,P230,XXXXXSNRFXXXXX                Interchange Control Reference
+*===================End Parameter Nilai Default===================*
+
+FMT,A,,8,1
+
+*MHD,HCAR0101
+
+REC,ENV00101
+FLD,TYPE,8,X,,,,
+FLD,UNB0020,20,X,,,,                   Second Partner's ID
+FLD,UNB0050,10,X,,,,                   Aplication Reference
+FLD,UNB0005,1,N,,,,                    Syntax Version Number
+FLD,UNB0010,20,X,,,,                   First Partner's ID
+
+REC,HCOR0101
+FLD,TYPE,8,X,,,,
+*FLD,MSRF,14,X,,,,                      Message Reference Number
+FLD,UNH00010,6,X,,,,                   Message Type
+FLD,UNH00020,3,X,,,,                   Message Version
+FLD,UNH00030,3,X,,,,                   Release Number
+FLD,UNH00040,2,X,,,,                   Controlling Agency (Coded)
+FLD,UNH00050,6,X,,,,                   Association Assigned Code
+FLD,BGM00010,3,X,,,,                   Document/Message Name (Coded)
+FLD,BGM00050,35,X,,,,                  Document/Message Number
+FLD,BGM00060,3,X,,,,                   Message Function (Coded)
+
+REC,HCOR0201
+FLD,TYPE,8,X,,,,
+FLD,TDT00010,3,X,,,,                   TRANSPORT STAGE QUALIFIER
+FLD,TDT00020,17,X,,,,                  CONVEYANCE REFERENCE NUMBER
+FLD,TDT00050,8,X,,,,                   Type of means of transport identification
+FLD,TDT00070,17,X,,,,                  Carrier identification
+FLD,TDT00080,3,X,,,,                   Code list qualifier
+FLD,TDT00090,3,X,,,,                   Code list responsible agency, coded
+FLD,RFF00050,3,X,,,,                   Code list responsible agency, coded
+FLD,RFF00060,35,X,,,,                   Code list responsible agency, coded
+
+REC,HCOR0301
+FLD,TYPE,8,X,,,,
+FLD,LOC00010,3,X,,,,                   PLACE/LOCATION QUALIFIER
+FLD,LOC00020,25,X,,,,                  Place/location identification
+FLD,LOC00030,3,X,,,,                   Code list qualifier
+FLD,LOC00060,25,X,,,,                  Related place/location one
+
+REC,HCOR0401
+FLD,TYPE,8,X,,,,
+FLD,DTM00010,3,X,,,,                   Date/Time/Period Qualifier
+FLD,DTM00020,35,X,,,,                  Date/Time/Period
+FLD,DTM00030,3,X,,,,                   Date/Time/Period Format Qualifier
+*FLD,DTM00010,3,X,,,,                   Date/Time/Period Qualifier
+*FLD,DTM00020,35,X,,,,                  Date/Time/Period
+*FLD,DTM00030,3,X,,,,                   Date/Time/Period Format Qualifier
+
+REC,DCOR0101
+FLD,TYPE,8,X,,,,
+FLD,NAD00010,3,X,,,,                   PARTY QUALIFIER
+FLD,NAD00050,35,X,,,,                  Name and address line
+
+REC,DCOR0201
+FLD,TYPE,8,X,,,,
+FLD,EQD00010,3,X,,,,                   EQUIPMENT QUALIFIER
+FLD,EQD00020,17,X,,,,                  Equipment identification number
+FLD,EQD00060,10,X,,,,                  Equipment size and type     
+FLD,EQD00070,3,X,,,,                   Code list qualifier
+FLD,EQD00080,3,X,,,,                   Code list responsible agency, coded
+FLD,EQD00110,3,X,,,,                   EQUIPMENT STATUS, CODED
+FLD,EQD00120,3,X,,,,                   FULL/EMPTY INDICATOR, CODED
+
+REC,DCOR0301
+FLD,TYPE,8,X,,,,
+FLD,RFF00090,3,X,,,,                   Reference qualifier
+FLD,RFF00100,35,X,,,,                  Reference number
+FLD,DTM00040,3,X,,,,                   Date/Time/Period Qualifier
+FLD,DTM00050,35,X,,,,                  Date/Time/Period
+FLD,DTM00060,3,X,,,,                   Date/Time/Period Format Qualifier
+
+
+REC,DCOR0401
+FLD,TYPE,8,X,,,,                       
+FLD,MEA00010,3,X,,,,                   MEASUREMENT APPLICATION QUALIFIER
+FLD,MEA00020,3,X,,,,                   Measurement dimension, coded
+FLD,MEA00060,3,X,,,,                   Measure unit qualifier 
+FLD,MEA00070,18,X,,,,                  Measurement value
+
+REC,DCOR0501
+FLD,TYPE,8,X,,,,
+FLD,LOC00150,3,X,,,,                   PLACE/LOCATION QUALIFIER
+FLD,LOC00160,25,X,,,,                  Place/location identification
+FLD,LOC00170,3,X,,,,                   Code list qualifier
+FLD,LOC00180,3,X,,,,                   Code list responsible agency, coded
+
+REC,DCOR0502
+FLD,TYPE,8,X,,,,
+FLD,SEL00010,3,X,,,,                   PLACE/LOCATION QUALIFIER
+FLD,SEL00020,25,X,,,,                  Place/location identification
+FLD,FTX00120,3,X,,,,                   Code list qualifier
+FLD,FTX00170,3,X,,,,                   Code list responsible agency, coded
+
+REC,SDEC0101
+FLD,TYPE,8,X,,,,                                                               
+FLD,CNT0010,3,X,,,,                    Control Qualifier
+FLD,CNT0020,8,ZN,0,I,U,                 Control Value
+FLD,CNT0030,3,X,,,,                    Measurement Unit Qualifier
+
+REC,UNT00101
+FLD,TYPE,8,X,,,,                       Tamaatttt
+FLD,UNT00010,14,X,,,,
+
+REC,UNZ00101
+FLD,TYPE,8,X,,,,                       Tamaatttt
+FLD,P230,14,X,,,,
+******************************* END *************************************

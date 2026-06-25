@@ -1,0 +1,110 @@
+  Request BC Dan Karantina:
+    ✔ Mefnu Respon PPK`: menambahkan menu history untuk menampilkan 'Update by' dan 'Update date' terkait adanya perubahan Respon PPK @finish-13-Jan-20 @1d @done(20-02-03 11:10)
+      ✔ di ganti dengan tombol hostory @done(20-02-03 09:05)
+    ✔ Status No PPK tidak perlu dapat Nomor Urut @finish-14-Jan-20 @1d @done(20-01-19 16:11)
+    ✔ Saat klik 'Behandle In' akan ada tambahan validasi, yaitu: Jika belum ada Plug Out Terminal maka tidak bisa Behandle In dan akan diberikan notifikasi "Data Plug Out belum tersedia di Sistem" @finish-15-Jan-20 @1d @done(20-01-29 10:44)
+      ✔ di ganti dengan 3 service, service 1 ketika draft,service 2 ketika inquiry, serivce 3 ketika refer tidak dapat unplug @done(20-02-03 11:06)
+    ✔ Perbaiki service pengiriman Dok SPPMP ke NPCT1 @finish-16-Jan-20 @1d @done(20-01-23 09:42)
+    ✔ Perbaiki service untuk menghasilkan Gatepass SPPMP menjadi Draft @finish-20-Jan-20 @2d @done(20-01-23 09:42)
+    ✔ Perlu ada tampilan untuk tracking kontainer, seperti men-tracking resi pada saat pengiriman paket di Toko Online, Tracking mulai dari Gatepass, Terbit SPK sampai Delivery @finish-23-Jan-20 @3d @done(20-02-07 08:57)
+      ✘ di buat mobile @cancelled(20-01-29 10:45)
+    ✔ Perbaiki service untuk menghasilkan Gatepass SPJM menjadi Draft @finish-27-Jan-20 @2d @done(20-01-27 08:31)
+    ✔ Menyiapkan service baru agar Rekon bisa dipindahkan ke BOS @finish-30-Jan-20 @3d @started(20-01-22 16:57) @done(20-01-22 16:57) @lasted(40s)
+      ✘ tapi masih harus di pantau karena respon dari npct1 masih nok semua @cancelled(20-01-23 14:44)
+      ✔ sudah di tambahkan service agar menarik data dari npct1 ketika proses draft @done(20-02-03 09:04) @
+      ✔ service ke 2 menarik data ketika inquiry @done(20-02-03 09:04)
+    ✔ Menu Report - Delivery tambah tipe kontainer (Dry / Reefer), baik di UI ataupun dihasil download @done(20-01-30 17:08)
+      ✔ reportnya belum @done(20-02-03 09:03)
+
+
+
+
+  Permintaan tidak masuk list excel / mom:
+    ✔ pengiriman data SPPMP ke npct1 untuk rekon -> sceduler per 5 menit @started(20-01-20 11:54) @done(20-01-20 11:54) @lasted(14s)
+    ✔ perubahan laporan harian di billing (report billing) `req by BU FETY` @started(20-01-20 16:56) @done(20-01-22 16:57) @lasted(2d1m14s)
+    ✔ hapus data spjm dari custom karantina pkb `by pa hasanudin bc` @started(20-01-23 11:53) @done(20-01-23 11:53) @lasted(27s)
+    ✔ perubahan warna monitoring pergerakan dan display `by pa hasanudin bc` @started(20-01-23 11:53) @done(20-01-23 11:53) @lasted(19s)
+    ✔ Perubahan tarif harga empty (tidak di hitung jam < 12 >) di sesuaikan dengan tanggal stacking `by tim billing` @done(20-01-31 09:14)
+      ✔ tapi masih di dev @done(20-02-07 08:52)
+    ✔ hapus customer pada dispay monitor ppk `by pa hermansah BC approve by planner` @done(20-01-31 17:01)
+    ✔ @high  ubah data pada kartu gatepass delivery `by pa pitra BC` @done(20-02-03 11:44)
+
+
+
+  Menu Report Pergerakan `DI CANCEL SAMPE MEETING LANJUTAN`: 
+    ✘ Jika ada kontainer bolak balik, data masih menimpa ke kontainer yang lama, seharusnya ada valdasi agar yang ditampilkan data container yang terbaru." @cancelled(20-02-18 08:29)
+    ✘ Tambah user login KASI, KADIV, Supervisor: @cancelled(20-02-07 08:48)
+      ✘ Untuk Kadiv dan Kasi, menu nya dibuat sama kaya Supervisor tetapi tambahin menu Respon PPK (tanpa Action Apapun - View Only) @cancelled(20-02-07 08:48)
+      ✘ username: KASI_BC @cancelled(20-02-07 08:48)
+      ✘ usernamec: KADIV_BC" @cancelled(20-02-07 08:48)
+    ✘ Agar tim Loket dan tim Checker BC dapat diberi akses untuk update no container secara real time. bukan hanya update dr YP MTI yg msh dirasa belum real time @cancelled(20-02-07 08:48)
+    ✘ Di menu customs > monitoring > pergerakan: tambah total per status, misalnya Siap Periksa: 2, PPK: 15 dll @cancelled(20-02-18 08:29)
+  
+
+  Laporan ke billing :
+    ✔ laporan ke billing @done(20-02-10 18:47)
+      ✔ saat ini hanya bisa mendetect (type = reefer,oog),(status = empty,full) (dg = dg,non dg) @done(20-02-10 18:38)
+      ✔ up performa billing saat klik entry pada billing delivery `laporan tim billing` @done(20-02-10 18:47)
+      ✔ up performa billing saat klik entry pada billing behandle `laporan tim billing` @done(20-02-10 18:47)
+    ✔ penambahan jumlah kontainer pada biling harian `by bu fety` @done(20-02-12 13:24)
+    ✔ penambahan akses menu (REEFER) untuk user biling `by bu fety` @done(20-02-12 13:24)
+
+
+  Meeting BC MTI kantor MTI:
+    ✔ Tambah user login untuk KASI, KADIV, Supervisor @done(20-02-18 08:32)
+    ✔ Menu yang ditampilkan terdiri dari: @done(20-02-18 08:32)
+       ✔ Report > Respon PPK @done(20-02-18 08:32)
+       ✔ Display > Customs – Siap Periksa @done(20-02-18 08:33)
+       ✔ Display > Penarikan @done(20-02-18 08:33)
+       ✔ Customs > Report > Pergerakan @done(20-02-18 08:33)
+       ✔ Customs > Monitoring > Pergerakan- username: KASI_BC @done(20-02-18 08:33)
+       ✔ Hak akses yang diberikan ‘View Only @done(20-02-18 08:33)
+
+    ✔ Tambahkan pada menu Customs > Monitoring > Pergerakan: tombol ‘Edit status’ @done(20-02-18 08:33)
+       ✔ Hanya bisa mengubah status dari ’Siap Periksa’ menjadi ‘Sedang Periksa’" @done(20-02-18 08:33)
+    
+    ✘ No Urut Respon PPK bisa dibedakan berdasarkan Size Container, 20, 40 dan 45 @cancelled(20-02-18 08:28)
+  
+    ☐ Membuat menu untuk Tracking status Container untuk Pengguna Jasa / Importir / Customer 
+       ☐ Siapkan data dan API
+       ☐ Data yang akan ditampilkan terdiri dari
+       ☐ Waktu Stacking Terminal
+       ☐ Waktu Dokumen SPJM terbit
+       ☐ Waktu Request Gatepass Penarikan (Status Sent)
+       ☐ Waktu Approved Gatepass Penarikan (Status Inquiry)
+       ☐ Waktu Pickup
+       ☐ Waktu Behandle In CA
+       ☐ Waktu Respon PPK
+       ☐ No Urut PPK
+       ☐ Waktu Siap Periksa
+       ☐ Waktu Sedang Periksa
+       ☐ Waktu Selesai Periksa
+       ☐ Waktu After Behandle (Marshaling Yard After)
+       ☐ Waktu Gate Out CA (Delivery)
+       ☐ Format waktunya yaitu YYYY-MM-DD hh:mm:ss
+
+    ✔ Menu Monitoring Customs dibedakan antara Login Planner dan Login Bea Cukai @done(20-02-18 08:33)
+       ✔ Jika login sebagai Planner, maka urutan tampilan paling atas adalah ‘Status PPK’, berikutnya ‘Siap Periksa’ dan seterusnya @done(20-02-18 08:33)
+       ✔ Jika login sebagai Bea Cukai dan Lainnya, maka urutannya tetap seperti saat ini" @done(20-02-18 08:33)
+    
+    ✔ Pada menu Handheld > Marshalling CIC @done(20-02-18 08:33)
+       ✔ Notes dibuat Mandatory @done(20-02-18 08:33)
+       ✔ Notes akan ditampilkan pada Menu Display > Customs – Siap Periksa dan Menu Customs > Monitoring > Pergerakan" @done(20-02-18 08:33)
+    
+    ✔ Kontainer yang terkena behandle menggunakan Dokumen Manual seperti PIBK, NHI dan RP, saat ini hanya ada pilihan Respon 'No PPK', seharusnya pilihan Respon PPK nya terdiri dari: @done(20-02-28 09:39)
+       ✔ PPK Percepatan @done(20-02-28 09:39)
+       ✔ PIBK @done(20-02-28 09:39)
+       ✔ NHI @done(20-02-28 09:39)
+       ✔ Returnable Package (RP) @done(20-02-28 09:39)
+       ✔ dan dapat No Urut PPK @done(20-02-28 09:39)
+       
+    ✔ Menu Report Pergerakan: @done(20-02-18 10:30)
+       ✔ Jika ada kontainer bolak balik, data masih menimpa ke kontainer yang lama, seharusnya ada valdasi agar yang ditampilkan data container yang terbaru." @done(20-02-18 10:30)
+       ✔ Menu Report Delivery (BOS Operational) @done(20-02-18 10:30)
+       ✔ Menampilkan status Dry/Reefer" @done(20-02-18 10:30)
+  
+
+  Laporan Biling :
+    ✔ Report Stacking tambah OOG,DG @done(20-02-21 10:46)
+
+

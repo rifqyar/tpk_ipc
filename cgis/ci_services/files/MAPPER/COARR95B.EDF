@@ -1,0 +1,649 @@
+******************************************************************************
+*                 +----------------------------------------+                 *
+*                 |              UN/EDIFACT                |                 *
+*                 |                                        |                 *
+* EEEE DDDD  FFFF | Container discharge/loading report msg | EEEE DDDD  FFFF *
+* E    D   D F    |                                        | E    D   D F    *
+* EEE  D   D FFF  |         Version D  Release 95B         | EEEE D   D FFF  *
+* E    D   D F    |                                        | E    D   D F    *
+* EEEE DDDD  F    |     EDI Data Format Definition File    | EEEE DDDD  F    *
+*                 +----------------------------------------+                 *
+*                                                                            *
+*             Electronic Data Interchange (EDI) Indonesia Inc. Ltd.          *
+*                                                                            *
+*  File Name   : COARNPCT.EDF                                                *
+*  Created  by : PT EDI Indonesia  on  18-08-2016                            *
+******************************************************************************
+
+* Constant values
+
+PRM,P010,'UNOA'                            Syntax Rules Identifier
+PRM,P020,'2'                               Syntax Rules Version
+PRM,P030,'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX' Sender's Identification
+PRM,P040,'XXXX'                            Identification Code Qualifier
+PRM,P050,'XXXXXXXXXXXXXX'                  Address for Reverse Routing
+PRM,P060,'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX' Receiver's Identification
+PRM,P070,'XXXX'                            Identification Code Qualifier
+PRM,P080,'XXXXXXXXXXXXXX'                  Routing Address
+PRM,P090,'XXXXXXXXXXXXXX'                  Interchange Control Reference
+PRM,P100,'XXXXXXXXXXXXXX'                  Receiver's Reference
+PRM,P110,'XX'                              Receiver's Reference Qualifier
+PRM,P120,'XXXXXXXXXXXXXX'                  Application Reference
+PRM,P130,'X'                               Processing Priority Code
+PRM,P140,'1'                               Acknowledgement Request
+PRM,P150,'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX' Communications Agreement Id
+PRM,P160,'1'                               Test Indicator
+PRM,P170,'COARRI'                          Message Type
+PRM,P180,'D'                               Message Version Number
+PRM,P190,'95B'                             Message Release Number
+PRM,P195,'UN'                              Controlling Agency
+PRM,P200,'D'                               Section Control
+PRM,P210,'S'                               Section Control
+PRM,P220,'XXXXXXXXXXXXXX'                  Interchange Control Reference
+*PRM,UNB0050,'DOKMANIF'                       Application Reference
+PRM,BGM0010,'785'                          Document/Message Name
+*PRM,FTX2010,'AAA'                          Free Text Qualifier
+*PRM,PCI0010,'28 '                          Type of Packages Qualifier
+PRM,DTM5010,'182'                          Date/Time/Period Qualifier
+PRM,DTM5030,'102'                          Date/Time/Period Format Qualifier
+*PRM,CNT2010,'16 '                          Pengenal Jumlah Kontainer
+
+* Message Definition
+
+MSG,COARRI,D,95B,UNOA,2,UN      Container discharge/loading report message Version D.98B
+
+FMT,A1
+
+* UNB Definition
+
+SEG,UNB,M,0,1,ENV00101                      INTERCHANGE HEADER
+DEL,S001,M                        Syntax Rules Identifier
+   ,0001,M,P010,4,F,A                Syntax Rules Identifier
+   ,0002,M,UNB0005,1,F,N             Syntax Rules Version (Asli P020)
+DEL,S002,C                        Interchange Sender
+   ,0010,C,UNB0010,35                Sender Identification
+   ,0007,C,P040,4                    Identification Code Qualifier
+   ,0008,C,P050,20                   Address for Reverse Routing
+DEL,S003,C                        Interchange Recipient
+   ,0004,C,UNB0020,35                Receivers Identification
+   ,0007,C,P070,4                    Identification Code Qualifier
+   ,0014,C,P080,14                   Routing Address
+DEL,S004,M                        Transmission Date & Time
+   ,0017,M,*DATE,6,F,N               Date
+   ,0019,M,*TIME,4,F,N               Time (HHMM)
+DEL,0020,C,UNB0040,14             Interchange Control Reference
+DEL,S005,C                        Receivers Reference
+   ,0022,C,P100,14                   Receivers Reference
+   ,0025,C,P110,2,F                  Receivers Reference Qualifier
+DEL,0026,C,UNB0050,14             Application Reference
+DEL,0029,C,UNB0060,1,F,A          Processing Priority Code
+DEL,0031,C,UNB0070,1,F,N          Acknowledgement Request
+DEL,0032,C,UNB0080,35             Communications Agreement Id
+DEL,0035,C,UNB0090,1,F,N          Test Indicator
+
+
+* Header Section
+
+* UNH Definition
+
+SEG,UNH,M,0,1,HCOR0101                   MESSAGE HEADER
+
+DEL,0062,M,MSRF,14                      Message Reference Number
+DEL,S009,M                              Message Identifier
+   ,0065,M,UNH00010,6                   Message Type
+   ,0052,M,UNH00020,3                   Message Version
+   ,0054,M,UNH00030,3                   Release Number
+   ,0051,M,UNH00040,2                   Controlling Agency (Coded)
+   ,0057,C,UNH00050,6                   Association Assigned Code
+DEL,0068,C,UNH00060,35                  Common Access Reference
+DEL,S010,C                              Status of The Transfer
+   ,0070,M,UNH00070,2                   Sequence of Transfers
+   ,0073,C,UNH00080,1                   First and Last Transfer
+
+* BGM Definition
+
+SEG,BGM,M,0,1,HCOR0101                   BEGINNING OF MESSAGE
+
+DEL,C002,C                               Document/Message Name
+   ,1001,C,BGM00010,3                    Document/Message Name (Coded)
+   ,1131,C,BGM00020,3                    Code List Qualifier
+   ,3055,C,BGM00030,3                    Code List Responsible Agency (Coded)
+   ,1000,C,BGM00040,35                   Document/Message Name
+DEL,1004,C,BGM00050,35                   Document/Message Number
+DEL,1225,C,BGM00060,3                    Message Function (Coded)
+DEL,4343,C,BGM00070,3                    Response Type (Coded)
+
+* FTX Definition
+
+SEG,FTX,C,0,9                 FREE TEXT
+
+DEL,4451,M,FTX00010,3                    TEXT SUBJECT QUALIFIER
+DEL,4453,C,FTX00020,3                    TEXT FUNCTION, CODED
+DEL,C107,C                               TEXT REFERENCE 
+   ,4441,M,FTX00030,3                    Free text, coded
+   ,1131,C,FTX00040,3                    Code list qualifier
+   ,3055,C,FTX00050,3                    Code list responsible agency, coded
+DEL,C108,C                               TEXT LITERAL
+   ,4440,M,FTX00060,70                   Free text
+   ,4440,C,FTX00070,70                   Free text
+   ,4440,C,FTX00080,70                   Free text
+   ,4440,C,FTX00090,70                   Free text
+   ,4440,C,FTX00100,70                   Free text
+   ,3453,C,FTX00110,3                    LANGUAGE, CODED
+
+* RFF Definition
+
+SEG,RFF,C,0,9                 REFERENCE
+
+DEL,C506,M                               REFERENCE
+   ,1153,M,RFF00010,3                    Reference qualifier
+   ,1154,C,RFF00020,35                   Reference number
+   ,1156,C,RFF00030,6                    Line number
+   ,4000,C,RFF00040,35                   Reference version number
+
+
+* Segment Group 01 Definition
+
+GRP,01,M,1,1                     SEGMENT GROUP 01
+
+* TDT Definition
+
+SEG,TDT,M,1,1,HCOR0201                 DETAILS OF TRANSPORT
+
+DEL,8051,M,TDT00010,3                    TRANSPORT STAGE QUALIFIER
+DEL,8028,C,TDT00020,17                   CONVEYANCE REFERENCE NUMBER
+DEL,C220,C                               MODE OF TRANSPORT
+   ,8067,C,TDT00030,3                    Mode of transport, coded
+   ,8066,C,TDT00040,17                   Mode of transport
+DEL,C228,C                               TRANSPORT MEANS
+   ,8179,C,TDT00050,8                    Type of means of transport identification
+   ,8178,C,TDT00060,17                   Type of means of transport
+DEL,C040,C                               CARRIER
+   ,3127,C,TDT00070,17                   Carrier identification
+   ,1131,C,TDT00080,3                    Code list qualifier
+   ,3055,C,TDT00090,3                    Code list responsible agency, coded
+   ,3128,C,TDT00100,35                   Carrier name
+DEL,8101,C,TDT00110,3                    TRANSIT DIRECTION, CODED
+DEL,C401,C                               EXCESS TRANSPORTATION INFORMATION
+   ,8457,M,TDT00120,3                    Excess transportation reason, coded
+   ,8459,M,TDT00130,3                    Excess transportation responsibility, coded
+   ,7130,C,TDT00140,17                   Customer authorization number
+DEL,C222,C                               TRANSPORT IDENTIFICATION
+   ,8213,C,TDT00150,9                    Id. of means of transport identification
+   ,1131,C,TDT00160,3                    Code list qualifier
+   ,3055,C,TDT00170,3                    Code list responsible agency, coded
+   ,8212,C,TDT00180,35                   Id. of the means of transport
+   ,8453,C,TDT00190,3                    Nationality of means of transport, coded
+DEL,8281,C,TDT00200,3                    TRANSPORT OWNERSHIP, CODED
+
+* RFF Definition
+
+SEG,RFF,C,1,9,HCOR0201                 REFERENCE
+
+DEL,C506,M                               REFERENCE
+   ,1153,M,RFF00050,3                    Reference qualifier
+   ,1154,C,RFF00060,35                   Reference number
+   ,1156,C,RFF00070,6                    Line number
+   ,4000,C,RFF00080,35                   Reference version number
+
+* LOC Definition
+
+SEG,LOC,C,1,9,HCOR0301                 PLACE/LOCATION IDENTIFICATION
+
+DEL,3227,M,LOC00010,3                    PLACE/LOCATION QUALIFIER
+DEL,C517,C                               LOCATION IDENTIFICATION
+   ,3225,C,LOC00020,25                   Place/location identification
+   ,1131,C,LOC00030,3                    Code list qualifier
+   ,3055,C,LOC00040,3                    Code list responsible agency, coded
+   ,3224,C,LOC00050,17                   Place/location
+DEL,C519,C                               RELATED LOCATION ONE IDENTIFICATION
+   ,3223,C,LOC00060,25                   Related place/location one identification
+   ,1131,C,LOC00070,3                    Code list qualifier
+   ,3055,C,LOC00080,3                    Code list responsible agency, coded
+   ,3222,C,LOC00090,70                   Related place/location one
+DEL,C553,C                               RELATED LOCATION TWO IDENTIFICATION
+   ,3233,C,LOC00100,25                   Related place/location two identification
+   ,1131,C,LOC00110,3                    Code list qualifier
+   ,3055,C,LOC00120,3                    Code list responsible agency, coded
+   ,3232,C,LOC00130,70                   Related place/location two
+DEL,5479,C,LOC00140,3                    RELATION, CODED
+
+* DTM Definition
+
+SEG,DTM,C,1,9,HCOR0401                            DATE/TIME/PERIOD   
+
+DEL,C507,M                               Date/Time/Period
+   ,2005,M,DTM00010,3                    Date/Time/Period Qualifier
+   ,2380,C,DTM00020,35                   Date/Time/Period
+   ,2379,C,DTM00030,3                    Date/Time/Period Format Qualifier
+
+* Segment Group 02 Definition
+
+GRP,02,M,9,1                               SEGMENT GROUP 02
+
+* NAD Definition 
+
+SEG,NAD,M,1,1,DCOR0101                            NAME AND ADDRESS 
+
+DEL,3035,M,NAD00010,3                    PARTY QUALIFIER
+DEL,C082,C                               PARTY IDENTIFICATION DETAILS
+   ,3039,M,NAD00020,35                   Party id. identification
+   ,1131,C,NAD00030,3                    Code list qualifier
+   ,3055,C,NAD00040,3                    Code list responsible agency, coded
+DEL,C058,C                               NAME AND ADDRESS
+   ,3124,M,NAD00050,35                   Name and address line
+   ,3124,C,NAD00060,35                   Name and address line
+   ,3124,C,NAD00070,35                   Name and address line
+   ,3124,C,NAD00080,35                   Name and address line
+   ,3124,C,NAD00090,35                   Name and address line
+DEL,C080,C                               PARTY NAME
+   ,3036,M,NAD00100,35                   Party name
+   ,3036,C,NAD00110,35                   Party name
+   ,3036,C,NAD00120,35                   Party name
+   ,3036,C,NAD00130,35                   Party name
+   ,3036,C,NAD00140,35                   Party name
+   ,3045,C,NAD00150,3                    Party name format, coded
+DEL,C059,C                               STREET
+   ,3042,M,NAD00160,35                   Street and number/p.o. box
+   ,3042,C,NAD00170,35                   Street and number/p.o. box
+   ,3042,C,NAD00180,35                   Street and number/p.o. box
+DEL,3164,C,NAD00190,35                   CITY NAME
+DEL,3229,C,NAD00200,9                    COUNTRY SUB-ENTITY IDENTIFICATION
+DEL,3251,C,NAD00210,9                    POSTCODE IDENTIFICATION
+DEL,3207,C,NAD00220,3                    COUNTRY, CODED
+
+* CTA Definition
+
+SEG,CTA,C,1,9                   CONTACT INFORMATION
+
+DEL,3139,C,CTA00010,3                    CONTACT FUNCTION, CODED
+DEL,C056,C                               DEPARTMENT OR EMPLOYEE DETAILS
+   ,3413,C,CTA00020,17                   Department or employee identification
+   ,3412,C,CTA00030,35                   Department or employee
+
+* Segment Group 03 Definition
+
+GRP,03,M,9999,1                   SEGMENT GROUP 03
+
+* EQD Definition
+
+SEG,EQD,C,1,1,DCOR0201                   EQUIPMENT DETAILS
+
+DEL,8053,M,EQD00010,3                    EQUIPMENT QUALIFIER
+DEL,C237,C                               EQUIPMENT IDENTIFICATION
+   ,8260,C,EQD00020,17                   Equipment identification number
+   ,1131,C,EQD00030,3                    Code list qualifier
+   ,3055,C,EQD00040,3                    Code list responsible agency, coded
+   ,3207,C,EQD00050,3                    Country, coded
+DEL,C224,C                               EQUIPMENT SIZE AND TYPE
+   ,8155,C,EQD00060,10                   Equipment size and type identification
+   ,1131,C,EQD00070,3                    Code list qualifier
+   ,3055,C,EQD00080,3                    Code list responsible agency, coded
+   ,8154,C,EQD00090,35                   Equipment size and type
+DEL,8077,C,EQD00100,3                    EQUIPMENT SUPPLIER, CODED
+DEL,8249,C,EQD00110,3                    EQUIPMENT STATUS, CODED
+DEL,8169,C,EQD00120,3                    FULL/EMPTY INDICATOR, CODED
+
+* RFF Definition
+
+SEG,RFF,C,1,9,DCOR0301                   REFERENCE
+
+DEL,C506,M                               REFERENCE
+   ,1153,M,RFF00090,3                    Reference qualifier
+   ,1154,C,RFF00100,35                   Reference number
+   ,1156,C,RFF00110,6                    Line number
+   ,4000,C,RFF00120,35                   Reference version number
+
+* TMD Definition
+
+SEG,TMD,C,1,9                   TRANSPORT MOVEMENT 
+
+DEL,C219,C                               MOVEMENT TYPE
+   ,8335,C,TMD00010,3                    Movement type, coded
+   ,8334,C,TMD00020,35                   Movement type
+DEL,8332,C,TMD00030,26                   EQUIPMENT PLAN
+DEL,8341,C,TMD00040,3                    HAULAGE ARRANGEMENTS, CODED
+
+* DTM Definition
+
+SEG,DTM,C,1,9,DCOR0301                   DATE/TIME/PERIOD   
+DEL,C507,M                               Date/Time/Period
+   ,2005,M,DTM00040,3                    Date/Time/Period Qualifier
+   ,2380,C,DTM00050,35                   Date/Time/Period
+   ,2379,C,DTM00060,3                    Date/Time/Period Format Qualifier
+
+* LOC Definition
+
+SEG,LOC,C,1,9,DCOR0401                   PLACE/LOCATION IDENTIFICATION
+
+DEL,3227,M,LOC00150,3                    PLACE/LOCATION QUALIFIER
+DEL,C517,C                               LOCATION IDENTIFICATION
+   ,3225,C,LOC00160,25                   Place/location identification
+   ,1131,C,LOC00170,3                    Code list qualifier
+   ,3055,C,LOC00180,3                    Code list responsible agency, coded
+   ,3224,C,LOC00190,17                   Place/location
+DEL,C519,C                               RELATED LOCATION ONE IDENTIFICATION
+   ,3223,C,LOC00200,25                   Related place/location one identification
+   ,1131,C,LOC00210,3                    Code list qualifier
+   ,3055,C,LOC00220,3                    Code list responsible agency, coded
+   ,3222,C,LOC00230,70                   Related place/location one
+DEL,C553,C                               RELATED LOCATION TWO IDENTIFICATION
+   ,3233,C,LOC00240,25                   Related place/location two identification
+   ,1131,C,LOC00250,3                    Code list qualifier
+   ,3055,C,LOC00260,3                    Code list responsible agency, coded
+   ,3232,C,LOC00270,70                   Related place/location two
+DEL,5479,C,LOC00280,3                    RELATION, CODED
+
+* MEA Definition
+
+SEG,MEA,C,1,9,DCOR0501                   MEASUREMENTS
+
+DEL,6311,C,MEA00010,3                    MEASUREMENT APPLICATION QUALIFIER
+DEL,C502,C                               MEASUREMENT DETAILS
+   ,6313,C,MEA00020,3                    Measurement dimension, coded
+   ,6321,C,MEA00030,3                    Measurement significance, coded
+   ,6155,C,MEA00040,3                    Measurement attribute, coded
+   ,6154,C,MEA00050,70                   Measurement attribute
+DEL,C174,C                               VALUE/RANGE
+   ,6411,C,MEA00060,3                    Measure unit qualifier
+   ,6314,C,MEA00070,18                   Measurement value
+   ,6162,C,MEA00080,18                   Range minimum
+   ,6152,C,MEA00090,18                   Range maximum
+   ,6432,C,MEA00100,2                    Significant digits
+DEL,7383,C,MEA00110,3                    SURFACE/LAYER INDICATOR, CODED
+
+* DIM Definition
+
+SEG,DIM,C,1,9                   DIMENSIONS
+
+DEL,6145,M,DIM00010,3                    DIMENSION QUALIFIER
+DEL,C211,M                               DIMENSIONS
+   ,6411,M,DIM00020,3                    Measure unit qualifier
+   ,6168,C,DIM00030,15                   Length dimension
+   ,6140,C,DIM00040,15                   Width dimension
+   ,6008,C,DIM00050,15                   Height dimension
+
+* TMP Definition
+
+SEG,TMP,C,1,9                   TEMPERATURE
+
+DEL,6245,M,TMP00010,3                    TEMPERATURE QUALIFIER
+DEL,C239,C                               TEMPERATURE SETTING
+   ,6246,C,TMP00020,3                    Temperature setting
+   ,6411,C,TMP00030,3                    Measure unit qualifier
+
+* RNG Definition
+
+SEG,RNG,C,1,9                   RANGE DETAILS
+
+DEL,6167,M,RNG00010,3                    RANGE TYPE QUALIFIER
+DEL,C280,C                               RANGE
+   ,6411,M,RNG00020,3                    Measure unit qualifier
+   ,6162,C,RNG00030,18                   Range minimum
+   ,6152,C,RNG00040,18                   Range maximum
+
+* SEL Definition
+
+SEG,SEL,C,1,9,DCOR0502                   SEAL NUMBER
+
+DEL,9308,M,SEL00010,10                   SEAL NUMBER
+DEL,C215,C                               SEAL ISSUER
+   ,9303,C,SEL00020,3                    Sealing party, coded
+   ,1131,C,SEL00030,3                    Code list qualifier
+   ,3055,C,SEL00040,3                    Code list responsible agency, coded
+   ,9302,C,SEL00050,35                   Sealing party
+DEL,4517,C,SEL00060,3                    SEAL CONDITION, CODED
+
+* FTX Definition
+
+SEG,FTX,C,1,9,DCOR0502                 FREE TEXT
+
+DEL,4451,M,FTX00120,3                    TEXT SUBJECT QUALIFIER
+DEL,4453,C,FTX00130,3                    TEXT FUNCTION, CODED
+DEL,C107,C                               TEXT REFERENCE 
+   ,4441,M,FTX00140,3                    Free text, coded
+   ,1131,C,FTX00150,3                    Code list qualifier
+   ,3055,C,FTX00160,3                    Code list responsible agency, coded
+DEL,C108,C                               TEXT LITERAL
+   ,4440,M,FTX00170,70                   Free text
+   ,4440,C,FTX00180,70                   Free text
+   ,4440,C,FTX00190,70                   Free text
+   ,4440,C,FTX00200,70                   Free text
+   ,4440,C,FTX00210,70                   Free text
+   ,3453,C,FTX00220,3                    LANGUAGE, CODED
+
+* DGS Definition
+
+SEG,DGS,C,1,9                 DANGEROUS GOODS
+
+DEL,8273,C,DGS00010,3                    DANGEROUS GOODS REGULATIONS, CODED
+DEL,C205,C                               HAZARD CODE
+   ,8351,M,DGS00020,7                    Hazard code identification
+   ,8078,C,DGS00030,7                    Hazard substance/item/page number
+   ,8092,C,DGS00040,10                   Hazard code version number
+DEL,C234,C                               UNDG INFORMATION
+   ,7124,C,DGS00050,4                    UNDG number
+   ,7088,C,DGS00060,8                    Dangerous goods flashpoint
+DEL,C223,C                               DANGEROUS GOODS SHIPMENT FLASHPOINT
+   ,7106,C,DGS00070,3                    Shipment flashpoint
+   ,6411,C,DGS00080,3                    Measure unit qualifier
+DEL,8339,C,DGS00090,3                    PACKING GROUP, CODED
+DEL,8364,C,DGS00100,6                    EMS NUMBER
+DEL,8410,C,DGS00110,4                    MFAG
+DEL,8126,C,DGS00120,10                   TREM CARD NUMBER
+DEL,C235,C                               HAZARD IDENTIFICATION
+   ,8158,C,DGS00130,4                    Hazard identification number, upper part
+   ,8186,C,DGS00140,4                    Substance identification number, lower part
+DEL,C236,C                               DANGEROUS GOODS LABEL
+   ,8246,C,DGS00150,4                    Dangerous goods label marking
+   ,8246,C,DGS00160,4                    Dangerous goods label marking
+   ,8246,C,DGS00170,4                    Dangerous goods label marking
+DEL,8255,C,DGS00180,3                    PACKING INSTRUCTION, CODED
+DEL,8325,C,DGS00190,3                    CATEGORY OF MEANS OF TRANSPORT, CODED
+DEL,8211,C,DGS00200,3                    PERMISSION FOR TRANSPORT, CODED
+
+* EQA Definition
+
+SEG,EQA,C,1,9                 ATTACHED EQUIPMENT
+
+DEL,8053,M,EQA00010,3                    EQUIPMENT QUALIFIER
+DEL,C237,C                               EQUIPMENT IDENTIFICATION
+   ,8260,C,EQA00020,17                   Equipment identification number
+   ,1131,C,EQA00030,3                    Code list qualifier
+   ,3055,C,EQA00040,3                    Code list responsible agency, coded
+   ,3207,C,EQA00050,3                    Country, coded
+
+* PIA Definition
+
+SEG,PIA,C,1,9                 ADDITIONAL PRODUCT ID
+
+DEL,4347,M,PIA00010,3                    PRODUCT ID. FUNCTION QUALIFIER
+DEL,C212,M                               ITEM NUMBER IDENTIFICATION
+   ,7140,C,PIA00020,35                   Item number
+   ,7143,C,PIA00030,3                    Item number type, coded
+   ,1131,C,PIA00040,3                    Code list qualifier
+   ,3055,C,PIA00050,3                    Code list responsible agency, coded
+DEL,C212,C                               ITEM NUMBER IDENTIFICATION
+   ,7140,C,PIA00060,35                   Item number
+   ,7143,C,PIA00070,3                    Item number type, coded
+   ,1131,C,PIA00080,3                    Code list qualifier
+   ,3055,C,PIA00090,3                    Code list responsible agency, coded
+DEL,C212,C                               ITEM NUMBER IDENTIFICATION
+   ,7140,C,PIA00100,35                   Item number
+   ,7143,C,PIA00110,3                    Item number type, coded
+   ,1131,C,PIA00120,3                    Code list qualifier
+   ,3055,C,PIA00130,3                    Code list responsible agency, coded
+DEL,C212,C                               ITEM NUMBER IDENTIFICATION
+   ,7140,C,PIA00140,35                   Item number
+   ,7143,C,PIA00150,3                    Item number type, coded
+   ,1131,C,PIA00160,3                    Code list qualifier
+   ,3055,C,PIA00170,3                    Code list responsible agency, coded
+DEL,C212,C                               ITEM NUMBER IDENTIFICATION
+   ,7140,C,PIA00180,35                   Item number
+   ,7143,C,PIA00190,3                    Item number type, coded
+   ,1131,C,PIA00200,3                    Code list qualifier
+   ,3055,C,PIA00210,3                    Code list responsible agency, coded
+
+* Segment Group 04 Definition
+
+*GRP,04,C,9,2                      SEGMENT GROUP 04
+
+* DAM Definition
+
+*SEG,DAM,M,2,1                 DAMAGE
+
+*DEL,7493,C,DAM00010,3                    DAMAGE DETAILS QUALIFIER
+*DEL,C821,C                               TYPE OF DAMAGE
+*   ,7501,C,DAM00020,3                    Type of damage, coded
+*   ,1131,C,DAM00030,3                    Code list qualifier
+*   ,3055,C,DAM00040,3                    Code list responsible agency, coded
+*   ,7500,C,DAM00050,3                    Type of damage
+*DEL,C822,C                               DAMAGE AREA
+*   ,7503,C,DAM00060,3                    Damage area identification
+*   ,1131,C,DAM00070,3                    Code list qualifier
+*   ,3055,C,DAM00080,3                    Code list responsible agency, coded
+*   ,7502,C,DAM00090,3                    Damage area
+*DEL,C825,C                               DAMAGE SEVERITY
+*   ,7509,C,DAM00100,3                    Damage severity, coded
+*   ,1131,C,DAM00110,3                    Code list qualifier
+*   ,3055,C,DAM00120,3                    Code list responsible agency, coded
+*   ,7508,C,DAM00130,35                   Damage severity
+*DEL,C826,C                               ACTION
+*   ,1229,C,DAM00140,3                    Action request/notification, coded
+*   ,1131,C,DAM00150,3                    Code list qualifier
+*   ,3055,C,DAM00160,3                    Code list responsible agency, coded
+*   ,1228,C,DAM00170,35                   Action request/notification
+
+* COD Definition
+
+*SEG,COD,C,2,1                 COMPONENT DETAILS
+*
+*DEL,C823,C                               TYPE OF UNIT/COMPONENT
+*   ,7505,C,COD00010,3                    Type of unit/component, coded
+*   ,1131,C,COD00020,3                    Code list qualifier
+*   ,3055,C,COD00030,3                    Code list responsible agency, coded
+*   ,7504,C,COD00040,3                    Type of unit/component
+*DEL,C824,C                               COMPONENT MATERIAL
+*   ,7507,C,COD00050,3                    Component material, coded
+*   ,1131,C,COD00060,3                    Code list qualifier
+*   ,3055,C,COD00070,3                    Code list responsible agency, coded
+*   ,7506,C,COD00080,3                    Component material
+
+* Segment Group 05 Definition
+
+*GRP,05,C,1,2                      SEGMENT GROUP 05
+
+* TDT Definition
+
+*SEG,TDT,M,2,1                 DETAILS OF TRANSPORT
+
+*DEL,8051,M,TDT00210,3                    TRANSPORT STAGE QUALIFIER
+*DEL,8028,C,TDT00220,17                   CONVEYANCE REFERENCE NUMBER
+*DEL,C220,C                               MODE OF TRANSPORT
+*   ,8067,C,TDT00230,3                    Mode of transport, coded
+*   ,8066,C,TDT00240,17                   Mode of transport
+*DEL,C228,C                               TRANSPORT MEANS
+*   ,8179,C,TDT00250,8                    Type of means of transport identification
+*   ,8178,C,TDT00260,17                   Type of means of transport
+*DEL,C040,C                               CARRIER
+*   ,3127,C,TDT00270,17                   Carrier identification
+*   ,1131,C,TDT00280,3                    Code list qualifier
+*   ,3055,C,TDT00290,3                    Code list responsible agency, coded
+*   ,3128,C,TDT00300,35                   Carrier name
+*DEL,8101,C,TDT00310,3                    TRANSIT DIRECTION, CODED
+*DEL,C401,C                               EXCESS TRANSPORTATION INFORMATION
+*   ,8457,M,TDT00320,3                    Excess transportation reason, coded
+*   ,8459,M,TDT00330,3                    Excess transportation responsibility, coded
+*   ,7130,C,TDT00340,17                   Customer authorization number
+*DEL,C222,C                               TRANSPORT IDENTIFICATION
+*   ,8213,C,TDT00350,9                    Id. of means of transport identification
+*   ,1131,C,TDT00360,3                    Code list qualifier
+*   ,3055,C,TDT00370,3                    Code list responsible agency, coded
+*   ,8212,C,TDT00380,35                   Id. of the means of transport
+*   ,8453,C,TDT00390,3                    Nationality of means of transport, coded
+*DEL,8281,C,TDT00400,3                    TRANSPORT OWNERSHIP, CODED
+
+* LOC Definition
+
+*SEG,LOC,C,2,9                 PLACE/LOCATION IDENTIFICATION
+
+*DEL,3227,M,LOC00290,3                    PLACE/LOCATION QUALIFIER
+*DEL,C517,C                               LOCATION IDENTIFICATION
+*   ,3225,C,LOC00300,25                   Place/location identification
+*   ,1131,C,LOC00310,3                    Code list qualifier
+*   ,3055,C,LOC00320,3                    Code list responsible agency, coded
+*   ,3224,C,LOC00330,17                   Place/location
+*DEL,C519,C                               RELATED LOCATION ONE IDENTIFICATION
+*   ,3223,C,LOC00340,25                   Related place/location one identification
+*   ,1131,C,LOC00350,3                    Code list qualifier
+*   ,3055,C,LOC00360,3                    Code list responsible agency, coded
+*   ,3222,C,LOC00370,70                   Related place/location one
+*DEL,C553,C                               RELATED LOCATION TWO IDENTIFICATION
+*   ,3233,C,LOC00380,25                   Related place/location two identification
+*   ,1131,C,LOC00390,3                    Code list qualifier
+*   ,3055,C,LOC00400,3                    Code list responsible agency, coded
+*   ,3232,C,LOC00410,70                   Related place/location two
+*DEL,5479,C,LOC00420,3                    RELATION, CODED
+
+* DTM Definition
+
+*SEG,DTM,C,2,9                            DATE/TIME/PERIOD
+
+*DEL,C507,M                               Date/Time/Period
+*   ,2005,M,DTM00070,3                    Date/Time/Period Qualifier
+*   ,2380,C,DTM00080,35                   Date/Time/Period
+*   ,2379,C,DTM00090,3                    Date/Time/Period Format Qualifier
+
+* NAD Definition
+
+SEG,NAD,C,1,1                            NAME AND ADDRESS
+
+DEL,3035,M,NAD00230,3                    PARTY QUALIFIER
+DEL,C082,C                               PARTY IDENTIFICATION DETAILS
+   ,3039,M,NAD00240,35                   Party id. identification
+   ,1131,C,NAD00250,3                    Code list qualifier
+   ,3055,C,NAD00260,3                    Code list responsible agency, coded
+DEL,C058,C                               NAME AND ADDRESS
+   ,3124,M,NAD00270,35                   Name and address line
+   ,3124,C,NAD00280,35                   Name and address line
+   ,3124,C,NAD00290,35                   Name and address line
+   ,3124,C,NAD00300,35                   Name and address line
+   ,3124,C,NAD00310,35                   Name and address line
+DEL,C080,C                               PARTY NAME
+   ,3036,M,NAD00320,35                   Party name
+   ,3036,C,NAD00330,35                   Party name
+   ,3036,C,NAD00340,35                   Party name
+   ,3036,C,NAD00350,35                   Party name
+   ,3036,C,NAD00360,35                   Party name
+   ,3045,C,NAD00370,3                    Party name format, coded
+DEL,C059,C                               STREET
+   ,3042,M,NAD00380,35                   Street and number/p.o. box
+   ,3042,C,NAD00390,35                   Street and number/p.o. box
+   ,3042,C,NAD00400,35                   Street and number/p.o. box
+DEL,3164,C,NAD00410,35                   CITY NAME
+DEL,3229,C,NAD00420,9                    COUNTRY SUB-ENTITY IDENTIFICATION
+DEL,3251,C,NAD00430,9                    POSTCODE IDENTIFICATION
+DEL,3207,C,NAD00440,3                    COUNTRY, CODED
+
+* CNT Definition
+
+SEG,CNT,M,0,1,SDEC0101                   CONTROL TOTAL
+DEL,C270,M                               CONTROL
+   ,6069,M,CNT00010,3                    Control qualifier
+   ,6066,M,CNT00020,18                   Control value
+   ,6411,C,CNT00030,3                    Measure unit qualifier
+
+* UNT Definition
+
+SEG,UNT,M,0,1,UNT00101                            MESSAGE TRAILER
+
+DEL,0074,M,UNT00020,6,V,N                Number of Segments in Message
+DEL,0062,M,UNT00010,14                   Message Reference Number
+
+
+SEG,UNZ,M,0,1,UNZ00101                               INTERCHANGE TRAILER
+
+DEL,0036,M,*NMST,6,V,N                  Interchange Control Count
+DEL,0020,M,P230,14                      Interchange Control Reference
+
+************************ End of COARR95B.EDF *****************************

@@ -1,0 +1,13 @@
+.captche{
+	font-size:30px; 
+	color:blue;
+	background: #fff none repeat scroll 0 0;
+	display: block;
+	-khtml-user-select:none;
+	-webkit-user-select:none;
+	-moz-user-select:none;
+	-ms-user-select: none;
+	-o-user-select:none;
+	user-select:none;
+	unselectable:on;
+}
