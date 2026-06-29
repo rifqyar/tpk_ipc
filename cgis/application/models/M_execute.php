@@ -4087,9 +4087,17 @@ FROM (
 				LEFT JOIN t_spk_cont B ON A.NO_CONT = B.NO_CONT
 				LEFT JOIN t_spk C ON A.NO_DOK = C.NO_DOK AND A.TGL_DOK = C.TGL_DOK
 				LEFT JOIN (
-					SELECT NO_CONT, KD_CONT_TIPE AS 'TIPE', ISO_CODE, BRUTO
-					FROM t_cocostscont 
-					) X ON X.NO_CONT = A.NO_CONT 
+					select
+						tcn.NO_CONT,
+						tcn.KD_CONT_TIPE as 'TIPE',
+						tcn.ISO_CODE,
+						tcn.BRUTO,
+						tc.NM_ANGKUT,
+						tc.NO_VOY_FLIGHT
+					from
+						t_cocostscont tcn
+						inner join t_cocostshdr tc on tcn.ID = tc.ID
+					) X ON X.NO_CONT = A.NO_CONT and X.nm_angkut = A.NM_KAPAL and x.no_voy_flight
 				WHERE A.ID ='$id'";
 			//echo $SQL;
 			$result = $func->main->get_result($SQL);
