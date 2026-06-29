@@ -473,11 +473,11 @@ class M_display extends CI_Model
 															WHEN b.STATUS_CONT IN (450,510,530)
 																	AND d.START_INSP IS NULL
 																	AND d.FINISH_INSP IS NULL
-																	AND a.RESPON IS NOT NULL THEN 2
+																	AND a.RESPON IS NOT NULL THEN 1
 															WHEN b.STATUS_CONT = 460
 																	AND d.START_INSP IS NULL
 																	AND d.FINISH_INSP IS NULL
-																	AND a.RESPON IS NOT NULL THEN 1
+																	AND a.RESPON IS NOT NULL THEN 2
 															WHEN b.STATUS_CONT = 460
 																	AND d.START_INSP IS NOT NULL
 																	AND d.FINISH_INSP IS NULL THEN 4
@@ -619,11 +619,11 @@ class M_display extends CI_Model
 															WHEN b.STATUS_CONT IN (450,510,530)
 																	AND d.START_INSP IS NULL
 																	AND d.FINISH_INSP IS NULL
-																	AND a.RESPON IS NOT NULL THEN 2
+																	AND a.RESPON IS NOT NULL THEN 1
 															WHEN b.STATUS_CONT = 460
 																	AND d.START_INSP IS NULL
 																	AND d.FINISH_INSP IS NULL
-																	AND a.RESPON IS NOT NULL THEN 1
+																	AND a.RESPON IS NOT NULL THEN 2
 															WHEN b.STATUS_CONT = 460
 																	AND d.START_INSP IS NOT NULL
 																	AND d.FINISH_INSP IS NULL THEN 4

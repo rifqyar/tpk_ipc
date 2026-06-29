@@ -1,7 +1,7 @@
 <div class="col-md-9">
   <div>
     <h1>
-      Welcome to Berak Operating System Common Area PT. Multi Terminal Indonesia
+      Welcome to Behandle Operating System Common Area PT. Multi Terminal Indonesia
     </h1>
   </div>
   <!-- <div class="panel">
