@@ -428,7 +428,7 @@ class M_display extends CI_Model
 
 			if ($search == "" or $search == NULL) {
 				// $SQL = "SELECT * FROM (SELECT k.no_antrian,a.NO_CONT,a.UKR_CONT,a.TGL_DOK,a.JNS_DOK,a.`STATUS`,a.NO_DOK,b.LOKASI,a.JNS_KEGIATAN,a.NAMA_CUST,b.STATUS_CONT,d.START_INSP,d.FINISH_INSP,a.RESPON,a.WK_RESPON,
-			  //  CASE
+				//  CASE
 				// 		   WHEN b.STATUS_CONT IN (450,510,530) AND d.START_INSP IS NULL AND d.FINISH_INSP IS NULL AND a.RESPON IS NULL THEN 3
 				// 		   WHEN b.STATUS_CONT IN (450,510,530) AND d.START_INSP IS NULL AND d.FINISH_INSP IS NULL AND a.RESPON IS NOT NULL THEN 1
 				// 		   WHEN b.STATUS_CONT = 460 AND d.START_INSP IS NULL AND d.FINISH_INSP IS NULL  AND a.RESPON IS NOT NULL THEN 2
@@ -436,14 +436,14 @@ class M_display extends CI_Model
 				// 		   WHEN b.STATUS_CONT IN (500,540,520) THEN 6 
 				// 		   ELSE 5 
 				// 	   END AS STATUS2,s.NOTE 
-			  //  FROM t_gatepass a
-			  //  left JOIN (SELECT * FROM t_spk_cont WHERE STATUS_CONT != 900) b on a.NO_CONT = b.NO_CONT 
-			  //  JOIN t_spk c ON c.ID = b.ID
-			  //  LEFT JOIN t_op_inspection d ON a.NO_CONT = d.NO_CONT AND a.NO_DOK = d.NO_DOK and a.JNS_KEGIATAN = d.JNS_KEGIATAN
-			  //  LEFT JOIN (select * from t_antrian_respon_ppk where reset = 'N') k ON a.ID = k.id_gatepass
-			  //  LEFT JOIN t_job_slip s ON c.NO_SPK = s.NO_SPK AND a.NO_CONT = s.NO_CONT AND s.JENIS = CONCAT('BEHANDLE ',a.JNS_KEGIATAN)
-			  //  WHERE  a.JNS_KEGIATAN  != 3 AND a.`STATUS` = 'WAITING'  AND a.JNS_DOK != 'SPPMP') az
-			  //  ORDER BY STATUS2,WK_RESPON";
+				//  FROM t_gatepass a
+				//  left JOIN (SELECT * FROM t_spk_cont WHERE STATUS_CONT != 900) b on a.NO_CONT = b.NO_CONT 
+				//  JOIN t_spk c ON c.ID = b.ID
+				//  LEFT JOIN t_op_inspection d ON a.NO_CONT = d.NO_CONT AND a.NO_DOK = d.NO_DOK and a.JNS_KEGIATAN = d.JNS_KEGIATAN
+				//  LEFT JOIN (select * from t_antrian_respon_ppk where reset = 'N') k ON a.ID = k.id_gatepass
+				//  LEFT JOIN t_job_slip s ON c.NO_SPK = s.NO_SPK AND a.NO_CONT = s.NO_CONT AND s.JENIS = CONCAT('BEHANDLE ',a.JNS_KEGIATAN)
+				//  WHERE  a.JNS_KEGIATAN  != 3 AND a.`STATUS` = 'WAITING'  AND a.JNS_DOK != 'SPPMP') az
+				//  ORDER BY STATUS2,WK_RESPON";
 				$SQL = "SELECT *
 									FROM (
 											/* ===========================
@@ -573,7 +573,7 @@ class M_display extends CI_Model
 									ORDER BY az.STATUS2, az.WK_RESPON";
 			} else {
 				// $SQL = "SELECT * FROM (SELECT k.no_antrian,a.NO_CONT,a.UKR_CONT,a.TGL_DOK,a.JNS_DOK,a.`STATUS`,a.NO_DOK,b.LOKASI,a.JNS_KEGIATAN,a.NAMA_CUST,b.STATUS_CONT,d.START_INSP,d.FINISH_INSP,a.RESPON,a.WK_RESPON,
-			  //  CASE
+				//  CASE
 				// 		   WHEN b.STATUS_CONT IN (450,510,530) AND d.START_INSP IS NULL AND d.FINISH_INSP IS NULL AND a.RESPON IS NULL THEN 3
 				// 		   WHEN b.STATUS_CONT IN (450,510,530) AND d.START_INSP IS NULL AND d.FINISH_INSP IS NULL AND a.RESPON IS NOT NULL THEN 1
 				// 		   WHEN b.STATUS_CONT = 460 AND d.START_INSP IS NULL AND d.FINISH_INSP IS NULL  AND a.RESPON IS NOT NULL THEN 2
@@ -581,15 +581,15 @@ class M_display extends CI_Model
 				// 		   WHEN b.STATUS_CONT IN (500,540,520) THEN 6 
 				// 		   ELSE 5 
 				// 	   END AS STATUS2,s.NOTE 
-			  //  FROM t_gatepass a
-			  //  left JOIN (SELECT * FROM t_spk_cont WHERE STATUS_CONT != 900) b on a.NO_CONT = b.NO_CONT 
-			  //  JOIN t_spk c ON c.ID = b.ID
-			  //  LEFT JOIN t_op_inspection d ON a.NO_CONT = d.NO_CONT AND a.NO_DOK = d.NO_DOK and a.JNS_KEGIATAN = d.JNS_KEGIATAN
-			  //  LEFT JOIN (select * from t_antrian_respon_ppk where reset = 'N') k ON a.ID = k.id_gatepass
-			  //  LEFT JOIN t_job_slip s ON c.NO_SPK = s.NO_SPK AND a.NO_CONT = s.NO_CONT AND s.JENIS = CONCAT('BEHANDLE ',a.JNS_KEGIATAN)
-			  //  WHERE  a.JNS_KEGIATAN  != 3 AND a.`STATUS` = 'WAITING'  AND a.JNS_DOK != 'SPPMP') az
-			  //  where NO_DOK like UPPER('%$search%') or NO_CONT like UPPER('%$search%')
-			  //  ORDER BY STATUS2,WK_RESPON";
+				//  FROM t_gatepass a
+				//  left JOIN (SELECT * FROM t_spk_cont WHERE STATUS_CONT != 900) b on a.NO_CONT = b.NO_CONT 
+				//  JOIN t_spk c ON c.ID = b.ID
+				//  LEFT JOIN t_op_inspection d ON a.NO_CONT = d.NO_CONT AND a.NO_DOK = d.NO_DOK and a.JNS_KEGIATAN = d.JNS_KEGIATAN
+				//  LEFT JOIN (select * from t_antrian_respon_ppk where reset = 'N') k ON a.ID = k.id_gatepass
+				//  LEFT JOIN t_job_slip s ON c.NO_SPK = s.NO_SPK AND a.NO_CONT = s.NO_CONT AND s.JENIS = CONCAT('BEHANDLE ',a.JNS_KEGIATAN)
+				//  WHERE  a.JNS_KEGIATAN  != 3 AND a.`STATUS` = 'WAITING'  AND a.JNS_DOK != 'SPPMP') az
+				//  where NO_DOK like UPPER('%$search%') or NO_CONT like UPPER('%$search%')
+				//  ORDER BY STATUS2,WK_RESPON";
 				$SQL = "SELECT *
 									FROM (
 											/* ===========================
@@ -881,6 +881,156 @@ class M_display extends CI_Model
 			$QUERY = $this->db->query($SQL);
 			return $QUERY->result();
 		}
+	}
+
+	function get_data_rekon()
+	{
+		$page_title = "CUSTOMS - SPJM";
+		$title = "CUSTOMS - SPJM";
+		$this->newtable->breadcrumb('Dashboard', site_url(), 'icon-home');
+		$this->newtable->breadcrumb('Display', 'javascript:void(0)', '');
+		$this->newtable->breadcrumb('CUSTOMS - SPJM', 'javascript:void(0)', '');
+		$check = (grant() == "W") ? true : false;
+		$SQL = "SELECT * FROM (SELECT
+							trdn.NO_DOK,
+							trdn.NO_CONT,
+							trdn.CONT_SIZE,
+							tr.TIPE_CONT,
+							rkdb.NAMA as JNS_DOK,
+							case 
+								when tr.KD_REQ = 'INQUIRY' then 'DONE'
+								when tr.KD_REQ = 'SENT' then 'SENT TO NPCT'
+								else '-'
+							end as GATEPASS_NPCT,
+							IFNULL(ts.NO_SPK, 'BELUM SPK') as SPK, 
+							ts.WK_REQ as TERBIT_SPK,
+							case 
+								when tob.W_BEHANDLE is null then 'BELUM PENARIKAN'
+								else tob.W_BEHANDLE
+							end as PENARIKAN_KONTAINER,
+							CASE 
+									WHEN tob.W_BEHANDLE IS NULL THEN 'BELUM PENARIKAN'
+									ELSE 'SUDAH PENARIKAN'
+							END AS STATUS_PENARIKAN,
+							case
+								when ts.NO_SPK is not null  
+								then CONCAT('<span class=\"label label-success\">',
+									DATEDIFF(DATE_FORMAT(tob.W_BEHANDLE, '%Y-%m-%d'), DATE_FORMAT(ts.WK_REQ, '%Y-%m-%d')), ' HARI</span>/', '<br><span class=\"label label-success\">', TIMEDIFF(TIMESTAMP(tob.W_BEHANDLE, '%Y-%m-%d, %hh:%mm:%ss'), TIMESTAMP(ts.WK_REQ, '%Y-%m-%d, %hh:%mm:%ss')), ' JAM</span>')
+								else '-'
+							end as LAMA_PENARIKAN,
+							CASE
+										WHEN ld.created_at_request is not null
+										THEN 'SUDAH REQUEST'
+										ELSE 'BELUM REQUEST'
+								END AS STATUS_REQUEST,
+								CASE
+										WHEN ld.CREATED_AT_REQUEST IS NOT NULL THEN CONCAT(
+												'<span class=\"label label-success\">',
+												DATEDIFF(DATE(ld.CREATED_AT_REQUEST), DATE(trdn.`TIMESTAMP`)),
+												' HARI</span>/',
+												'<br><span class=\"label label-success\">',
+												TIMEDIFF(ld.CREATED_AT_REQUEST, trdn.`TIMESTAMP`),
+												' JAM</span>'
+										)
+										ELSE '-'
+								END AS LAMA_REQUEST,
+    					trdn.PERIKSA,
+							trdn.TIMESTAMP
+						from
+							t_rekon_dokumen_npct1 trdn
+						inner join (
+							select 
+								tr.NO_DOK,
+								trc.TIPE_CONT,
+								tr.JNS_DOK,
+								trc.NO_CONT,
+								trc.KD_STATUS as KD_REQ
+							from
+								t_request tr
+							inner join t_request_cont trc on
+								tr.ID = trc.ID
+						) tr on
+							trdn.NO_DOK = tr.NO_DOK
+							and trdn.NO_CONT = tr.NO_CONT
+						inner join reff_kode_dok_bc rkdb on
+							tr.JNS_DOK = rkdb.ID
+						left join (
+							select
+								ts.NO_DOK,
+								ts.NO_SPK,
+								ts.WK_REQ,
+								tsc.NO_CONT
+							from
+								t_spk ts
+							inner join t_spk_cont tsc on
+								ts.ID = tsc.ID 
+						) ts on
+							ts.NO_DOK = tr.no_dok
+							and ts.no_cont = tr.no_cont
+						left join t_op_pickup top on
+							top.NO_SPK = ts.NO_SPK
+							and top.NO_CONT = ts.no_cont
+						left join t_op_behandlein tob on
+							tob.NO_SPK = ts.no_spk
+							and tob.NO_CONT = ts.no_cont
+						LEFT JOIN (
+								SELECT 
+										ld.NO_DOK,
+										MAX(ld.created_at) AS CREATED_AT_REQUEST
+								FROM list_dokumens ld
+								inner join t_request tr on ld.NO_DOK = tr.NO_DOK
+								inner join t_request_cont trc on tr.ID = trc.ID
+								WHERE ld.FL_STATUS <> 'X'
+								GROUP BY ld.NO_DOK
+						) ld 
+								ON ld.NO_DOK = trdn.NO_DOK and year(ld.created_at_request) = year(trdn.`TIMESTAMP`)
+						where
+							trdn.`TIMESTAMP` >= '2026-06-18 00:00:00'
+							and trdn.TYPE_DOK = 'SPJ') as az WHERE 1 = 1";
+		$this->newtable->multiple_search(true);
+		$this->newtable->show_chk(false);
+		$this->newtable->show_menu($check);
+		$this->newtable->show_search(true);
+		$arr_sts = array("" => "", "Y" => "Y", "T" => "T");
+		$arr_sts_penarikan = array(
+			"" => "",
+			"SUDAH PENARIKAN" => "SUDAH PENARIKAN",
+			"BELUM PENARIKAN" => "BELUM PENARIKAN"
+		);
+		$arr_sts_request = array(
+			"" => "",
+			"SUDAH REQUEST" => "SUDAH REQUEST",
+			"BELUM REQUEST" => "BELUM REQUEST"
+		);
+		$this->newtable->search(array(
+			array('az.PERIKSA', 'STATUS PERIKSA', 'OPTION', $arr_sts),
+			array('az.NO_SPK', 'NOMOR SPK', 'STRING'),
+			array('az.NO_DOK', 'NOMOR DOKUMEN', 'STRING'),
+			array('az.NO_CONT', 'NOMOR CONTAINER', 'STRING'),
+			array('az.STATUS_PENARIKAN', 'STATUS PENARIKAN KONTAINER', 'OPTION', $arr_sts_penarikan),
+			array('az.STATUS_REQUEST', 'STATUS REQUEST DOKUMEN', 'OPTION', $arr_sts_request)
+		));
+		$this->newtable->action(site_url() . "/display/customspjm");
+		$this->newtable->tipe_proses('button');
+		$this->newtable->hiddens(array("PERIKSA", "STATUS_PENARIKAN", "TIMESTAMP"));
+		$this->newtable->keys(array(""));
+		$this->newtable->cidb($this->db);
+		$this->newtable->orderby("az.`TIMESTAMP` desc");
+		$this->newtable->sortby("");
+		$this->newtable->set_formid("tblcustomsspjm");
+		$this->newtable->set_divid("divcustomsspjm");
+		$this->newtable->rowcount(25);
+		$this->newtable->clear();
+		$this->newtable->menu($proses);
+		$tabel .= '<div class="newtable-scroll-wrapper">';
+		$tabel .= $this->newtable->generate($SQL);
+		$tabel .= '</div>';
+		// $tabel .= $this->newtable->generate($SQL);
+		$arrdata = array("page_title" => $page_title, "title" => $title, "content" => $tabel);
+		if ($this->input->post("ajax") || $act == "post")
+			return $tabel;
+		else
+			return $arrdata;
 	}
 
 	/* public function getresponcustoms($act, $id){

@@ -35,4 +35,24 @@ table.tabelnoborder td{border:none;}
 /*button.btn{font-size:11px; direction:ltr;}*/
 table.tabelajax.no-border tr td{border:0px}
 .error_table{background-color:#F44336;color:#FFF}
+
+.newtable-scroll-wrapper {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    display: block;
+    padding-bottom: 10px;
+}
+
+.newtable-scroll-wrapper table {
+    min-width: 1800px;
+    white-space: nowrap;
+}
+
+.newtable-scroll-wrapper th,
+.newtable-scroll-wrapper td {
+    white-space: nowrap;
+    vertical-align: middle;
+}
 /*ABC3D7*/

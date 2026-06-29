@@ -122,6 +122,27 @@ class Display extends CI_Controller
 				$this->index();
 			}*/
 	}
+
+	function customspjm()
+	{
+		if (!$this->session->userdata('LOGGED')) {
+			$this->index();
+			return;
+		}
+		$this->load->model("m_display");
+		$arrdata = $this->m_display->get_data_rekon();
+		// var_dump($arrdata['datacount']);
+		// die();
+
+		$data = $this->load->view('content/newtable', $arrdata, true);
+		if($this->input->post("ajax")||$act=="post"){
+			echo $arrdata;
+		}else{
+			$this->content = $data;
+			$this->index();
+		}
+	}
+
 	function customplanner()
 	{
 		if (!$this->session->userdata('LOGGED')) {

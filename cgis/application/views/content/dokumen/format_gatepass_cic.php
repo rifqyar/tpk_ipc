@@ -12,7 +12,7 @@ $mpdf = new mPDF('UTF-8', Array(80,135));
 $drawPerPage = 50;
 $html = getStyle();
 $html .= '<body><div class="body">';
-$html .= getHTML($result, $title);
+$html .= getHTML($result, $title, $savename);
 $html .= '</div></body>';
 $mpdf->WriteHTML($html);
 $mpdf->Output();
@@ -43,7 +43,7 @@ function getStyle(){
 	return $html;
 	}
 
-function getHTML($result,$title){
+function getHTML($result,$title, $savename){
 	global $CONF;
 	$html = '
 		<table width="80%" align="center" >
@@ -63,7 +63,7 @@ function getHTML($result,$title){
 				</tr>
 				
 				<tr>
-					<td colspan="3" align="center" ><img width="100" height="100" src="assets/files/qrcode/code.png"></td>
+					<td colspan="3" align="center" ><img width="100" height="100" src="'.$savename.'"></td>
 				</tr>
 
 				<tr>

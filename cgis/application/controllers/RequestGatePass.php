@@ -120,7 +120,8 @@
 			
 			$params['data'] = $data['result'][0]['TAR'];
 			$params['size'] = 3;
-			$params['savename'] = 'assets/files/qrcode/code.png';
+			$params['savename'] = 'assets/files/qrcode/code-'.$this->input->get('id').'.png';
+			$data['savename']= $params['savename'];
 			$this->ciqrcode->generate($params);
 			$this->load->view('content/dokumen/format_gatepass_cic', $data);
 		}
