@@ -711,7 +711,7 @@ class ServiceNpct1New extends CI_Controller
         //         SELECT a.NO_DOK,a.TGL_DOK,b.NO_CONT,b.STATUS_CONT FROM t_spk a JOIN t_spk_cont b ON a.id = b.id  AND b.STATUS_CONT >= 450) B 
         //      ON A.no_dok = B.no_dok AND A.no_cont = B.no_cont
         //      WHERE DATE(A.TGL_DOK) >= DATE_ADD(NOW() , INTERVAL -30 DAY)");
-        
+
         // Ini yg baru
         $q = $this->db->query("SELECT
                                     A.*,
@@ -1513,14 +1513,14 @@ class ServiceNpct1New extends CI_Controller
         $key    = "5d3a2ffcb778f4b1c224f2447c048c8f";
 
         $no_cont = $this->input->get('no_cont');
-    
-            // Validasi input
-            if (empty($no_cont)) {
-                echo "Error: parameter 'no_cont' wajib diisi, contoh: ?no_cont=TGHU1234567\r\n";
-                return;
-            }
+
+        // Validasi input
+        if (empty($no_cont)) {
+            echo "Error: parameter 'no_cont' wajib diisi, contoh: ?no_cont=TGHU1234567\r\n";
+            return;
+        }
         // Bangun XML request
-            $addXML = '<request>
+        $addXML = '<request>
                 <containers>
                     <cont_no>' . $no_cont . '</cont_no>
                 </containers>
@@ -1635,6 +1635,116 @@ class ServiceNpct1New extends CI_Controller
             echo date("d-m-Y H:i:s") . " # " . "WK TERMINAL IN = " . $GATEIN . ". # WK TERMINAL OUT = " . $GATEOUT . "\r\n";
         }
     }
+
+    public function getYardNpctStatus()
+    {
+        $q = $this->db->query("SELECT
+                t.id as ID,
+                r.NO_CONT
+            from
+                t_rekon_dokumen_npct1 r
+            left join (
+                select
+                    a.id,
+                    a.no_dok,
+                    a.tgl_dok,
+                    b.NO_CONT,
+                    b.UKR_CONT,
+                    b.tipe_cont,
+                    a.KD_REQ as STATUS_REQ_DOK,
+                    b.KD_STATUS as STATUS_REQ_CONT
+                from
+                    t_request a
+                join t_request_cont b on a.id = b.id
+                where b.FL_YARD = 'Y'
+            ) t
+            on
+                r.NO_DOK = t.no_dok
+                and t.no_cont = r.no_cont
+                and (t.status_req_cont not in ('INQUIRY', 'SENT', 'APPROVED')
+                    and t.STATUS_REQ_CONT not in ('INQUIRY', 'SENT', 'APPROVED'))
+            where
+                DATE(r.`TIMESTAMP`) >= '2026-06-18'
+                and r.TYPE_DOK = 'SPJ'
+                and r.PERIKSA = 'Y'
+                and not exists (
+                    select
+                        1
+                    from
+                        t_spk tr
+                    join t_spk_cont trc
+                on
+                        tr.ID = trc.ID
+                    where
+                        tr.NO_DOK = r.NO_DOK
+                        and trc.NO_CONT = r.NO_CONT
+                ) 
+            limit 5
+        ");
+
+        $url    = "https://api.npct1.co.id/services/index.php/behandle";
+        $user   = "BEHANDLE";
+        $key    = "5d3a2ffcb778f4b1c224f2447c048c8f";
+        $nocon11 = "";
+        foreach ($q->result() as $key => $value1) {
+            $nocon11 = $value1->NO_CONT;
+            $ID = $value1->ID;
+            echo "KONTAINER : $nocon11; ";
+            $addXML = '<request> 
+            <containers>
+                <cont_no>' . $nocon11 . '</cont_no> 
+            </containers>';
+            $addXML .= '</request>';
+            $addXML = trim(preg_replace('/\s\s+/', '', str_replace("\n", " ", $addXML)));
+
+            $curl = curl_init();
+            curl_setopt_array($curl, array(
+                CURLOPT_URL => $url,
+                CURLOPT_SSL_VERIFYPEER => false,
+                CURLOPT_SSL_VERIFYHOST => false,
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_ENCODING => '',
+                CURLOPT_MAXREDIRS => 10,
+                CURLOPT_TIMEOUT => 0,
+                CURLOPT_SSL_VERIFYPEER => false,
+                CURLOPT_SSL_VERIFYHOST => false,
+                CURLOPT_FOLLOWLOCATION => true,
+                CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+                CURLOPT_CUSTOMREQUEST => 'POST',
+                CURLOPT_POSTFIELDS => $addXML,
+                CURLOPT_HTTPHEADER => array(
+                    'User-ID: ' . $user,
+                    'NPCT-API-Key: ' . $key,
+                    'Content-Type: application/xml'
+                ),
+            ));
+            $response = curl_exec($curl);
+            if (!curl_errno($curl)) {
+                $info = curl_getinfo($curl);
+                echo "Connection Success , This is Url : ", $info['url'], "\r\n";
+            } else {
+                echo "Connection Failed =" . curl_error($curl);
+            }
+            curl_close($curl);
+
+            header('content-Type: application/json');
+            $xml = simplexml_load_string($response);
+            $raw = json_encode($xml);
+            $ON_YARD = $xml->LOOP->ON_YARD;
+
+            if ($ON_YARD == 'OK') {
+                $STAT = 'Y';
+            } else {
+                $STAT = 'N';
+            }
+
+            $SQL = "UPDATE t_request_cont SET FL_YARD= '$STAT' WHERE ID = '" . $ID . "' AND NO_CONT = '" . $nocon11 . "'";
+            $this->db->query($SQL);
+            echo $SQL . "\r\n";
+            //die();
+        }
+    }
+
     public function testfunc()
     {
         $url    = "https://api.npct1.co.id:9443/api/v1/get-ssm-ondemand";
