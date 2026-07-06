@@ -1643,7 +1643,7 @@ class ServiceNpct1New extends CI_Controller
                 r.NO_CONT
             from
                 t_rekon_dokumen_npct1 r
-            left join (
+            join (
                 select
                     a.id,
                     a.no_dok,
