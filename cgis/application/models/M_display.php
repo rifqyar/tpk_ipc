@@ -185,20 +185,26 @@ class M_display extends CI_Model
 													'BELUM REQUEST' AS NOTE,
 													t.tipe_cont
 											FROM t_rekon_dokumen_npct1 r
-											LEFT JOIN (
-													SELECT
-															a.id,
-															a.no_dok,
-															a.tgl_dok,
-															b.NO_CONT,
-															b.UKR_CONT,
-															b.tipe_cont
-													FROM t_request a
-													JOIN t_request_cont b
-															ON a.id = b.id
+											join (
+												select
+													a.id,
+													a.no_dok,
+													a.tgl_dok,
+													b.NO_CONT,
+													b.UKR_CONT,
+													b.tipe_cont,
+													a.KD_REQ as STATUS_REQ_DOK,
+													b.KD_STATUS as STATUS_REQ_CONT
+												from
+													t_request a
+												join t_request_cont b on a.id = b.id
+												where b.FL_YARD = 'Y'
 											) t
-												ON r.NO_DOK = t.no_dok
-													AND t.no_cont = r.no_cont
+											on
+												r.NO_DOK = t.no_dok
+												and t.no_cont = r.no_cont
+												and (t.status_req_cont not in ('INQUIRY', 'SENT', 'APPROVED')
+													and t.STATUS_REQ_CONT not in ('INQUIRY', 'SENT', 'APPROVED'))
 											WHERE DATE(r.`TIMESTAMP`) >= '2026-06-18'
 											and r.TYPE_DOK = 'SPJ'
 											and r.PERIKSA = 'Y'
@@ -334,20 +340,26 @@ class M_display extends CI_Model
 													'BELUM REQUEST' AS NOTE,
 													t.tipe_cont
 											FROM t_rekon_dokumen_npct1 r
-											LEFT JOIN (
-													SELECT
-															a.id,
-															a.no_dok,
-															a.tgl_dok,
-															b.NO_CONT,
-															b.UKR_CONT,
-															b.tipe_cont
-													FROM t_request a
-													JOIN t_request_cont b
-															ON a.id = b.id
+											join (
+												select
+													a.id,
+													a.no_dok,
+													a.tgl_dok,
+													b.NO_CONT,
+													b.UKR_CONT,
+													b.tipe_cont,
+													a.KD_REQ as STATUS_REQ_DOK,
+													b.KD_STATUS as STATUS_REQ_CONT
+												from
+													t_request a
+												join t_request_cont b on a.id = b.id
+												where b.FL_YARD = 'Y'
 											) t
-												ON r.NO_DOK = t.no_dok
-													AND t.no_cont = r.no_cont
+											on
+												r.NO_DOK = t.no_dok
+												and t.no_cont = r.no_cont
+												and (t.status_req_cont not in ('INQUIRY', 'SENT', 'APPROVED')
+													and t.STATUS_REQ_CONT not in ('INQUIRY', 'SENT', 'APPROVED'))
 											WHERE DATE(r.`TIMESTAMP`) >= '2026-06-18'
 											and r.TYPE_DOK = 'SPJ'
 											and r.PERIKSA = 'Y'
@@ -396,6 +408,26 @@ class M_display extends CI_Model
 								(
 								    SELECT COUNT(*)
 								    FROM t_rekon_dokumen_npct1 r
+										join (
+											select
+												a.id,
+												a.no_dok,
+												a.tgl_dok,
+												b.NO_CONT,
+												b.UKR_CONT,
+												b.tipe_cont,
+												a.KD_REQ as STATUS_REQ_DOK,
+												b.KD_STATUS as STATUS_REQ_CONT
+											from
+												t_request a
+											join t_request_cont b on a.id = b.id
+											where b.FL_YARD = 'Y'
+										) t
+										on
+											r.NO_DOK = t.no_dok
+											and t.no_cont = r.no_cont
+											and (t.status_req_cont not in ('INQUIRY', 'SENT', 'APPROVED')
+												and t.STATUS_REQ_CONT not in ('INQUIRY', 'SENT', 'APPROVED'))
 										WHERE DATE(r.`TIMESTAMP`) >= '2026-06-18'
 								    and r.TYPE_DOK = 'SPJ'
 								    and r.PERIKSA = 'Y'
@@ -544,20 +576,26 @@ class M_display extends CI_Model
 													'BELUM REQUEST' AS NOTE,
 													t.tipe_cont
 											FROM t_rekon_dokumen_npct1 r
-											LEFT JOIN (
-													SELECT
-															a.id,
-															a.no_dok,
-															a.tgl_dok,
-															b.NO_CONT,
-															b.UKR_CONT,
-															b.tipe_cont
-													FROM t_request a
-													JOIN t_request_cont b
-															ON a.id = b.id
+											join (
+												select
+													a.id,
+													a.no_dok,
+													a.tgl_dok,
+													b.NO_CONT,
+													b.UKR_CONT,
+													b.tipe_cont,
+													a.KD_REQ as STATUS_REQ_DOK,
+													b.KD_STATUS as STATUS_REQ_CONT
+												from
+													t_request a
+												join t_request_cont b on a.id = b.id
+												where b.FL_YARD = 'Y'
 											) t
-												ON r.NO_DOK = t.no_dok
-													AND t.no_cont = r.no_cont
+											on
+												r.NO_DOK = t.no_dok
+												and t.no_cont = r.no_cont
+												and (t.status_req_cont not in ('INQUIRY', 'SENT', 'APPROVED')
+													and t.STATUS_REQ_CONT not in ('INQUIRY', 'SENT', 'APPROVED'))
 											WHERE DATE(r.`TIMESTAMP`) >= '2026-06-18'
 											and r.TYPE_DOK = 'SPJ'
 											and r.PERIKSA = 'Y'
@@ -690,20 +728,26 @@ class M_display extends CI_Model
 													'BELUM REQUEST' AS NOTE,
 													t.tipe_cont
 											FROM t_rekon_dokumen_npct1 r
-											LEFT JOIN (
-													SELECT
-															a.id,
-															a.no_dok,
-															a.tgl_dok,
-															b.NO_CONT,
-															b.UKR_CONT,
-															b.tipe_cont
-													FROM t_request a
-													JOIN t_request_cont b
-															ON a.id = b.id
+											join (
+												select
+													a.id,
+													a.no_dok,
+													a.tgl_dok,
+													b.NO_CONT,
+													b.UKR_CONT,
+													b.tipe_cont,
+													a.KD_REQ as STATUS_REQ_DOK,
+													b.KD_STATUS as STATUS_REQ_CONT
+												from
+													t_request a
+												join t_request_cont b on a.id = b.id
+												where b.FL_YARD = 'Y'
 											) t
-												ON r.NO_DOK = t.no_dok
-													AND t.no_cont = r.no_cont
+											on
+												r.NO_DOK = t.no_dok
+												and t.no_cont = r.no_cont
+												and (t.status_req_cont not in ('INQUIRY', 'SENT', 'APPROVED')
+													and t.STATUS_REQ_CONT not in ('INQUIRY', 'SENT', 'APPROVED'))
 											WHERE DATE(r.`TIMESTAMP`) >= '2026-06-18'
 											and r.TYPE_DOK = 'SPJ'
 											and r.PERIKSA = 'Y'
@@ -898,6 +942,13 @@ class M_display extends CI_Model
 							tr.TIPE_CONT,
 							rkdb.NAMA as JNS_DOK,
 							case 
+								when tr.FL_YARD = 'Y' and ts.NO_SPK is not null then 'GATE OUT NPCT (PENARIKAN CA)'
+								when tr.FL_YARD = 'N' and ts.NO_SPK is not null then 'GATE OUT NPCT (PENARIKAN CA)'
+								when tr.FL_YARD = 'Y' then 'STACKING NPCT'
+								when tr.FL_YARD = 'N' and ts.NO_SPK is null then 'GATE OUT NPCT'
+								else '-'
+							end as STATUS_YARD,
+							case 
 								when tr.KD_REQ = 'INQUIRY' then 'DONE'
 								when tr.KD_REQ = 'SENT' then 'SENT TO NPCT'
 								else '-'
@@ -944,7 +995,8 @@ class M_display extends CI_Model
 								trc.TIPE_CONT,
 								tr.JNS_DOK,
 								trc.NO_CONT,
-								trc.KD_STATUS as KD_REQ
+								trc.KD_STATUS as KD_REQ,
+								trc.FL_YARD
 							from
 								t_request tr
 							inner join t_request_cont trc on
