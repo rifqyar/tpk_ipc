@@ -215,7 +215,7 @@ class M_requestGatePass extends CI_Model
 										AND C.TGL_DOK_INOUT >= DATE(A.TGL_DOK)
 										AND C.TGL_DOK_INOUT < DATE(A.TGL_DOK) + INTERVAL 1 DAY
 								WHERE A.JNS_DOK <> '83'
-									AND C.TGL_DOK_INOUT >= NOW() - INTERVAL 4 MONTH limit 100"; // AND D.TIPE_CONT != 'RFR'
+									AND C.TGL_DOK_INOUT >= NOW() - INTERVAL 4 MONTH"; // AND D.TIPE_CONT != 'RFR'
 		$SQLTEMP2 = "SELECT
 										A.ID AS ID,
 										B.NAMA AS `JENIS DOKUMEN`,
