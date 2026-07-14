@@ -1235,13 +1235,49 @@ class SchedulerHandheldGraha extends CI_Controller
         // $alamat = 'http://103.130.242.88/service_kalibaru/api/Graha?';
         $alamat = 'http://103.130.242.82/service_kalibaru/api/Graha?';
 
-        $SQL = "SELECT distinct L.no_spk as NO_SPK, R.NO_CONT as 'CONT_ID', L.jns_dok as 'JENIS_DOKUMEN', L.no_dok as 'NO_DOKUMEN', DATE_FORMAT(R.TGL_DOK,'%d/%m/%Y') as 'DOKUMEN_DATE',R.JNS_KEGIATAN AS 'BEHANDLE1', R.ID as 'ID_INSPECTION'
-        from t_op_inspection as R
-        inner join t_gatepass as G on G.NO_CONT = R.NO_CONT and G.NO_DOK = R.NO_DOK and G.TGL_DOK = R.TGL_DOK
-        inner join (select a.NO_CONT, b.NO_DOK, b.TGL_DOK from t_spk_cont as a inner join t_spk as b on a.ID = b.ID ) K on K.NO_CONT = R.NO_CONT and K.NO_DOK = R.NO_DOK and K.TGL_DOK = R.TGL_DOK
-        left join log_graha as L ON L.no_cont = R.NO_CONT AND L.no_dok = R.NO_DOK AND L.tgl_dok = R.TGL_DOK
-        LEFT JOIN log_graha_getseal as LG ON LG.no_cont = R.NO_CONT AND LG.no_dok = R.NO_DOK AND LG.tgl_dok = R.TGL_DOK
-        WHERE DATE(R.WK_REK) >= DATE_ADD(NOW(), interval - 30 day) AND R.FL_GRAHA IN('N') and LG.no_spk is null and R.JNS_KEGIATAN IN('1') AND R.STATUS in ('DONE') AND YEAR(R.TGL_DOK) >= 2020 ORDER BY R.ID DESC LIMIT 1";
+        $SQL = "SELECT
+                    L.no_spk AS NO_SPK,
+                    R.NO_CONT AS CONT_ID,
+                    L.jns_dok AS JENIS_DOKUMEN,
+                    L.no_dok AS NO_DOKUMEN,
+                    DATE_FORMAT(R.TGL_DOK, '%d/%m/%Y') AS DOKUMEN_DATE,
+                    R.JNS_KEGIATAN AS BEHANDLE1,
+                    R.ID AS ID_INSPECTION
+                FROM t_op_inspection AS R
+                LEFT JOIN log_graha AS L
+                    ON L.no_cont = R.NO_CONT
+                    AND L.no_dok = R.NO_DOK
+                    AND L.tgl_dok = R.TGL_DOK
+                WHERE R.WK_REK >= CURDATE() - INTERVAL 30 DAY
+                  AND R.TGL_DOK >= '2020-01-01'
+                  AND R.FL_GRAHA = 'N'
+                  AND R.JNS_KEGIATAN = '1'
+                  AND R.STATUS = 'DONE'
+                  AND EXISTS (
+                      SELECT 1
+                      FROM t_gatepass AS G
+                      WHERE G.NO_CONT = R.NO_CONT
+                        AND G.NO_DOK = R.NO_DOK
+                        AND G.TGL_DOK = R.TGL_DOK
+                  )
+                  AND EXISTS (
+                      SELECT 1
+                      FROM t_spk_cont AS SC
+                      INNER JOIN t_spk AS S
+                          ON S.ID = SC.ID
+                      WHERE SC.NO_CONT = R.NO_CONT
+                        AND S.NO_DOK = R.NO_DOK
+                        AND S.TGL_DOK = R.TGL_DOK
+                  )
+                  AND NOT EXISTS (
+                      SELECT 1
+                      FROM log_graha_getseal AS LG
+                      WHERE LG.no_cont = R.NO_CONT
+                        AND LG.no_dok = R.NO_DOK
+                        AND LG.tgl_dok = R.TGL_DOK
+                  )
+                ORDER BY R.ID DESC
+                LIMIT 1";
 
 
         $nospk='';
