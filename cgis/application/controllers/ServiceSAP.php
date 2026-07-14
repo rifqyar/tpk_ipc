@@ -520,12 +520,12 @@ class ServiceSAP extends CI_Controller
                 $telpcust = $values['TELEPON'];
             }
 
-            $sqlcek = "SELECT * from t_log_kode_bayar_sap where PROFORMA='$ID_REQ'";
+            $sqlcek = "SELECT * from t_log_kode_bayar_sap where PROFORMA='$idreq'";
             $result = $this->db->query($sqlcek)->result_array();
             $jumlah = count($result);
 
             if ($jumlah == 0) {
-                $SQL1 = "INSERT into t_log_kode_bayar_sap (PROFORMA) VALUES ('$ID_REQ')";
+                $SQL1 = "INSERT into t_log_kode_bayar_sap (PROFORMA) VALUES ('$idreq')";
                 $this->db->query($SQL1);
             }
 
@@ -1197,12 +1197,12 @@ class ServiceSAP extends CI_Controller
             // echo json_encode($headernota);
 
             //CEK APA SUDAH ADA PROFORMA DI LOG_KODE_BAYAR
-            $sqlcek = "SELECT * from t_log_kode_bayar_sap where PROFORMA='$ID_REQ'";
+            $sqlcek = "SELECT * from t_log_kode_bayar_sap where PROFORMA='$idreq'";
             $result = $this->db->query($sqlcek)->result_array();
             $jumlah = count($result);
             if ($jumlah == 0) {
                 $SQL1 = "INSERT into t_log_kode_bayar_sap (PROFORMA)
-                VALUES ('$ID_REQ');";
+                VALUES ('$idreq');";
                 $Query = $this->db->query($SQL1);
             } else {
                 // echo 'sudah ada data';
