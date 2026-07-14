@@ -163,10 +163,10 @@ class M_requestGatePass extends CI_Model
 									else ''
 									end,
 									'<br>TGL : ',
-									DATE_FORMAT(C.TGL_DOKUMEN, '%d-%m-%Y')
+									DATE_FORMAT(C.TGL_DOK_INOUT, '%d-%m-%Y')
 									) as DOKUMEN,
 										A.NO_BL_AWB as `NO BL`,
-										C.TGL_DOKUMEN as TANGGAL,
+										C.TGL_DOK_INOUT as TANGGAL,
 										case
 											A.KD_REQ
 									when 'DRAFT' then
@@ -213,216 +213,216 @@ class M_requestGatePass extends CI_Model
 									left join reff_kode_dok_bc B
 									on
 										B.ID = A.JNS_DOK
-									INNER JOIN (
-											SELECT
-													NO_DOKUMEN,
-													KD_DOK_INOUT,
-													DATE(TGL_DOKUMEN) AS TANGGAL_DOKUMEN,
-													MAX(TGL_DOKUMEN) AS TGL_DOKUMEN,
-													MAX(FL_MANUAL) AS FL_MANUAL,
-													MAX(STATUS_MAIL) AS STATUS_MAIL,
-													MAX(STATUS) AS STATUS
-											FROM v_ppk_header_union_permit_new
-											WHERE TGL_DOKUMEN >= NOW() - INTERVAL 4 MONTH
-											GROUP BY
-													NO_DOKUMEN,
-													KD_DOK_INOUT,
-													DATE(TGL_DOKUMEN)
-									) C
-											ON C.NO_DOKUMEN = A.NO_DOK
-											AND C.KD_DOK_INOUT = A.JNS_DOK
-											AND C.TANGGAL_DOKUMEN = DATE(A.TGL_DOK)
+									inner join vw_permit_f_gatepass C
+									on
+										C.NO_DOK_INOUT = A.NO_DOK
+										and C.KD_DOK_INOUT = A.JNS_DOK
+										and C.TGL_DOK_INOUT = DATE(A.TGL_DOK)
 									where
-										A.JNS_DOK <> '83'
-										and C.TGL_DOKUMEN >= NOW() - interval 4 month"; // AND D.TIPE_CONT != 'RFR'
-		$SQLTEMP2 = " SELECT
-									A.ID,
-									B.NAMA AS `JENIS DOKUMEN`,
-									CONCAT(
-											'NO : ',
-											A.NO_DOK,
-											'  ',
-											CASE C.FL_MANUAL
-													WHEN 'Y' THEN
-															'<span class=\"label label-primary\">Input Manual</span>'
-													WHEN 'N' THEN
-															'<span class=\"label label-success\">Integrasi</span>'
+										A.JNS_DOK <> '83'"; // AND D.TIPE_CONT != 'RFR'
+
+		$SQLTEMP2 = "SELECT
+											A.ID,
+											B.NAMA AS `JENIS DOKUMEN`,
+
+											CONCAT(
+													'NO : ',
+													A.NO_DOK,
+													'  ',
+													CASE C.FL_MANUAL
+															WHEN 'Y' THEN
+																	'<span class=\"label label-primary\">Input Manual</span>'
+															WHEN 'N' THEN
+																	'<span class=\"label label-success\">Integrasi</span>'
+															ELSE
+																	''
+													END,
+													'<br>TGL : ',
+													DATE_FORMAT(C.TGL_DAFTAR_PABEAN, '%d-%m-%Y')
+											) AS DOKUMEN,
+
+											A.NO_BL_AWB AS `NO BL`,
+											C.TGL_DAFTAR_PABEAN AS TANGGAL,
+
+											CASE A.KD_REQ
+													WHEN 'DRAFT' THEN
+															CONCAT(
+																	'<span class=\"label label-danger\">',
+																	A.KD_REQ,
+																	'</span>'
+															)
+													WHEN 'QUEUED' THEN
+															CONCAT(
+																	'<span class=\"label label-warning\">',
+																	A.KD_REQ,
+																	'</span>'
+															)
+													WHEN 'SENT' THEN
+															CONCAT(
+																	'<span class=\"label label-success\">',
+																	A.KD_REQ,
+																	'</span>'
+															)
+													WHEN 'APPROVED' THEN
+															CONCAT(
+																	'<span class=\"label label-primary\">',
+																	A.KD_REQ,
+																	'</span>'
+															)
+													WHEN 'INQUIRY' THEN
+															CONCAT(
+																	'<span class=\"label label-success\">',
+																	A.KD_REQ,
+																	'</span>'
+															)
 													ELSE
-															''
-											END,
-											'<br>TGL : ',
-											DATE_FORMAT(C.TGL_DOKUMEN, '%d-%m-%Y')
-									) AS DOKUMEN,
-									A.NO_BL_AWB AS `NO BL`,
-									C.TGL_DOKUMEN AS TANGGAL,
-									CASE A.KD_REQ
-											WHEN 'DRAFT' THEN
-													CONCAT(
-															'<span class=\"label label-danger\">',
-															A.KD_REQ,
-															'</span>'
-													)
-											WHEN 'QUEUED' THEN
-													CONCAT(
-															'<span class=\"label label-warning\">',
-															A.KD_REQ,
-															'</span>'
-													)
-											WHEN 'SENT' THEN
-													CONCAT(
-															'<span class=\"label label-success\">',
-															A.KD_REQ,
-															'</span>'
-													)
-											WHEN 'APPROVED' THEN
-													CONCAT(
-															'<span class=\"label label-primary\">',
-															A.KD_REQ,
-															'</span>'
-													)
-											WHEN 'INQUIRY' THEN
-													CONCAT(
-															'<span class=\"label label-success\">',
-															A.KD_REQ,
-															'</span>'
-													)
-											ELSE
-													A.RESPONSE_REQ
-									END AS STATUS_REQUEST,
-									CASE
-											WHEN C.STATUS_MAIL IS NULL THEN
-													'<span class=\"label label-primary\">Email Belum Diproses</span>'
-											WHEN C.STATUS_MAIL = 'Email Tidak Terkirim' THEN
-													'<span class=\"label label-danger\">Email Tidak Terkirim</span>'
-											WHEN C.STATUS_MAIL = 'Email Terkirim' THEN
-													'<span class=\"label label-success\">Email Terkirim</span>'
-											ELSE
-													C.STATUS_MAIL
-									END AS STATUS_PENGIRIMAN,
-									CASE C.STATUS
-											WHEN 'N' THEN
-													'<span style=\"color:red;font-weight:bold\">REQUEST</span>'
-											WHEN 'Y' THEN
-													'<span style=\"color:green;font-weight:bold\">DONE</span>'
-											ELSE
-													'-'
-									END AS STATUS,
-									A.RESPONSE_REQ AS RESPONSE,
-									CASE
-											WHEN A.WK_FINISH IS NOT NULL THEN
-													'<span class=\"label label-primary\">SELESAI</span>'
-											ELSE
-													'-'
-									END AS KETERANGAN
-							FROM t_request A
-							LEFT JOIN reff_kode_dok_bc B
-									ON B.ID = A.JNS_DOK
-							INNER JOIN (
-									SELECT
-											NO_DOKUMEN,
-											KD_DOK_INOUT,
-											DATE(TGL_DOKUMEN) AS TANGGAL_DOKUMEN,
-											MAX(TGL_DOKUMEN) AS TGL_DOKUMEN,
-											MAX(FL_MANUAL) AS FL_MANUAL,
-											MAX(STATUS_MAIL) AS STATUS_MAIL,
-											MAX(STATUS) AS STATUS
-									FROM v_ppk_header_union_permit_new
-									WHERE TGL_DOKUMEN >= NOW() - INTERVAL 4 MONTH
-									GROUP BY
-											NO_DOKUMEN,
-											KD_DOK_INOUT,
-											DATE(TGL_DOKUMEN)
-							) C
-									ON C.NO_DOKUMEN = A.NO_DOK
-									AND C.KD_DOK_INOUT = A.JNS_DOK
-									AND C.TANGGAL_DOKUMEN = DATE(A.TGL_DOK)
-							WHERE A.JNS_DOK <> '83'
-								AND C.TGL_DOKUMEN >= NOW() - INTERVAL 4 MONTH
-					"; // AND D.TIPE_CONT != 'RFR'
+															A.RESPONSE_REQ
+											END AS STATUS_REQUEST,
+
+											CASE
+													WHEN C.STATUS_MAIL IS NULL THEN
+															'<span class=\"label label-primary\">Email Belum Diproses</span>'
+													WHEN C.STATUS_MAIL = 'Email Tidak Terkirim' THEN
+															'<span class=\"label label-danger\">Email Tidak Terkirim</span>'
+													WHEN C.STATUS_MAIL = 'Email Terkirim' THEN
+															'<span class=\"label label-success\">Email Terkirim</span>'
+													ELSE
+															C.STATUS_MAIL
+											END AS STATUS_PENGIRIMAN,
+
+											CASE C.STATUS
+													WHEN 'N' THEN
+															'<span style=\"color:red;font-weight:bold\">REQUEST</span>'
+													WHEN 'Y' THEN
+															'<span style=\"color:green;font-weight:bold\">DONE</span>'
+													ELSE
+															'-'
+											END AS STATUS,
+
+											A.RESPONSE_REQ AS RESPONSE,
+
+											CASE
+													WHEN A.WK_FINISH IS NOT NULL THEN
+															'<span class=\"label label-primary\">SELESAI</span>'
+													ELSE
+															'-'
+											END AS KETERANGAN
+
+									FROM t_request A
+
+									LEFT JOIN reff_kode_dok_bc B
+											ON B.ID = A.JNS_DOK
+
+									INNER JOIN vw_permit_f_gatepass C
+											ON C.NO_DAFTAR_PABEAN = A.NO_DOK
+											AND C.KD_DOK_INOUT = A.JNS_DOK
+											AND C.TGL_DAFTAR_PABEAN = DATE(A.TGL_DOK)
+
+									WHERE A.JNS_DOK <> '83'
+										AND C.TGL_DAFTAR_PABEAN >= CURDATE() - INTERVAL 12 MONTH
+							";
+
+		
 		$SQLTEMP3 = "SELECT
-									A.ID,
-									B.NAMA AS `JENIS DOKUMEN`,
-									CONCAT(
-											'NO : ',
-											A.NO_DOK,
-											'  ',
-											CASE C.FL_MANUAL
-													WHEN 'Y' THEN
-															'<span class=\"label label-primary\">Input Manual</span>'
-													WHEN 'N' THEN
-															'<span class=\"label label-success\">Integrasi</span>'
-													ELSE
-															''
-											END,
-											'<br>TGL : ',
-											DATE_FORMAT(C.TGL_DOKUMEN, '%d-%m-%Y')
-									) AS DOKUMEN,
-									A.NO_BL_AWB AS `NO BL`,
-									C.TGL_DOKUMEN AS TANGGAL,
-									CASE A.KD_REQ
-											WHEN 'DRAFT' THEN
-													CONCAT('<span class=\"label label-danger\">', A.KD_REQ, '</span>')
-											WHEN 'QUEUED' THEN
-													CONCAT('<span class=\"label label-warning\">', A.KD_REQ, '</span>')
-											WHEN 'SENT' THEN
-													CONCAT('<span class=\"label label-success\">', A.KD_REQ, '</span>')
-											WHEN 'APPROVED' THEN
-													CONCAT('<span class=\"label label-primary\">', A.KD_REQ, '</span>')
-											WHEN 'INQUIRY' THEN
-													CONCAT('<span class=\"label label-success\">', A.KD_REQ, '</span>')
-											ELSE
-													A.RESPONSE_REQ
-									END AS STATUS_REQUEST,
-									CASE
-											WHEN C.STATUS_MAIL IS NULL THEN
-													'<span class=\"label label-primary\">Email Belum Diproses</span>'
-											WHEN C.STATUS_MAIL = 'Email Tidak Terkirim' THEN
-													'<span class=\"label label-danger\">Email Tidak Terkirim</span>'
-											WHEN C.STATUS_MAIL = 'Email Terkirim' THEN
-													'<span class=\"label label-success\">Email Terkirim</span>'
-											ELSE
-													C.STATUS_MAIL
-									END AS STATUS_PENGIRIMAN,
-									CASE C.STATUS
-											WHEN 'N' THEN
-													'<span style=\"color:red;font-weight:bold\">REQUEST</span>'
-											WHEN 'Y' THEN
-													'<span style=\"color:green;font-weight:bold\">DONE</span>'
-											ELSE
-													'-'
-									END AS STATUS,
-									A.RESPONSE_REQ AS RESPONSE,
-									CASE
-											WHEN A.WK_FINISH IS NOT NULL THEN
-													'<span class=\"label label-primary\">SELESAI</span>'
-											ELSE
-													'-'
-									END AS KETERANGAN
-							FROM t_request A
-							LEFT JOIN reff_kode_dok_bc B
-									ON B.ID = A.JNS_DOK
-							INNER JOIN (
-									SELECT
-											NO_DOKUMEN,
-											KD_DOK_INOUT,
-											DATE(TGL_DOKUMEN) AS TANGGAL_DOKUMEN,
-											MAX(TGL_DOKUMEN) AS TGL_DOKUMEN,
-											MAX(FL_MANUAL) AS FL_MANUAL,
-											MAX(STATUS_MAIL) AS STATUS_MAIL,
-											MAX(STATUS) AS STATUS
-									FROM v_ppk_header_union_permit_new
-									WHERE TGL_DOKUMEN >= NOW() - INTERVAL 4 MONTH
-									GROUP BY
-											NO_DOKUMEN,
-											KD_DOK_INOUT,
-											DATE(TGL_DOKUMEN)
-							) C
-									ON C.NO_DOKUMEN = A.NO_DOK
-									AND C.KD_DOK_INOUT = A.JNS_DOK
-									AND C.TANGGAL_DOKUMEN = DATE(A.TGL_DOK)
-							WHERE A.JNS_DOK <> '83'
-								AND C.TGL_DOKUMEN >= NOW() - INTERVAL 4 MONTH
-					"; // AND D.TIPE_CONT != 'RFR'
+										A.ID,
+										B.NAMA AS `JENIS DOKUMEN`,
+
+										CONCAT(
+												'NO : ',
+												A.NO_DOK,
+												'  ',
+												CASE C.FL_MANUAL
+														WHEN 'Y' THEN
+																'<span class=\"label label-primary\">Input Manual</span>'
+														WHEN 'N' THEN
+																'<span class=\"label label-success\">Integrasi</span>'
+														ELSE
+																''
+												END,
+												'<br>TGL : ',
+												DATE_FORMAT(C.TGL_DOK_INOUT, '%d-%m-%Y')
+										) AS DOKUMEN,
+
+										A.NO_BL_AWB AS `NO BL`,
+										C.TGL_DOK_INOUT AS TANGGAL,
+
+										CASE A.KD_REQ
+												WHEN 'DRAFT' THEN
+														CONCAT(
+																'<span class=\"label label-danger\">',
+																A.KD_REQ,
+																'</span>'
+														)
+												WHEN 'QUEUED' THEN
+														CONCAT(
+																'<span class=\"label label-warning\">',
+																A.KD_REQ,
+																'</span>'
+														)
+												WHEN 'SENT' THEN
+														CONCAT(
+																'<span class=\"label label-success\">',
+																A.KD_REQ,
+																'</span>'
+														)
+												WHEN 'APPROVED' THEN
+														CONCAT(
+																'<span class=\"label label-primary\">',
+																A.KD_REQ,
+																'</span>'
+														)
+												WHEN 'INQUIRY' THEN
+														CONCAT(
+																'<span class=\"label label-success\">',
+																A.KD_REQ,
+																'</span>'
+														)
+												ELSE
+														A.RESPONSE_REQ
+										END AS STATUS_REQUEST,
+
+										CASE
+												WHEN C.STATUS_MAIL IS NULL THEN
+														'<span class=\"label label-primary\">Email Belum Diproses</span>'
+												WHEN C.STATUS_MAIL = 'Email Tidak Terkirim' THEN
+														'<span class=\"label label-danger\">Email Tidak Terkirim</span>'
+												WHEN C.STATUS_MAIL = 'Email Terkirim' THEN
+														'<span class=\"label label-success\">Email Terkirim</span>'
+												ELSE
+														C.STATUS_MAIL
+										END AS STATUS_PENGIRIMAN,
+
+										CASE C.STATUS
+												WHEN 'N' THEN
+														'<span style=\"color:red;font-weight:bold\">REQUEST</span>'
+												WHEN 'Y' THEN
+														'<span style=\"color:green;font-weight:bold\">DONE</span>'
+												ELSE
+														'-'
+										END AS STATUS,
+
+										A.RESPONSE_REQ AS RESPONSE,
+
+										CASE
+												WHEN A.WK_FINISH IS NOT NULL THEN
+														'<span class=\"label label-primary\">SELESAI</span>'
+												ELSE
+														'-'
+										END AS KETERANGAN
+
+								FROM t_request A
+
+								LEFT JOIN reff_kode_dok_bc B
+										ON B.ID = A.JNS_DOK
+
+								INNER JOIN vw_permit_f_gatepass C
+										ON C.NO_DOK_INOUT = A.NO_DOK
+										AND C.KD_DOK_INOUT = A.JNS_DOK
+										AND C.TGL_DOK_INOUT = DATE(A.TGL_DOK)
+
+								WHERE A.JNS_DOK <> '83'
+									AND C.TGL_DOK_INOUT >= CURDATE() - INTERVAL 12 MONTH
+						";
 
 		if ($_POST['ajax'] == 1) {
 			if ($_POST['page'] == 1) {
