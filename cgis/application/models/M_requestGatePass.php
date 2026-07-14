@@ -472,7 +472,7 @@ class M_requestGatePass extends CI_Model
 		$this->newtable->hiddens(array("ID", "NO_CONT", "STATUS_PENGIRIMAN", "STATUS", "TANGGAL"));
 		$this->newtable->keys(array("ID"));
 		$this->newtable->cidb($this->db);
-		$this->newtable->orderby("A.WK_FINISH ASC,C.TGL_DOKUMEN DESC");
+		$this->newtable->orderby("A.WK_FINISH ASC,C.TGL_DOK_INOUT DESC");
 		$this->newtable->sortby("");
 		$this->newtable->groupby();
 		$this->newtable->set_formid("tblrequestgatepassBc");
