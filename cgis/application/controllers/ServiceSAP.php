@@ -563,10 +563,6 @@ class ServiceSAP extends CI_Controller
                     "debug_error" => $curl_error
                 ));
             }
-
-            // Echo response khusus frontend ke user
-            echo $response_to_frontend;
-
             // Insert log ke database menggunakan response_to_db (berisi error teknis jika gagal)
             $this->db->query("
                 INSERT INTO `tpk_ipc`.`log_services`
@@ -583,6 +579,10 @@ class ServiceSAP extends CI_Controller
                 $SQL1 = "INSERT into t_log_kode_bayar_sap (PROFORMA) VALUES ('$ID_REQ')";
                 $this->db->query($SQL1);
             }
+
+            // Echo response khusus frontend ke user
+            echo $response_to_frontend;
+
         }
     }
 
@@ -1210,7 +1210,8 @@ class ServiceSAP extends CI_Controller
                     CURLOPT_SSL_VERIFYHOST => 0,
                     CURLOPT_SSL_VERIFYPEER => false,
                     CURLOPT_MAXREDIRS => 10,
-                    CURLOPT_TIMEOUT => 0,
+                    CURLOPT_CONNECTTIMEOUT => 20, // Maksimal 10 detik untuk proses TCP/SSL Handshake
+                    CURLOPT_TIMEOUT => 25,        // Maksimal 15 detik eksekusi keseluruhan
                     CURLOPT_FOLLOWLOCATION => true,
                     CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
                     CURLOPT_CUSTOMREQUEST => 'POST',
@@ -1818,7 +1819,8 @@ class ServiceSAP extends CI_Controller
             curl_setopt_array(
                 $curl,
                 array(
-                    CURLOPT_URL => 'http://103.147.228.122/api/staging/index.php/SendStg/get_nota_terkirim',
+                    // CURLOPT_URL => 'http://103.147.228.122/api/staging/index.php/SendStg/get_nota_terkirim',
+                    CURLOPT_URL => 'https://apiserver.multiterminal.co.id/api/staging/index.php/SendStg/get_nota_terkirim',
                     CURLOPT_RETURNTRANSFER => true,
                     CURLOPT_ENCODING => '',
                     CURLOPT_MAXREDIRS => 10,
