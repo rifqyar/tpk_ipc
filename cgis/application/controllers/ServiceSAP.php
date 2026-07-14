@@ -520,13 +520,65 @@ class ServiceSAP extends CI_Controller
                 $telpcust = $values['TELEPON'];
             }
 
-            $sqlcek = "SELECT * from t_log_kode_bayar_sap where PROFORMA='$idreq'";
-            $result = $this->db->query($sqlcek)->result_array();
-            $jumlah = count($result);
+            $idreq = trim($idreq);
+            $sqlSap = "
+                INSERT INTO tpk_ipc.t_log_kode_bayar_sap (PROFORMA)
+                SELECT ?
+                FROM DUAL
+                WHERE NOT EXISTS (
+                    SELECT 1
+                    FROM tpk_ipc.t_log_kode_bayar_sap
+                    WHERE PROFORMA = ?
+                    LIMIT 1
+                )
+            ";
 
-            if ($jumlah == 0) {
-                $SQL1 = "INSERT into t_log_kode_bayar_sap (PROFORMA) VALUES ('$idreq')";
-                $this->db->query($SQL1);
+            $querySap = $this->db->query(
+                $sqlSap,
+                array($idreq, $idreq)
+            );
+
+            if (!$querySap) {
+                $this->db->reconnect();
+
+                $this->db->query(
+                    $sqlSap,
+                    array($idreq, $idreq)
+                );
+            }
+
+            /*
+            * Verifikasi tanpa logging.
+            */
+            $cekSap = $this->db->query(
+                "
+                    SELECT COUNT(*) AS JUMLAH
+                    FROM tpk_ipc.t_log_kode_bayar_sap
+                    WHERE PROFORMA = ?
+                ",
+                array($idreq)
+            );
+
+            $jumlahSap = 0;
+
+            if ($cekSap) {
+                $rowSap = $cekSap->row_array();
+                $jumlahSap = (int)$rowSap['JUMLAH'];
+            }
+
+            /*
+            * Kalau masih belum masuk, retry terakhir dengan INSERT biasa.
+            */
+            if ($jumlahSap === 0) {
+                $this->db->reconnect();
+
+                $this->db->query(
+                    "
+                        INSERT INTO tpk_ipc.t_log_kode_bayar_sap (PROFORMA)
+                        VALUES (?)
+                    ",
+                    array($idreq)
+                );
             }
 
             // =====================
@@ -1196,16 +1248,65 @@ class ServiceSAP extends CI_Controller
             }
             // echo json_encode($headernota);
 
-            //CEK APA SUDAH ADA PROFORMA DI LOG_KODE_BAYAR
-            $sqlcek = "SELECT * from t_log_kode_bayar_sap where PROFORMA='$idreq'";
-            $result = $this->db->query($sqlcek)->result_array();
-            $jumlah = count($result);
-            if ($jumlah == 0) {
-                $SQL1 = "INSERT into t_log_kode_bayar_sap (PROFORMA)
-                VALUES ('$idreq');";
-                $Query = $this->db->query($SQL1);
-            } else {
-                // echo 'sudah ada data';
+            $idreq = trim($idreq);
+            $sqlSap = "
+                INSERT INTO tpk_ipc.t_log_kode_bayar_sap (PROFORMA)
+                SELECT ?
+                FROM DUAL
+                WHERE NOT EXISTS (
+                    SELECT 1
+                    FROM tpk_ipc.t_log_kode_bayar_sap
+                    WHERE PROFORMA = ?
+                    LIMIT 1
+                )
+            ";
+
+            $querySap = $this->db->query(
+                $sqlSap,
+                array($idreq, $idreq)
+            );
+
+            if (!$querySap) {
+                $this->db->reconnect();
+
+                $this->db->query(
+                    $sqlSap,
+                    array($idreq, $idreq)
+                );
+            }
+
+            /*
+            * Verifikasi tanpa logging.
+            */
+            $cekSap = $this->db->query(
+                "
+                    SELECT COUNT(*) AS JUMLAH
+                    FROM tpk_ipc.t_log_kode_bayar_sap
+                    WHERE PROFORMA = ?
+                ",
+                array($idreq)
+            );
+
+            $jumlahSap = 0;
+
+            if ($cekSap) {
+                $rowSap = $cekSap->row_array();
+                $jumlahSap = (int)$rowSap['JUMLAH'];
+            }
+
+            /*
+            * Kalau masih belum masuk, retry terakhir dengan INSERT biasa.
+            */
+            if ($jumlahSap === 0) {
+                $this->db->reconnect();
+
+                $this->db->query(
+                    "
+                        INSERT INTO tpk_ipc.t_log_kode_bayar_sap (PROFORMA)
+                        VALUES (?)
+                    ",
+                    array($idreq)
+                );
             }
 
             // send fata nota 
