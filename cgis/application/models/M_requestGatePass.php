@@ -210,6 +210,8 @@ class M_requestGatePass extends CI_Model
 										end as KETERANGAN
 									from
 										t_request A
+									inner join t_request_cont F
+										on A.ID = F.ID
 									left join reff_kode_dok_bc B
 									on
 										B.ID = A.JNS_DOK
@@ -224,7 +226,6 @@ class M_requestGatePass extends CI_Model
 		$SQLTEMP2 = "SELECT
 											A.ID,
 											B.NAMA AS `JENIS DOKUMEN`,
-
 											CONCAT(
 													'NO : ',
 													A.NO_DOK,
@@ -240,10 +241,8 @@ class M_requestGatePass extends CI_Model
 													'<br>TGL : ',
 													DATE_FORMAT(C.TGL_DAFTAR_PABEAN, '%d-%m-%Y')
 											) AS DOKUMEN,
-
 											A.NO_BL_AWB AS `NO BL`,
 											C.TGL_DAFTAR_PABEAN AS TANGGAL,
-
 											CASE A.KD_REQ
 													WHEN 'DRAFT' THEN
 															CONCAT(
@@ -278,7 +277,6 @@ class M_requestGatePass extends CI_Model
 													ELSE
 															A.RESPONSE_REQ
 											END AS STATUS_REQUEST,
-
 											CASE
 													WHEN C.STATUS_MAIL IS NULL THEN
 															'<span class=\"label label-primary\">Email Belum Diproses</span>'
@@ -289,7 +287,6 @@ class M_requestGatePass extends CI_Model
 													ELSE
 															C.STATUS_MAIL
 											END AS STATUS_PENGIRIMAN,
-
 											CASE C.STATUS
 													WHEN 'N' THEN
 															'<span style=\"color:red;font-weight:bold\">REQUEST</span>'
@@ -298,26 +295,22 @@ class M_requestGatePass extends CI_Model
 													ELSE
 															'-'
 											END AS STATUS,
-
 											A.RESPONSE_REQ AS RESPONSE,
-
 											CASE
 													WHEN A.WK_FINISH IS NOT NULL THEN
 															'<span class=\"label label-primary\">SELESAI</span>'
 													ELSE
 															'-'
 											END AS KETERANGAN
-
 									FROM t_request A
-
+									inner join t_request_cont F
+										on A.ID = F.ID
 									LEFT JOIN reff_kode_dok_bc B
 											ON B.ID = A.JNS_DOK
-
 									INNER JOIN vw_permit_f_gatepass C
 											ON C.NO_DAFTAR_PABEAN = A.NO_DOK
 											AND C.KD_DOK_INOUT = A.JNS_DOK
 											AND C.TGL_DAFTAR_PABEAN = DATE(A.TGL_DOK)
-
 									WHERE A.JNS_DOK <> '83'
 										AND C.TGL_DAFTAR_PABEAN >= CURDATE() - INTERVAL 12 MONTH
 							";
@@ -326,7 +319,6 @@ class M_requestGatePass extends CI_Model
 		$SQLTEMP3 = "SELECT
 										A.ID,
 										B.NAMA AS `JENIS DOKUMEN`,
-
 										CONCAT(
 												'NO : ',
 												A.NO_DOK,
@@ -342,10 +334,8 @@ class M_requestGatePass extends CI_Model
 												'<br>TGL : ',
 												DATE_FORMAT(C.TGL_DOK_INOUT, '%d-%m-%Y')
 										) AS DOKUMEN,
-
 										A.NO_BL_AWB AS `NO BL`,
 										C.TGL_DOK_INOUT AS TANGGAL,
-
 										CASE A.KD_REQ
 												WHEN 'DRAFT' THEN
 														CONCAT(
@@ -380,7 +370,6 @@ class M_requestGatePass extends CI_Model
 												ELSE
 														A.RESPONSE_REQ
 										END AS STATUS_REQUEST,
-
 										CASE
 												WHEN C.STATUS_MAIL IS NULL THEN
 														'<span class=\"label label-primary\">Email Belum Diproses</span>'
@@ -391,7 +380,6 @@ class M_requestGatePass extends CI_Model
 												ELSE
 														C.STATUS_MAIL
 										END AS STATUS_PENGIRIMAN,
-
 										CASE C.STATUS
 												WHEN 'N' THEN
 														'<span style=\"color:red;font-weight:bold\">REQUEST</span>'
@@ -400,26 +388,22 @@ class M_requestGatePass extends CI_Model
 												ELSE
 														'-'
 										END AS STATUS,
-
 										A.RESPONSE_REQ AS RESPONSE,
-
 										CASE
 												WHEN A.WK_FINISH IS NOT NULL THEN
 														'<span class=\"label label-primary\">SELESAI</span>'
 												ELSE
 														'-'
 										END AS KETERANGAN
-
 								FROM t_request A
-
+								inner join t_request_cont F
+										on A.ID = F.ID
 								LEFT JOIN reff_kode_dok_bc B
 										ON B.ID = A.JNS_DOK
-
 								INNER JOIN vw_permit_f_gatepass C
 										ON C.NO_DOK_INOUT = A.NO_DOK
 										AND C.KD_DOK_INOUT = A.JNS_DOK
 										AND C.TGL_DOK_INOUT = DATE(A.TGL_DOK)
-
 								WHERE A.JNS_DOK <> '83'
 									AND C.TGL_DOK_INOUT >= CURDATE() - INTERVAL 12 MONTH
 						";
