@@ -310,30 +310,53 @@ class M_report extends CI_Model
 		$this->newtable->breadcrumb('DELIVERY', 'javascript:void(0)', '');
 		$check = (grant() == "W") ? true : false;
 
-		$SQL = "SELECT A.NO_SPK AS 'NO SPK', B.NO_CONT AS 'KONTAINER', C.KD_CONT_TIPE, B.UKR_CONT AS 'SIZE', CASE WHEN C.JNS_CONT = 'F' THEN 'FULL' ELSE 'EMPTY' END AS STATUS_CONT, D.NAMA AS 'JENIS DOKUMEN', E.WK_TRUCKIN AS 'WAKTU TRUCK IN', E.NO_TRUCK AS TID, E.WK_CHASSIS AS 'WAKTU CHASSIS', E.NO_SEAL AS 'NO SEAL', F.KONDISI AS 'KONDISI', E.WK_INSPECT AS 'WAKTU INSPECT', E.WK_GATEOUT AS 'WAKTU TRUCK OUT', A.CONSIGNEE AS 'CUSTOMER', G.KETERANGAN AS 'KETERANGAN'
-								FROM t_spk A
-								LEFT JOIN t_spk_cont B ON A.ID = B.ID
-								LEFT JOIN (SELECT NO_CONT, JNS_CONT, KD_CONT_TIPE, ISO_CODE FROM t_cocostscont GROUP BY NO_CONT ORDER BY ID DESC) AS C ON B.NO_CONT = C.NO_CONT -- AND B.ISO_CODE = C.ISO_CODE
-								LEFT JOIN reff_kode_dok_bc D ON A.JNS_DOK = D.ID
-								LEFT JOIN (   SELECT 
-								tod.NO_CONT, 
-								tod.NO_SPK, 
-								tod.WK_TRUCKIN,
-								tod.WK_GATEOUT,
-								tod.NO_TRUCK,
-								tod.WK_CHASSIS,
-								tod.NO_SEAL,
-								tod.WK_INSPECT,
-								tod.KONDISI_CONT,
-								MAX(tod.id) as latest_record_id
-						FROM 
-								t_op_delivery tod
-						GROUP BY 
-								tod.NO_CONT, 
-								tod.NO_SPK) E ON A.NO_SPK = E.NO_SPK AND B.NO_CONT = E.NO_CONT
-								LEFT JOIN reff_kondisi F ON E.KONDISI_CONT = F.ID
-								LEFT JOIN reff_status_spk G ON B.STATUS_CONT = G.ID
-								WHERE B.STATUS_CONT = '900'";
+		$SQL = "SELECT
+								A.NO_SPK AS `NO SPK`,
+								B.NO_CONT AS `KONTAINER`,
+								C.KD_CONT_TIPE,
+								B.UKR_CONT AS `SIZE`,
+								CASE
+										WHEN C.JNS_CONT = 'F' THEN 'FULL'
+										ELSE 'EMPTY'
+								END AS STATUS_CONT,
+								D.NAMA AS `JENIS DOKUMEN`,
+								E.WK_TRUCKIN AS `WAKTU TRUCK IN`,
+								E.NO_TRUCK AS TID,
+								E.WK_CHASSIS AS `WAKTU CHASSIS`,
+								E.NO_SEAL AS `NO SEAL`,
+								F.KONDISI AS `KONDISI`,
+								E.WK_INSPECT AS `WAKTU INSPECT`,
+								E.WK_GATEOUT AS `WAKTU TRUCK OUT`,
+								A.CONSIGNEE AS `CUSTOMER`,
+								G.KETERANGAN AS `KETERANGAN`
+						FROM t_spk_cont B
+						INNER JOIN t_spk A
+								ON A.ID = B.ID
+						LEFT JOIN t_cocostscont C
+								ON C.NO_CONT = B.NO_CONT
+								AND NOT EXISTS (
+										SELECT 1
+										FROM t_cocostscont C2
+										WHERE C2.NO_CONT = C.NO_CONT
+											AND C2.ID > C.ID
+								)
+						LEFT JOIN reff_kode_dok_bc D
+								ON D.ID = A.JNS_DOK
+						LEFT JOIN t_op_delivery E
+								ON E.NO_SPK = A.NO_SPK
+								AND E.NO_CONT = B.NO_CONT
+								AND NOT EXISTS (
+										SELECT 1
+										FROM t_op_delivery E2
+										WHERE E2.NO_SPK = E.NO_SPK
+											AND E2.NO_CONT = E.NO_CONT
+											AND E2.ID > E.ID
+								)
+						LEFT JOIN reff_kondisi F
+								ON F.ID = E.KONDISI_CONT
+						LEFT JOIN reff_status_spk G
+								ON G.ID = B.STATUS_CONT
+						WHERE B.STATUS_CONT = '900'";
 
 		$this->newtable->multiple_search(true);
 		$this->newtable->show_chk(false);
