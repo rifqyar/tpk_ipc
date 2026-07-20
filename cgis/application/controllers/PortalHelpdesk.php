@@ -312,6 +312,7 @@ class PortalHelpdesk extends CI_Controller
 	}
 	public function resendcustomdata()
 	{
+		header('Content-Type: application/json');
 		$transaction_id = $this->input->post('transaction_id');
 
 		if (empty($transaction_id)) {
