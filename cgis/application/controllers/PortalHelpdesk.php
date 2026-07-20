@@ -76,6 +76,7 @@ class PortalHelpdesk extends CI_Controller
 		// Load the database model (if you haven't loaded it globally)
 		$this->load->database();
 
+		header('Content-Type: application/json');
 		// Ensure ID is provided
 		if ($id) {
 			// Prepare the update query
@@ -98,7 +99,6 @@ class PortalHelpdesk extends CI_Controller
 				// Respond with a failure message
 				echo json_encode(array('status' => 'error', 'message' => 'Gagal menghapus status billing.'));
 			}
-
 		} else {
 			// Respond with an error if ID is not provided
 			echo json_encode(array('status' => 'error', 'message' => 'ID tidak ditemukan.'));
@@ -133,8 +133,8 @@ class PortalHelpdesk extends CI_Controller
 
 		$this->load->database();
 
+		header('Content-Type: application/json');
 		if ($no_dok) {
-
 			$this->db->set('FL_BIL', null);
 			$this->db->where('NO_DOK', $no_dok);
 			$this->db->where('TGL_DOK', $tgl_dok);
@@ -385,8 +385,8 @@ class PortalHelpdesk extends CI_Controller
 						<tem:BRUTTOWEIGHTS>' . $BRUTO . '</tem:BRUTTOWEIGHTS>
 					</tem:SendCustomsData>
 				</soapenv:Body>
-			</soapenv:Envelope>'; 
-			
+			</soapenv:Envelope>';
+
 			// Send SOAP request via CURL
 			$curl = curl_init();
 			curl_setopt_array($curl, array(
@@ -646,48 +646,50 @@ class PortalHelpdesk extends CI_Controller
 		echo $decodedXml;
 	}
 
-	public function ssmnpct(){
+	public function ssmnpct()
+	{
 		$url    = "https://api.npct1.co.id:9443/api/v1/setSSMOnDemand	";
-                $user   = "BEHANDLE";
-                $key    = "5d3a2ffcb778f4b1c224f2447c048c8f";
-                $addXML ='<request>    
+		$user   = "BEHANDLE";
+		$key    = "5d3a2ffcb778f4b1c224f2447c048c8f";
+		$addXML = '<request>    
         					<request_no>201201768F3420241007000011</request_no>
 						  </request>';
 
-                $addXML= trim(preg_replace('/\s\s+/', '', str_replace("\n", " ", $addXML)));
-            // print_r($addXML);die();
-                $curl = curl_init();
-                curl_setopt_array($curl, array(
-                    CURLOPT_URL => $url,
-					CURLOPT_SSL_VERIFYPEER => false,
-					CURLOPT_SSL_VERIFYHOST => false,
-                    CURLOPT_RETURNTRANSFER => true,
-                    CURLOPT_ENCODING => '',
-                    CURLOPT_MAXREDIRS => 10,
-                    CURLOPT_TIMEOUT => 0,
-                    CURLOPT_FOLLOWLOCATION => true,
-                    CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-                    CURLOPT_CUSTOMREQUEST => 'POST',
-                    CURLOPT_POSTFIELDS =>$addXML,
-                    CURLOPT_HTTPHEADER => array(
-                        'User-ID: '.$user,
-                        'NPCT-API-Key: '.$key,
-                        'Content-Type: application/xml'
-                    ),
-                ));
-                $response = curl_exec($curl);
-                if (!curl_errno($curl)) {
-                    $info = curl_getinfo($curl);
-                    echo "Connection Success , This is Url : ", $info['url'], "<br>\r\n";
-                }else{
-                    echo "Connection Failed =".curl_error($curl);
-                }
-                curl_close($curl); 
-                $xml1 = str_replace('<?xml version="1.0"?>',"",$response);
-				echo $response;
+		$addXML = trim(preg_replace('/\s\s+/', '', str_replace("\n", " ", $addXML)));
+		// print_r($addXML);die();
+		$curl = curl_init();
+		curl_setopt_array($curl, array(
+			CURLOPT_URL => $url,
+			CURLOPT_SSL_VERIFYPEER => false,
+			CURLOPT_SSL_VERIFYHOST => false,
+			CURLOPT_RETURNTRANSFER => true,
+			CURLOPT_ENCODING => '',
+			CURLOPT_MAXREDIRS => 10,
+			CURLOPT_TIMEOUT => 0,
+			CURLOPT_FOLLOWLOCATION => true,
+			CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+			CURLOPT_CUSTOMREQUEST => 'POST',
+			CURLOPT_POSTFIELDS => $addXML,
+			CURLOPT_HTTPHEADER => array(
+				'User-ID: ' . $user,
+				'NPCT-API-Key: ' . $key,
+				'Content-Type: application/xml'
+			),
+		));
+		$response = curl_exec($curl);
+		if (!curl_errno($curl)) {
+			$info = curl_getinfo($curl);
+			echo "Connection Success , This is Url : ", $info['url'], "<br>\r\n";
+		} else {
+			echo "Connection Failed =" . curl_error($curl);
+		}
+		curl_close($curl);
+		$xml1 = str_replace('<?xml version="1.0"?>', "", $response);
+		echo $response;
 	}
 
-	public function tesquery(){
+	public function tesquery()
+	{
 		$REQ = 'DEL154150';
 		$sub_total = $this->db->query("SELECT SUM(TOTAL) AS TOTAL FROM req_delivery_dtl WHERE ID_REQ = '$REQ'")->row()->TOTAL;
 		$ppn_value = $this->db->query("SELECT TARIF FROM m_tarif2 WHERE JENIS_BIAYA = 'PPN' LIMIT 1")->row()->TARIF;
@@ -700,41 +702,41 @@ class PortalHelpdesk extends CI_Controller
 	// {
 	// 	// Hardcoded $REQ for demonstration
 	// 	$REQ = 'BHD124145'; // Replace with the actual value as needed
-	
+
 	// 	// Define the number of seals being charged
 	// 	$numSeals = 3; // Change this value to the number of seals (e.g., 2, 3, etc.)
-	
+
 	// 	// Fetch the seal tariff
 	// 	$sealTariffQuery = $this->db->query("SELECT TARIF FROM m_tarif WHERE JENIS_BIAYA = 'SEAL'");
 	// 	$sealTariff = $sealTariffQuery->row();
 	// 	$seal = 0; // Initialize seal in case it was undefined
 	// 	$seal += isset($sealTariff->TARIF) ? $sealTariff->TARIF * $numSeals : 0;
-	
+
 	// 	// Fetch the subtotal from the details table
 	// 	$subTotal1Query = $this->db->query("SELECT SUM(TOTAL) AS TOTAL FROM req_behandle_dtl WHERE ID_REQ = '$REQ'");
 	// 	$subTotal1Row = $subTotal1Query->row();
 	// 	$subTotal1 = isset($subTotal1Row->TOTAL) ? $subTotal1Row->TOTAL : 0;
-	
+
 	// 	// Fetch the administration fee
 	// 	$adminFeeQuery = $this->db->query("SELECT TARIF FROM m_tarif WHERE JENIS_BIAYA = 'ADMINISTRASI'");
 	// 	$adminFeeRow = $adminFeeQuery->row();
 	// 	$adminFee = isset($adminFeeRow->TARIF) ? $adminFeeRow->TARIF : 0;
-	
+
 	// 	// Calculate the adjusted subtotal
 	// 	$adjustedSubTotal = $subTotal1 + $adminFee + $seal;
-	
+
 	// 	// Calculate PPN (tax) at 11%
 	// 	$tax = $adjustedSubTotal * 0.11;
-	
+
 	// 	// Calculate the total after adding PPN
 	// 	$totalAfterTax = $adjustedSubTotal + $tax;
-	
+
 	// 	// Determine MAT fee based on the threshold
 	// 	$MAT = ($totalAfterTax > 5000000) ? 10000 : 0;
-	
+
 	// 	// Calculate the final total
 	// 	$finalTotal = $totalAfterTax + $MAT;
-	
+
 	// 	// Prepare JSON output
 	// 	// $output = [
 	// 	// 	'REQ' => $REQ,
@@ -749,10 +751,10 @@ class PortalHelpdesk extends CI_Controller
 	// 	// 	'MATFee' => $MAT,
 	// 	// 	'finalTotal' => $finalTotal,
 	// 	// ];
-	
+
 	// 	// Output JSON
 	// 	header('Content-Type: application/json');
 	// 	echo json_encode($output);
 	// }
-	
+
 }

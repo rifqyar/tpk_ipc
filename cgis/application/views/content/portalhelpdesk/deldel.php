@@ -66,10 +66,11 @@
 
     <script src="https://code.jquery.com/jquery-3.7.0.js"></script>
     <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
-        $(document).ready(function () {
-            $('#searchForm').submit(function (e) {
+        $(document).ready(function() {
+            $('#searchForm').submit(function(e) {
                 e.preventDefault(); // Prevent the form from submitting in the traditional way
 
                 // Get the input value
@@ -79,16 +80,18 @@
                 $.ajax({
                     url: "<?php echo base_url('application.php/PortalHelpdesk/getdelivery'); ?>", // Add application.php to base_url
                     method: 'POST',
-                    data: { no_dok_inout: nomorDokumen },
+                    data: {
+                        no_dok_inout: nomorDokumen
+                    },
                     dataType: 'json',
-                    success: function (response) {
+                    success: function(response) {
                         // Clear the previous results
                         $('#resultsTable tbody').empty();
 
                         // Check if there are results
                         if (response.length > 0) {
                             // Loop through the response and append to the table
-                            $.each(response, function (index, data) {
+                            $.each(response, function(index, data) {
                                 var row = '<tr>' +
                                     '<td>' + data.ID + '</td>' +
                                     '<td>' + data.NO_DOK_INOUT + '</td>' +
@@ -112,33 +115,91 @@
             $('#resultsTable').DataTable();
         });
 
-        $(document).on('click', '.delete-link', function (e) {
-            e.preventDefault(); // Prevent default anchor behavior
+        $(document).on('click', '.delete-link', function(e) {
+            e.preventDefault();
 
-            var id = $(this).data('id'); // Get the ID from the data attribute
-            var noDokInout = $(this).data('no-dok-inout'); // Get the NO_DOK_INOUT from the data attribute
+            var id = $(this).data('id');
+            var noDokInout = $(this).data('no-dok-inout');
 
-            // Show confirmation alert
-            if (confirm('Apakah anda yakin untuk menghapus status billing ini?')) {
-                // Send AJAX request to delete the data
-                $.ajax({
-                    url: "<?php echo base_url('application.php/PortalHelpdesk/prosesdel'); ?>", // The delete URL
-                    method: 'POST',
-                    data: { id: id, no_dok_inout: noDokInout }, // Include NO_DOK_INOUT
-                    success: function (response) {
-                        // Handle the success response
-                        var res = JSON.parse(response);
-                        alert(res.message); // Show the message from the response
-                        location.reload(); // Reload the page to update the results
-                    },
-                    error: function (xhr, status, error) {
-                        // Handle the error response
-                        alert('Terjadi kesalahan saat menghapus data: ' + error);
+            Swal.fire({
+                title: 'Konfirmasi',
+                text: 'Apakah Anda yakin ingin menghapus status billing ini?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Ya, hapus',
+                cancelButtonText: 'Batal',
+                reverseButtons: true,
+                allowOutsideClick: false,
+                allowEscapeKey: false
+            }).then(function(result) {
+                if (!result.isConfirmed) {
+                    return;
+                }
+
+                Swal.fire({
+                    title: 'Memproses...',
+                    text: 'Mohon tunggu',
+                    allowOutsideClick: false,
+                    allowEscapeKey: false,
+                    didOpen: function() {
+                        Swal.showLoading();
                     }
                 });
-            }
-        });
 
+                $.ajax({
+                    url: "<?php echo base_url('application.php/PortalHelpdesk/prosesdel'); ?>",
+                    type: 'POST',
+                    dataType: 'json',
+                    data: {
+                        id: id,
+                        no_dok_inout: noDokInout
+                    },
+                    success: function(res) {
+                        if (res.status === 'success') {
+                            Swal.fire({
+                                title: 'Berhasil',
+                                text: res.message || 'Status billing berhasil dihapus.',
+                                icon: 'success',
+                                allowOutsideClick: false,
+                                allowEscapeKey: false,
+                                confirmButtonText: 'OK'
+                            }).then(function() {
+                                location.reload();
+                            });
+                        } else {
+                            Swal.fire({
+                                title: 'Gagal',
+                                text: res.message || 'Status billing gagal dihapus.',
+                                icon: 'error'
+                            });
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        var message = 'Terjadi kesalahan saat menghapus data.';
+
+                        if (xhr.responseJSON && xhr.responseJSON.message) {
+                            message = xhr.responseJSON.message;
+                        } else if (xhr.responseText) {
+                            try {
+                                var response = JSON.parse(xhr.responseText);
+
+                                if (response.message) {
+                                    message = response.message;
+                                }
+                            } catch (e) {
+                                message += ' ' + error;
+                            }
+                        }
+
+                        Swal.fire({
+                            title: 'Gagal',
+                            text: message,
+                            icon: 'error'
+                        });
+                    }
+                });
+            });
+        });
     </script>
 
     <?php include 'footer.php'; ?>
