@@ -262,6 +262,7 @@ class PortalHelpdesk extends CI_Controller
 		$action = $this->input->post('action');
 		$proforma = $this->input->post('proforma');
 
+		header('Content-Type: application/json');
 		if ($action && $proforma) {
 			if ($action == 'clearing') {
 

@@ -55,32 +55,128 @@
 </div>
 <?php include 'footer.php'; ?>
 
+<script src="https://code.jquery.com/jquery-3.7.0.js"></script>
+<script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 <script>
-    $(document).on('click', '.action-button', function (e) {
+    $(document).on('click', '.action-button', function(e) {
         e.preventDefault();
 
-        var action = $(this).data('action');  // 'clearing' or 'hapus'
-        var proforma = $(this).data('proforma');  // The NOTA (used as PROFORMA)
+        var button = $(this);
+        var action = button.data('action');
+        var proforma = button.data('proforma');
 
-        // Ask for confirmation
-        var confirmationMessage = action === 'clearing' ? 'Yakin untuk melakukan clearing manual?' : 'Yakin untuk menghapus data?';
-        if (confirm(confirmationMessage)) {
-            // Send AJAX request to perform the action
+        var isClearing = action === 'clearing';
+
+        var confirmationTitle = isClearing ?
+            'Konfirmasi Clearing' :
+            'Konfirmasi Hapus';
+
+        var confirmationMessage = isClearing ?
+            'Apakah Anda yakin ingin melakukan clearing manual?' :
+            'Apakah Anda yakin ingin menghapus data ini?';
+
+        var confirmButtonText = isClearing ?
+            'Ya, lakukan clearing' :
+            'Ya, hapus';
+
+        Swal.fire({
+            title: confirmationTitle,
+            text: confirmationMessage,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: confirmButtonText,
+            cancelButtonText: 'Batal',
+            reverseButtons: true,
+            allowOutsideClick: false,
+            allowEscapeKey: false
+        }).then(function(result) {
+            if (!result.isConfirmed) {
+                return;
+            }
+
+            // Mencegah tombol diklik berulang kali
+            button.prop('disabled', true);
+
+            Swal.fire({
+                title: 'Memproses...',
+                text: isClearing ?
+                    'Proses clearing manual sedang dijalankan.' :
+                    'Proses penghapusan data sedang dijalankan.',
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                didOpen: function() {
+                    Swal.showLoading();
+                }
+            });
+
             $.ajax({
                 url: "<?php echo base_url('application.php/PortalHelpdesk/prosesclearing'); ?>",
                 method: 'POST',
-                data: { action: action, proforma: proforma },
-                success: function (response) {
-                    var res = JSON.parse(response);
-                    alert(res.message);  // Display the response message
+                dataType: 'json',
+                data: {
+                    action: action,
+                    proforma: proforma
+                },
+                success: function(res) {
                     if (res.status === 'success') {
-                        location.reload();  // Reload the page if the action was successful
+                        Swal.fire({
+                            title: 'Berhasil',
+                            text: res.message || (
+                                isClearing ?
+                                'Clearing manual berhasil dilakukan.' :
+                                'Data berhasil dihapus.'
+                            ),
+                            icon: 'success',
+                            confirmButtonText: 'OK',
+                            allowOutsideClick: false,
+                            allowEscapeKey: false
+                        }).then(function() {
+                            location.reload();
+                        });
+                    } else {
+                        button.prop('disabled', false);
+
+                        Swal.fire({
+                            title: 'Gagal',
+                            text: res.message || (
+                                isClearing ?
+                                'Clearing manual gagal dilakukan.' :
+                                'Data gagal dihapus.'
+                            ),
+                            icon: 'error',
+                            confirmButtonText: 'OK'
+                        });
                     }
                 },
-                error: function (xhr, status, error) {
-                    alert('Terjadi kesalahan: ' + error);
+                error: function(xhr, status, error) {
+                    button.prop('disabled', false);
+
+                    var message = 'Terjadi kesalahan saat memproses data.';
+
+                    if (xhr.responseJSON && xhr.responseJSON.message) {
+                        message = xhr.responseJSON.message;
+                    } else if (xhr.responseText) {
+                        try {
+                            var response = JSON.parse(xhr.responseText);
+
+                            if (response.message) {
+                                message = response.message;
+                            }
+                        } catch (parseError) {
+                            message = 'Terjadi kesalahan: ' + error;
+                        }
+                    }
+
+                    Swal.fire({
+                        title: 'Gagal',
+                        text: message,
+                        icon: 'error',
+                        confirmButtonText: 'OK'
+                    });
                 }
             });
-        }
+        });
     });
 </script>
