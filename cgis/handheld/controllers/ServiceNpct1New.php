@@ -1738,6 +1738,9 @@ class ServiceNpct1New extends CI_Controller
                 $STAT = 'N';
             }
 
+            $datenow = date("Y-m-d H:i:s");
+            $this->db->query("INSERT INTO `tpk_ipc`.`log_behandle_npct` (`METHOD`, `XML_REQUEST`, `XML_RESPONSE`, `WK_REKAM`, `FL_NPCT1`, `FL_SENT_RIZKI`) VALUES ('GetStatusYard', '$addXML', '$response', '$datenow', 'Y', 'N')");
+
             $SQL = "UPDATE t_request_cont SET FL_YARD= '$STAT' WHERE ID = '" . $ID . "' AND NO_CONT = '" . $nocon11 . "'";
             $this->db->query($SQL);
             echo $SQL . "\r\n";
