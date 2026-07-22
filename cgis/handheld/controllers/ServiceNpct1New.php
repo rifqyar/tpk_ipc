@@ -1730,9 +1730,10 @@ class ServiceNpct1New extends CI_Controller
             header('content-Type: application/json');
             $xml = simplexml_load_string($response);
             $raw = json_decode(json_encode($xml));
-            $STAT = $raw->gateout ? 'Y' : 'N';
-            $VESSEL = $raw->vessel_name;
-            $voyage_in = $raw->voyage_in;
+
+            $STAT = $raw->response->containers->gateout ? 'Y' : 'N';
+            $VESSEL = $raw->response->containers->vessel_name;
+            $voyage_in = $raw->response->containers->voyage_in;
 
             $datenow = date("Y-m-d H:i:s");
             $this->db->query("INSERT INTO `tpk_ipc`.`log_behandle_npct` (`METHOD`, `XML_REQUEST`, `XML_RESPONSE`, `WK_REKAM`, `FL_NPCT1`, `FL_SENT_RIZKI`) VALUES ('GetStatusYard', '$addXML', '$response', '$datenow', 'Y', 'N')");
