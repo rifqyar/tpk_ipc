@@ -1656,7 +1656,7 @@ class ServiceNpct1New extends CI_Controller
                 from
                     t_request a
                 join t_request_cont b on a.id = b.id
-                where b.FL_YARD = 'Y'
+                -- where b.FL_YARD = 'Y'
             ) t
             on
                 r.NO_DOK = t.no_dok
@@ -1682,7 +1682,7 @@ class ServiceNpct1New extends CI_Controller
             limit 5
         ");
 
-        $url    = "https://api.npct1.co.id/services/index.php/behandle";
+        $url    = "https://api.npct1.co.id:9443/api/v1/tracking";
         $user   = "BEHANDLE";
         $key    = "5d3a2ffcb778f4b1c224f2447c048c8f";
         $nocon11 = "";
@@ -1692,7 +1692,7 @@ class ServiceNpct1New extends CI_Controller
             echo "KONTAINER : $nocon11; ";
             $addXML = '<request> 
             <containers>
-                <cont_no>' . $nocon11 . '</cont_no> 
+                <cont_no>'.$nocon11.'</cont_no> 
             </containers>';
             $addXML .= '</request>';
             $addXML = trim(preg_replace('/\s\s+/', '', str_replace("\n", " ", $addXML)));
@@ -1729,19 +1729,15 @@ class ServiceNpct1New extends CI_Controller
 
             header('content-Type: application/json');
             $xml = simplexml_load_string($response);
-            $raw = json_encode($xml);
-            $ON_YARD = $xml->LOOP->ON_YARD;
-
-            if ($ON_YARD == 'OK') {
-                $STAT = 'Y';
-            } else {
-                $STAT = 'N';
-            }
+            $raw = json_decode(json_encode($xml));
+            $STAT = $raw->gateout ? 'Y' : 'N';
+            $VESSEL = $raw->vessel_name;
+            $voyage_in = $raw->voyage_in;
 
             $datenow = date("Y-m-d H:i:s");
             $this->db->query("INSERT INTO `tpk_ipc`.`log_behandle_npct` (`METHOD`, `XML_REQUEST`, `XML_RESPONSE`, `WK_REKAM`, `FL_NPCT1`, `FL_SENT_RIZKI`) VALUES ('GetStatusYard', '$addXML', '$response', '$datenow', 'Y', 'N')");
 
-            $SQL = "UPDATE t_request_cont SET FL_YARD= '$STAT' WHERE ID = '" . $ID . "' AND NO_CONT = '" . $nocon11 . "'";
+            $SQL = "UPDATE t_request_cont SET FL_YARD= '$STAT' WHERE ID = '" . $ID . "' AND NO_CONT = '" . $nocon11 . "' AND VESSEL = '" . $VESSEL . "' AND VOY_IN = '" . $voyage_in . "'";
             $this->db->query($SQL);
             echo $SQL . "\r\n";
             //die();

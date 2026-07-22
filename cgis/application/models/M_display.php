@@ -942,10 +942,10 @@ class M_display extends CI_Model
 							tr.TIPE_CONT,
 							rkdb.NAMA as JNS_DOK,
 							case 
-								when tr.FL_YARD = 'Y' and ts.NO_SPK is not null then 'GATE OUT NPCT (PENARIKAN CA)'
-								when tr.FL_YARD = 'N' and ts.NO_SPK is not null then 'GATE OUT NPCT (PENARIKAN CA)'
+								when tr.FL_YARD = 'Y' and ts.NO_SPK is not null then 'GATE OUT TERMINAL - SUDAH SPK'
+								when tr.FL_YARD = 'N' and ts.NO_SPK is not null then 'STACKING TERMINAL - SUDAH SPK'
 								when tr.FL_YARD = 'Y' then 'STACKING NPCT'
-								when tr.FL_YARD = 'N' and ts.NO_SPK is null then 'GATE OUT NPCT'
+								when tr.FL_YARD = 'N' and ts.NO_SPK is null then 'GATE OUT TERMINAL - BELUM SPK'
 								else '-'
 							end as STATUS_YARD,
 							case 
