@@ -2834,33 +2834,33 @@ class Apibos extends CI_Controller
 			}
 
 			//echo json_encode($dt);die();
-			//     $idreqoldss = $this->db->query("SELECT DISTINCT A.ID_REQ,A.NM_KAPAL ,A.NO_VOY ,A.NO_DO ,A.NO_BL , A.NO_NOTA_DELIVERY FROM req_delivery_hdr A
-			// LEFT JOIN m_pelanggan B ON A.NPWP = B.NPWP
-			// WHERE A.NO_NOTA_DELIVERY > 0 AND A.FL_ID_REQ_OLD ='N' and A.NO_DOK = '$no_dok' limit 1")->row();
-			$idreqoldss = $this->db->query("SELECT DISTINCT 
-                                                A.ID_REQ,
-                                                A.NM_KAPAL,
-                                                A.NO_VOY,
-                                                A.NO_DO,
-                                                A.NO_BL,
-                                                A.NO_NOTA_DELIVERY
-                                            FROM req_delivery_hdr A
-                                            LEFT JOIN m_pelanggan B 
-                                                ON A.NPWP = B.NPWP
-                                            WHERE 
-                                                A.FL_ID_REQ_OLD = 'N'
-                                                AND A.NO_DOK = '$no_dok'
-                                                AND (
-                                                    A.NO_DOK IN (
-                                                        '260170/KPU.1/2026',
-                                                        '260106/KPU.1/2026',
-                                                        '260105/KPU.1/2026',
-                                                        '260259/KPU.1/2026',
-                                                        '258244/KPU.1/2026'
-                                                    )
-                                                    OR A.NO_NOTA_DELIVERY > 0
-                                                )
-                                            LIMIT 1")->row();
+			    $idreqoldss = $this->db->query("SELECT DISTINCT A.ID_REQ,A.NM_KAPAL ,A.NO_VOY ,A.NO_DO ,A.NO_BL , A.NO_NOTA_DELIVERY FROM req_delivery_hdr A
+			LEFT JOIN m_pelanggan B ON A.NPWP = B.NPWP
+			WHERE A.NO_NOTA_DELIVERY > 0 AND A.FL_ID_REQ_OLD ='N' and A.NO_DOK = '$no_dok' limit 1")->row();
+			// $idreqoldss = $this->db->query("SELECT DISTINCT 
+      //                                           A.ID_REQ,
+      //                                           A.NM_KAPAL,
+      //                                           A.NO_VOY,
+      //                                           A.NO_DO,
+      //                                           A.NO_BL,
+      //                                           A.NO_NOTA_DELIVERY
+      //                                       FROM req_delivery_hdr A
+      //                                       LEFT JOIN m_pelanggan B 
+      //                                           ON A.NPWP = B.NPWP
+      //                                       WHERE 
+      //                                           A.FL_ID_REQ_OLD = 'N'
+      //                                           AND A.NO_DOK = '$no_dok'
+      //                                           AND (
+      //                                               A.NO_DOK IN (
+      //                                                   '260170/KPU.1/2026',
+      //                                                   '260106/KPU.1/2026',
+      //                                                   '260105/KPU.1/2026',
+      //                                                   '260259/KPU.1/2026',
+      //                                                   '258244/KPU.1/2026'
+      //                                               )
+      //                                               OR A.NO_NOTA_DELIVERY > 0
+      //                                           )
+      //                                       LIMIT 1")->row();
 
 			if ($idreqoldss) {
 				$idreqolc = $idreqoldss->ID_REQ;
