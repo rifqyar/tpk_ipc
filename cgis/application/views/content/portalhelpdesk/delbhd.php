@@ -118,8 +118,8 @@
         $(document).on('click', '.delete-link', function(e) {
             e.preventDefault();
 
-            var id = $(this).data('id');
-            var noDokInout = $(this).data('no-dok-inout');
+            var tgl = $(this).data('tgl');
+            var no_dok = $(this).data('no-dok');
 
             Swal.fire({
                 title: 'Konfirmasi',
@@ -151,8 +151,8 @@
                     type: 'POST',
                     dataType: 'json',
                     data: {
-                        id: id,
-                        no_dok_inout: noDokInout
+                        tgl: tgl,
+                        no_dok: no_dok
                     },
                     success: function(res) {
                         if (res.status === 'success') {
