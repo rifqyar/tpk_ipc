@@ -946,7 +946,7 @@ class Apibos extends CI_Controller
 					$dataid = $value->ID;
 				}
 			} else {
-				// return $this->httpres(200, 'error', '', 'Data Tidak Di Temukan');
+				return $this->httpres(200, 'error', '', 'Data Tidak Di Temukan');
 			}
 
 			$cont_post_c = $dtcontpost;
@@ -1094,7 +1094,7 @@ class Apibos extends CI_Controller
 						// $MONITOR_PLUG = $this->db->query("SELECT C.PLUG_TERMINAL AS 'WAKTU', D.WAKTU_END FROM t_permit_hdr A INNER JOIN t_permit_cont B ON A.ID = B.ID INNER JOIN t_request_cont C ON B.NO_CONT = C.NO_CONT INNER JOIN t_op_reefer D ON B.NO_CONT = D.NO_CONT
 						// WHERE B.NO_CONT='$NO_CONT' AND A.NO_DOK_INOUT='$NO_DOK' AND C.PLUG_TERMINAL IS NOT NULL GROUP BY B.NO_CONT ASC")->row();
 						$MONITOR_PLUG = $this->db->query("SELECT C.PLUG_TERMINAL AS 'WAKTU', D.WAKTU_END FROM t_permit_hdr A INNER JOIN t_permit_cont B ON A.ID = B.ID INNER JOIN t_request_cont C ON B.NO_CONT = C.NO_CONT INNER JOIN t_op_reefer D ON B.NO_CONT = D.NO_CONT
-					WHERE B.NO_CONT='$NO_CONT' AND A.NO_DOK_INOUT='$NO_DOK' AND C.PLUG_TERMINAL IS NOT NULL AND d.waktu_end IS NOT NULL ORDER BY c.PLUG_TERMINAL desc,D.WAKTU_END desc LIMIT 1")->row();
+						WHERE B.NO_CONT='$NO_CONT' AND A.NO_DOK_INOUT='$NO_DOK' AND C.PLUG_TERMINAL IS NOT NULL AND d.waktu_end IS NOT NULL ORDER BY c.PLUG_TERMINAL desc,D.WAKTU_END desc LIMIT 1")->row();
 						// $MONITOR_PLUG = $this->db->query("SELECT C.PLUG_TERMINAL AS 'WAKTU' FROM t_permit_hdr A INNER JOIN t_permit_cont B ON A.ID = B.ID INNER JOIN t_request_cont C ON B.NO_CONT = C.NO_CONT INNER JOIN t_op_reefer D ON B.NO_CONT = D.NO_CONT
 						// WHERE B.NO_CONT='$NO_CONT' AND A.NO_DOK_INOUT='$NO_DOK' AND C.PLUG_TERMINAL IS NOT NULL GROUP BY B.NO_CONT ASC")->row();
 						$SQL_TRUCK = $this->db->query("SELECT * FROM $mtarif WHERE JENIS_BIAYA = 'TRUCK'")->row();

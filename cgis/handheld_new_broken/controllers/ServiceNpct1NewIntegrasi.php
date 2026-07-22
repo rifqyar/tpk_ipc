@@ -30,7 +30,7 @@ class ServiceNpct1NewIntegrasi extends CI_Controller
         $end = date("YmdHis");
         echo $start."<br>";
         echo $end;
-        $url    = "http://10.244.20.14:83/api/v1/get-coarri";
+        $url    = "https://api.npct1.co.id:9443/api/v1/get-coarri";
         $user   = "BEHANDLE";
         $key    = "5d3a2ffcb778f4b1c224f2447c048c8f";
            $addXML ='<request>

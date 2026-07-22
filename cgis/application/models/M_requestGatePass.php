@@ -150,8 +150,17 @@ class M_requestGatePass extends CI_Model
 
 		$check = (grant() == "W") ? true : false;
 
-		$SQLTEMP1 = "SELECT
+		$SQLTEMP1 = "SELECT * FROM (
+									SELECT
 										A.ID,
+										A.NO_DOK,
+										F.NO_CONT,
+										C.ANGKUTNAMA_TPS,
+										C.ANGKUTNO_TPS,
+										A.KD_REQ,
+										C.STATUS_MAIL,
+										A.WK_FINISH,
+										C.TGL_DOK_INOUT,
 										B.NAMA as `JENIS DOKUMEN`,
 										CONCAT(
 									'NO : ',
@@ -221,10 +230,19 @@ class M_requestGatePass extends CI_Model
 										and C.KD_DOK_INOUT = A.JNS_DOK
 										and C.TGL_DOK_INOUT = DATE(A.TGL_DOK)
 									where
-										A.JNS_DOK <> '83'"; // AND D.TIPE_CONT != 'RFR'
+										A.JNS_DOK <> '83'
+									group by A.NO_DOK) X WHERE 1 = 1"; // AND D.TIPE_CONT != 'RFR'
 
-		$SQLTEMP2 = "SELECT
+		$SQLTEMP2 = "SELECT * FROM (SELECT
 											A.ID,
+											A.NO_DOK,
+											F.NO_CONT,
+											C.ANGKUTNAMA_TPS,
+											C.ANGKUTNO_TPS,
+											A.KD_REQ,
+											C.STATUS_MAIL,
+											A.WK_FINISH,
+											C.TGL_DOK_INOUT,
 											B.NAMA AS `JENIS DOKUMEN`,
 											CONCAT(
 													'NO : ',
@@ -313,11 +331,20 @@ class M_requestGatePass extends CI_Model
 											AND C.TGL_DAFTAR_PABEAN = DATE(A.TGL_DOK)
 									WHERE A.JNS_DOK <> '83'
 										AND C.TGL_DAFTAR_PABEAN >= CURDATE() - INTERVAL 12 MONTH
+								GROUP BY A.NO_DOK) X WHERE 1 = 1
 							";
 
 		
-		$SQLTEMP3 = "SELECT
+		$SQLTEMP3 = "SELECT * FROM (SELECT
 										A.ID,
+										A.NO_DOK,
+										F.NO_CONT,
+										C.ANGKUTNAMA_TPS,
+										C.ANGKUTNO_TPS,
+										A.KD_REQ,
+										C.STATUS_MAIL,
+										A.WK_FINISH,
+										C.TGL_DOK_INOUT,
 										B.NAMA AS `JENIS DOKUMEN`,
 										CONCAT(
 												'NO : ',
@@ -406,6 +433,7 @@ class M_requestGatePass extends CI_Model
 										AND C.TGL_DOK_INOUT = DATE(A.TGL_DOK)
 								WHERE A.JNS_DOK <> '83'
 									AND C.TGL_DOK_INOUT >= CURDATE() - INTERVAL 12 MONTH
+								GROUP BY A.NO_DOK) X WHERE 1 = 1
 						";
 
 		if ($_POST['ajax'] == 1) {
@@ -449,14 +477,14 @@ class M_requestGatePass extends CI_Model
 		$arr_dok = array("" => "", "SPJM" => "SPJM", "SPPMP" => "SPPMP");
 		$arr_sts = array("" => "", "Email" => "Email Terkirim", "Email Tidak Terkirim" => "Email Tidak Terkirim");
 		$arr_sts2 = array("" => "", "DRAFT" => "DRAFT", "QUEUED" => "QUEUED", "SENT" => "SENT", "APPROVED" => "APPROVED", "REJECTED" => "REJECTED", "ERROR" => "ERROR", "INQUIRY" => "INQUIRY", "BYPASS" => "BYPASS");
-		$this->newtable->search(array(array('F.NO_CONT', 'NO. KONTAINER'), array('C.ANGKUTNAMA_TPS', 'NAMA KAPAL'), array('C.ANGKUTNO_TPS', 'NO. VOYAGE'), array('A.NO_DOK', 'NO. DOKUMEN'), array('A.KD_REQ', 'STATUS PENGIRIMAN', 'OPTION', $arr_sts2), array('C.STATUS_MAIL ', 'STATUS PENGIRIMAN', 'OPTION', $arr_sts)));
+		$this->newtable->search(array(array('X.NO_CONT', 'NO. KONTAINER'), array('X.ANGKUTNAMA_TPS', 'NAMA KAPAL'), array('X.ANGKUTNO_TPS', 'NO. VOYAGE'), array('X.NO_DOK', 'NO. DOKUMEN'), array('X.KD_REQ', 'STATUS PENGIRIMAN', 'OPTION', $arr_sts2), array('X.STATUS_MAIL', 'STATUS PENGIRIMAN', 'OPTION', $arr_sts)));
 		$this->newtable->action(site_url() . "/requestGatePass/gatepassBc");
 		if ($check) $this->newtable->detail(array('POPUP', "requestGatePass/gatepassBc/gate_pass_request_detail"));
 		$this->newtable->tipe_proses('button');
-		$this->newtable->hiddens(array("ID", "NO_CONT", "STATUS_PENGIRIMAN", "STATUS", "TANGGAL"));
+		$this->newtable->hiddens(array("ID", "NO_DOK", "NO_CONT", "STATUS_PENGIRIMAN", "STATUS", "TANGGAL", "ANGKUTNAMA_TPS", "ANGKUTNO_TPS", "KD_REQ", "STATUS_MAIL", "WK_FINISH", "TGL_DOK_INOUT"));
 		$this->newtable->keys(array("ID"));
 		$this->newtable->cidb($this->db);
-		$this->newtable->orderby("A.WK_FINISH ASC,C.TGL_DOK_INOUT DESC");
+		$this->newtable->orderby("X.WK_FINISH ASC,X.TGL_DOK_INOUT DESC");
 		$this->newtable->sortby("");
 		$this->newtable->groupby();
 		$this->newtable->set_formid("tblrequestgatepassBc");
