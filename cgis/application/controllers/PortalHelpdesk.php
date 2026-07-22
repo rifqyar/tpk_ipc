@@ -128,7 +128,6 @@ class PortalHelpdesk extends CI_Controller
 	}
 	public function prosesbhd()
 	{
-		var_dump($this->input->post());die(); // Debugging line to check POST data
 		$tgl_dok = $this->input->post('tgl');
 		$no_dok = $this->input->post('no_dok');
 
