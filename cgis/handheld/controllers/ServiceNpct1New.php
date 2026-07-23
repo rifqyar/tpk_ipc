@@ -1742,6 +1742,16 @@ class ServiceNpct1New extends CI_Controller
             $SQL = "UPDATE t_request_cont SET FL_YARD= '$STAT' WHERE ID = '" . $ID . "' AND NO_CONT = '" . $nocon11 . "' AND VESSEL = '" . $VESSEL . "' AND VOY_IN = '" . $voyage_in . "'";
             $this->db->query($SQL);
 
+            $SQL = "UPDATE t_cocostscont tc
+                        INNER JOIN t_cocostshdr th
+                            ON tc.ID = th.ID
+                        SET
+                            tc.KD_TIMBUN = '" . $raw->response->containers->location . "',
+                        WHERE
+                            tc.NO_CONT = '" . $nocon11 . "'
+                            AND th.NM_ANGKUT = '" . $VESSEL . "'
+                            AND th.NO_VOY_FLIGHT = '" . $voyage_in . "'";
+
             if ($STAT == 'N') {
                 $SQL = "UPDATE t_rekon_dokumen_npct1 SET STATUS_NPCT1 = 'GATE OUT' WHERE NO_CONT = '$nocon11' AND VESSEL = '" . $VESSEL . "' AND VOYAGE = '" . $voyage_in . "'";
                 $this->db->query($SQL);
