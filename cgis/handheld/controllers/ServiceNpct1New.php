@@ -1732,7 +1732,7 @@ class ServiceNpct1New extends CI_Controller
             $xml = simplexml_load_string($response);
             $raw = json_decode(json_encode($xml));
 
-            $STAT = $raw->response->containers->gateout ? 'Y' : 'N';
+            $STAT = $raw->response->containers->on_yard != 'NOK' ? 'Y' : 'N';
             $VESSEL = $raw->response->containers->vessel_name;
             $voyage_in = $raw->response->containers->voyage_in;
 
