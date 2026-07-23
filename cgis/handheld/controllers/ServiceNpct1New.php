@@ -1746,7 +1746,7 @@ class ServiceNpct1New extends CI_Controller
                         INNER JOIN t_cocostshdr th
                             ON tc.ID = th.ID
                         SET
-                            tc.KD_TIMBUN = '" . $raw->response->containers->location . "',
+                            tc.KD_TIMBUN = '" . $raw->response->containers->location . "'
                         WHERE
                             tc.NO_CONT = '" . $nocon11 . "'
                             AND th.NM_ANGKUT = '" . $VESSEL . "'
