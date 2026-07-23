@@ -1697,7 +1697,8 @@ class M_display extends CI_Model
 		(case when A.FL_STATUS ='Y' then '<span class=\"label label-success\">Approved</span>'
 		when A.FL_STATUS ='X' THEN '<span class=\"label label-danger\">Tolak</span>'
 		when A.FL_STATUS ='N' THEN '<span class=\"label label-danger\">Belum Approved</span>'
-		END) AS 'LIST PROSES'
+		END) AS 'LIST PROSES',
+		A.NOTE as 'ALASAN TOLAK'
 		from list_dokumens A 
 		where  year(A.CREATED_AT) >= 2021";
 
