@@ -1752,10 +1752,9 @@ class ServiceNpct1New extends CI_Controller
                             AND th.NM_ANGKUT = '" . $VESSEL . "'
                             AND th.NO_VOY_FLIGHT = '" . $voyage_in . "'";
 
-            if ($STAT == 'N') {
-                $SQL = "UPDATE t_rekon_dokumen_npct1 SET STATUS_NPCT1 = 'GATE OUT' WHERE NO_CONT = '$nocon11' AND VESSEL = '" . $VESSEL . "' AND VOYAGE = '" . $voyage_in . "'";
-                $this->db->query($SQL);
-            }
+            $SQL = "UPDATE t_rekon_dokumen_npct1 SET STATUS_NPCT1 = 'GATE OUT' WHERE NO_CONT = '$nocon11' AND VESSEL = '" . $VESSEL . "' AND VOYAGE = '" . $voyage_in . "'";
+            $this->db->query($SQL);
+
             echo $SQL . "\r\n";
             //die();
         }
