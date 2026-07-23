@@ -144,6 +144,7 @@
 				<th style="text-align:center;">KONTAINER</th>
 				<th style="text-align:center;">TYPE</th>
 				<th style="text-align:center;">SPK</th>
+				<th style="text-align:center;">WAKTU TERBIT SPK</th>
 				<th style="text-align:center;">CLS</th>
 				<th style="text-align:center;">VESSEL</th>
 				<th style="text-align:center;">VOY</th>
@@ -176,6 +177,7 @@
 				<td style="font-size: 10px;text-align:center;"><?php echo $value->NO_KONTAINER; ?></td>
 				<td style="font-size: 10px;text-align:center;"><?php echo $value->TYPE; ?></td>
 				<td style="font-size: 10px;text-align:center;"><?php echo $value->NO_SPK; ?></td>
+				<td style="font-size: 10px;text-align:center;"><?php echo $value->WK_REQ; ?></td>
 				<td style="font-size: 10px;text-align:center;"><?php echo "I"; ?></td>
 				<td style="font-size: 10px;text-align:center;"><?php echo $value->VESSEL_NAME; ?></td>
 				<td style="font-size: 10px;text-align:center;"><?php echo $value->VOYAGE; ?></td>

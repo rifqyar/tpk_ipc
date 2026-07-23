@@ -372,6 +372,7 @@ class M_home extends CI_Model {
 							<th style='text-align:center;'>KONTAINER</th>
 							<th style='text-align:center;'>TYPE</th>
 							<th style='text-align:center;'>SPK</th>
+							<th style='text-align:center;'>WAKTU TERBIT SPK</th>
 							<th style='text-align:center;'>CLS</th>
 							<th style='text-align:center;'>VESSEL</th>
 							<th style='text-align:center;'>VOY</th>
@@ -623,6 +624,34 @@ class M_home extends CI_Model {
 							$result = $day.':'.$hours.':'.$minutes;
 							$waktu = date('d-m-Y H:i',strtotime($WK));
 						}
+					}elseif($arrid[1] == '100'){
+						$WK = $dtl['WK_REQ'];
+						if($WK != ""){
+							$tgl1 = $WK;
+							$tgl2 = date("Y-m-d H:i:s");
+							$a = $this->datediff($tgl1, $tgl2);
+							
+							if(strlen($a['days']) == 1){
+									$day = "0".$a['days'];
+							}else{
+								$day = $a['days'];
+							}
+							
+							if(strlen($a['hours']) == 1){
+								$hours = "0".$a['hours'];
+							}else{
+								$hours = $a['hours'];
+							}
+							
+							if(strlen($a['minutes']) == 1){
+								$minutes = "0".$a['minutes'];
+							}else{
+								$minutes = $a['minutes'];
+							}
+							
+							$result = $day.':'.$hours.':'.$minutes;
+							$waktu = date('Y-m-d H:i',strtotime($WK));
+						}
 					}
 		
 					$table .= "<tr $class>";
@@ -631,6 +660,7 @@ class M_home extends CI_Model {
 								<td style='font-size: 10px;text-align:center;'>$dtl[NO_KONTAINER]</td>
 								<td style='font-size: 10px;text-align:center;'>$dtl[TYPE]</td>
 								<td style='font-size: 10px;text-align:center;'>$dtl[NO_SPK]</td>
+								<td style='font-size: 10px;text-align:center;'>$dtl[WK_REQ]</td>
 								<td style='font-size: 10px;text-align:center;'>I</td>
 								<td style='font-size: 10px;text-align:center;'>$dtl[VESSEL_NAME]</td>
 								<td style='font-size: 10px;text-align:center;'>$dtl[VOYAGE]</td>
