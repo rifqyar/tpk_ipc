@@ -1656,7 +1656,7 @@ class ServiceNpct1New extends CI_Controller
                 from
                     t_request a
                 join t_request_cont b on a.id = b.id
-                where b.FL_YARD = 'N'
+                -- where b.FL_YARD = 'N'
             ) t
             on
                 r.NO_DOK = t.no_dok
