@@ -1693,7 +1693,7 @@ class ServiceNpct1New extends CI_Controller
             echo "KONTAINER : $nocon11; ";
             $addXML = '<request> 
             <containers>
-                <cont_no>'.$nocon11.'</cont_no> 
+                <cont_no>' . $nocon11 . '</cont_no> 
             </containers>';
             $addXML .= '</request>';
             $addXML = trim(preg_replace('/\s\s+/', '', str_replace("\n", " ", $addXML)));
@@ -1741,6 +1741,11 @@ class ServiceNpct1New extends CI_Controller
 
             $SQL = "UPDATE t_request_cont SET FL_YARD= '$STAT' WHERE ID = '" . $ID . "' AND NO_CONT = '" . $nocon11 . "' AND VESSEL = '" . $VESSEL . "' AND VOY_IN = '" . $voyage_in . "'";
             $this->db->query($SQL);
+
+            if ($STAT == 'N') {
+                $SQL = "UPDATE t_rekon_dokumen_npct1 SET STATUS_NPCT1 = 'GATE OUT' WHERE NO_CONT = '$nocon11' AND VESSEL = '" . $VESSEL . "' AND VOYAGE = '" . $voyage_in . "'";
+                $this->db->query($SQL);
+            }
             echo $SQL . "\r\n";
             //die();
         }
