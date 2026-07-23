@@ -942,12 +942,16 @@ class M_display extends CI_Model
 							tr.TIPE_CONT,
 							rkdb.NAMA as JNS_DOK,
 							case 
-								when tr.FL_YARD = 'Y' and ts.NO_SPK is not null then 'GATE OUT TERMINAL - SUDAH SPK'
-								when tr.FL_YARD = 'N' and ts.NO_SPK is not null then 'STACKING TERMINAL - SUDAH SPK'
-								when tr.FL_YARD = 'Y' then 'STACKING NPCT'
+								when tr.FL_YARD = 'Y' and ts.NO_SPK is not null then 'STACKING TERMINAL - SUDAH SPK'
+								when tr.FL_YARD = 'N' and ts.NO_SPK is not null then 'GATEOUT TERMINAL - SUDAH SPK'
+								when tr.FL_YARD = 'Y' and ts.NO_SPK is null then 'STACKING TERMINAL - BELUM SPK'
 								when tr.FL_YARD = 'N' and ts.NO_SPK is null then 'GATE OUT TERMINAL - BELUM SPK'
 								else '-'
 							end as STATUS_YARD,
+							case
+								when tr.FL_YARD = 'Y' then tc.KD_TIMBUN
+								else '-'
+							end as LOKASI_NPCT,
 							case 
 								when tr.KD_REQ = 'INQUIRY' then 'DONE'
 								when tr.KD_REQ = 'SENT' then 'SENT TO NPCT'
@@ -1036,6 +1040,18 @@ class M_display extends CI_Model
 								GROUP BY ld.NO_DOK
 						) ld 
 								ON ld.NO_DOK = trdn.NO_DOK and year(ld.created_at_request) = year(trdn.`TIMESTAMP`)
+						inner join (
+							SELECT 
+								th.NM_ANGKUT,
+								th.NO_VOY_FLIGHT,
+								tc.NO_CONT,
+								tc.KD_TIMBUN
+							FROM t_cocostscont tc
+							inner join t_cocostshdr th on
+								tc.ID = th.ID
+						) tc ON trdn.NO_CONT = tc.NO_CONT 
+							AND trdn.VESSEL = tc.NM_ANGKUT
+							AND trdn.VOYAGE = tc.NO_VOY_FLIGHT
 						where
 							trdn.`TIMESTAMP` >= '2026-06-18 00:00:00'
 							and trdn.TYPE_DOK = 'SPJ') as az WHERE 1 = 1";

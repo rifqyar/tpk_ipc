@@ -1656,7 +1656,7 @@ class ServiceNpct1New extends CI_Controller
                 from
                     t_request a
                 join t_request_cont b on a.id = b.id
-                -- where b.FL_YARD = 'Y'
+                where b.FL_YARD = 'N'
             ) t
             on
                 r.NO_DOK = t.no_dok
@@ -1679,12 +1679,13 @@ class ServiceNpct1New extends CI_Controller
                         tr.NO_DOK = r.NO_DOK
                         and trc.NO_CONT = r.NO_CONT
                 ) 
+            order by RAND()
             limit 5
         ");
 
         $url    = "https://api.npct1.co.id:9443/api/v1/tracking";
         $user   = "BEHANDLE";
-        $key    = "5d3a2ffcb778f4b1c224f2447c048c8f";
+        $keyNPCT    = "5d3a2ffcb778f4b1c224f2447c048c8f";
         $nocon11 = "";
         foreach ($q->result() as $key => $value1) {
             $nocon11 = $value1->NO_CONT;
@@ -1714,7 +1715,7 @@ class ServiceNpct1New extends CI_Controller
                 CURLOPT_POSTFIELDS => $addXML,
                 CURLOPT_HTTPHEADER => array(
                     'User-ID: ' . $user,
-                    'NPCT-API-Key: ' . $key,
+                    'NPCT-API-Key: ' . $keyNPCT,
                     'Content-Type: application/xml'
                 ),
             ));
@@ -1736,7 +1737,7 @@ class ServiceNpct1New extends CI_Controller
             $voyage_in = $raw->response->containers->voyage_in;
 
             $datenow = date("Y-m-d H:i:s");
-            $this->db->query("INSERT INTO `tpk_ipc`.`log_behandle_npct` (`METHOD`, `XML_REQUEST`, `XML_RESPONSE`, `WK_REKAM`, `FL_NPCT1`, `FL_SENT_RIZKI`) VALUES ('GetStatusYard', '$addXML', '$response', '$datenow', 'Y', 'N')");
+            $this->db->query("INSERT INTO `tpk_ipc`.`log_behandle_npct` (`METHOD`, `XML_REQUEST`, `XML_RESPONSE`, `WK_REKAM`, `FL_NPCT1`) VALUES ('GetStatusYard', '$addXML', '$response', '$datenow', 'Y')");
 
             $SQL = "UPDATE t_request_cont SET FL_YARD= '$STAT' WHERE ID = '" . $ID . "' AND NO_CONT = '" . $nocon11 . "' AND VESSEL = '" . $VESSEL . "' AND VOY_IN = '" . $voyage_in . "'";
             $this->db->query($SQL);
