@@ -489,7 +489,7 @@ class ServiceNpct1New extends CI_Controller
         $user   = "BEHANDLE";
         $key    = "5d3a2ffcb778f4b1c224f2447c048c8f";
 
-        $SQL = "SELECT B.ID, A.JNS_DOK, B.NO_CONT, B.REF_NUMBER FROM t_request A INNER JOIN t_request_cont B ON A.ID = B.ID WHERE B.NO_CONT = '" . $no_cont . "' ORDER BY B.ID DESC LIMIT 5";
+        $SQL = "SELECT B.ID, A.JNS_DOK, B.NO_CONT, B.REF_NUMBER FROM t_request A INNER JOIN t_request_cont B ON A.ID = B.ID WHERE B.NO_CONT = '" . $no_cont . "' and B.KD_STATUS <> 'INQUIRY' ORDER BY B.ID DESC LIMIT 1";
 
         $Query = $this->db->query($SQL);
 
