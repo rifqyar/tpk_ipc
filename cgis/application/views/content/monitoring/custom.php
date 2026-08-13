@@ -49,7 +49,7 @@
 			border: 1px solid #000
 		}
 		.posisi3{
-			background-color:#9aa58c;
+			background-color:#FFA500;
 			line-height: 38px;
 			color: #000;
 			font-weight: bold;
@@ -70,7 +70,7 @@
 			border: 1px solid #000
 		}
 		.posisi6{
-			background-color:#2a3eb1;
+			background-color:#FFC0CB;
 			line-height: 38px;
 			color: #000;
 			font-weight: bold;
@@ -186,12 +186,12 @@
 				</form>
 			</div>
 			<div class="col-md-6">
-				<button class="btn" style="color:#000; background-color: #76ff03">SIAP PERIKSA <?php echo $datacount[0]->{"SIAP_PERIKSA"} ?> </button>
+				<button class="btn" style="color:#000; background-color: #ffee33">ON TERMINAL <?php echo $datacount[0]->{"WAITING"} ?> </button>
+				<button class="btn" style="color:#000; background-color: #FFA500">ON CA <?php echo $datacount[0]->{"BELUM_PPK"} ?> </button>
 				<button class="btn" style="color:#000; background-color: red">PPK <?php echo $datacount[0]->{"ANTRIAN_PERIKSA"} ?> </button>
-				<button class="btn" style="color:#000; background-color: #9aa58c">BELUM RESPON <?php echo $datacount[0]->{"BELUM_PPK"} ?> </button>
+				<button class="btn" style="color:#000; background-color: #76ff03">SIAP PERIKSA <?php echo $datacount[0]->{"SIAP_PERIKSA"} ?> </button>
 				<button class="btn" style="color:#000; background-color: #33bfff">SEDANG PERIKSA <?php echo $datacount[0]->{"SEDANG_PERIKSA"} ?> </button>
-				<button class="btn" style="color:#000; background-color: #ffee33">WAITING <?php echo $datacount[0]->{"WAITING"} ?> </button>
-				<button class="btn" style="color:#000; background-color: #2a3eb1">SELESAI PERIKSA <?php echo $datacount[0]->{"SELESAI_PERIKSA"} ?> </butt>
+				<button class="btn" style="color:#000; background-color: #FFC0CB">SELESAI PERIKSA <?php echo $datacount[0]->{"SELESAI_PERIKSA"} ?> </butt>
 				<button class="btn" style="color:#000; background-color: #e8e8e8">BELUM SPK <?php echo $datacount[0]->{"BELUM_SPK"} ?> </butt>
 			</div>
 		</div>

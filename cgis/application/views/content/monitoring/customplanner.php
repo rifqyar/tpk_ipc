@@ -49,7 +49,7 @@
 			border: 1px solid #000
 		}
 		.posisi3{
-			background-color:#9aa58c;
+			background-color:orange;
 			line-height: 38px;
 			color: #000;
 			font-weight: bold;
@@ -70,7 +70,7 @@
 			border: 1px solid #000
 		}
 		.posisi6{
-			background-color:#2a3eb1;
+			background-color:pink;
 			line-height: 38px;
 			color: #000;
 			font-weight: bold;
@@ -187,12 +187,12 @@
 				</form>
 			</div>
 			<div class="col-md-6">
-				<button class="btn" style="color:#000; background-color: #76ff03">SIAP PERIKSA</button>
+				<button class="btn" style="color:#000; background-color: #ffee33">ON TERMINAL</button>
+				<button class="btn" style="color:#000; background-color: orange">ON CA</button>
 				<button class="btn" style="color:#000; background-color: red">PPK</button>
-				<button class="btn" style="color:#000; background-color: #9aa58c">BELUM RESPON</button>
+				<button class="btn" style="color:#000; background-color: #76ff03">SIAP PERIKSA</button>
 				<button class="btn" style="color:#000; background-color: #33bfff">SEDANG PERIKSA</button>
-				<button class="btn" style="color:#000; background-color: #ffee33">WAITING</button>
-				<button class="btn" style="color:#000; background-color: #2a3eb1">SELESAI PERIKSA</butt>
+				<button class="btn" style="color:#000; background-color: pink">SELESAI PERIKSA</butt>
 				<button class="btn" style="color:#000; background-color: #e8e8e8">BELUM SPK <?php echo $datacount[0]->{"BELUM_SPK"} ?> </butt>
 			</div>
 		</div>
