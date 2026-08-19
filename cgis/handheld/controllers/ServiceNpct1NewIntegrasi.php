@@ -8,47 +8,48 @@ class ServiceNpct1NewIntegrasi extends CI_Controller
         parent::__construct();
         $this->load->model('M_home');
     }
-    public function parsedate($x) {
-        if (strlen($x)<9) {
-            if (strlen($x)==0){
+    public function parsedate($x)
+    {
+        if (strlen($x) < 9) {
+            if (strlen($x) == 0) {
                 return $x;
             }
-            return substr_replace(substr_replace($x,"-",4,0),"-",7,0);
-        }
-        else
-            return substr_replace(substr_replace(substr_replace(substr_replace(substr_replace($x,"-",4,0),"-",7,0)," ",10,0),":",13,0),":",16,0);
+            return substr_replace(substr_replace($x, "-", 4, 0), "-", 7, 0);
+        } else
+            return substr_replace(substr_replace(substr_replace(substr_replace(substr_replace($x, "-", 4, 0), "-", 7, 0), " ", 10, 0), ":", 13, 0), ":", 16, 0);
     }
-    public function tipekont($x) {
+    public function tipekont($x)
+    {
         if ($x == 'Y') {
             return 'RFR';
-        }
-        else
+        } else
             return 'DRY';
     }
-    public function getcoarri(){
-        $start = date("YmdHis",strtotime("-6 hour",strtotime("now")));
+    public function getcoarri()
+    {
+        $start = date("YmdHis", strtotime("-6 hour", strtotime("now")));
         $end = date("YmdHis");
-        echo $start."<br>";
+        echo $start . "<br>";
         echo $end;
         $url    = "https://api.npct1.co.id:9443/api/v1/get-coarri";
         $user   = "BEHANDLE";
         $key    = "5d3a2ffcb778f4b1c224f2447c048c8f";
-           $addXML ='<request>
-                        <start>'.$start.'</start>
-                        <end>'.$end.'</end>
+        $addXML = '<request>
+                        <start>' . $start . '</start>
+                        <end>' . $end . '</end>
                     </request>
 
                 ';
-            $addXML .='</request>
+        $addXML .= '</request>
             ';
 
-            $addXML= trim(preg_replace('/\s\s+/', '', str_replace("\n", " ", $addXML)));
-            // print_r($addXML);die();
-            $curl = curl_init();
-            curl_setopt_array($curl, array(
+        $addXML = trim(preg_replace('/\s\s+/', '', str_replace("\n", " ", $addXML)));
+        // print_r($addXML);die();
+        $curl = curl_init();
+        curl_setopt_array($curl, array(
             CURLOPT_URL => $url,
-CURLOPT_SSL_VERIFYPEER => false,
-CURLOPT_SSL_VERIFYHOST => false,
+            CURLOPT_SSL_VERIFYPEER => false,
+            CURLOPT_SSL_VERIFYHOST => false,
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_ENCODING => '',
             CURLOPT_MAXREDIRS => 10,
@@ -56,103 +57,101 @@ CURLOPT_SSL_VERIFYHOST => false,
             CURLOPT_FOLLOWLOCATION => true,
             CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
             CURLOPT_CUSTOMREQUEST => 'POST',
-            CURLOPT_POSTFIELDS =>$addXML,
+            CURLOPT_POSTFIELDS => $addXML,
             CURLOPT_HTTPHEADER => array(
-                'User-ID: '.$user,
-                'NPCT-API-Key: '.$key,
+                'User-ID: ' . $user,
+                'NPCT-API-Key: ' . $key,
                 'Content-Type: application/xml'
             ),
-            ));
-            $response = curl_exec($curl);
-            if (!curl_errno($curl)) {
-                $info = curl_getinfo($curl);
-                echo "Connection Success , This is Url : ", $info['url'], "\r\n";
-            }else{
-                echo "Connection Failed =".curl_error($curl);
-            }
-            curl_close($curl); 
-            $xml1 = str_replace('xmlns="cococont.xsd">',">",$response);
-            $xml2 = str_replace('</DOCUMENT">',"</DOCUMENT>",$xml1);
+        ));
+        $response = curl_exec($curl);
+        if (!curl_errno($curl)) {
+            $info = curl_getinfo($curl);
+            echo "Connection Success , This is Url : ", $info['url'], "\r\n";
+        } else {
+            echo "Connection Failed =" . curl_error($curl);
+        }
+        curl_close($curl);
+        $xml1 = str_replace('xmlns="cococont.xsd">', ">", $response);
+        $xml2 = str_replace('</DOCUMENT">', "</DOCUMENT>", $xml1);
 
-            $xml = simplexml_load_string($xml2);
+        $xml = simplexml_load_string($xml2);
 
-            foreach ($xml->DOCUMENT->COCOCONT as $hdrdata){
-                foreach ($hdrdata->DETIL->CONT as $contdata){
-                    $KD_DOK = $hdrdata->HEADER->KD_DOK;
-                    $KD_TPS = $hdrdata->HEADER->KD_TPS;
-                    $NM_ANGKUT = $hdrdata->HEADER->NM_ANGKUT;
-                    $NO_VOY_FLIGHT = $hdrdata->HEADER->NO_VOY_FLIGHT;
-                    $CALL_SIGN = $hdrdata->HEADER->CALL_SIGN;;
-                    $TGL_TIBA = $this->parsedate($hdrdata->HEADER->TGL_TIBA);
-                    $KD_GUDANG = $hdrdata->HEADER->KD_GUDANG;
-                    $REF_NUMBER = $hdrdata->HEADER->REF_NUMBER;
-                    $NO_CONT = $contdata->NO_CONT;
-                    $UK_CONT = $contdata->UK_CONT;
-                    $NO_SEGEL = $contdata->NO_SEGEL;
-                    $JNS_CONT = $contdata->JNS_CONT;
-                    $NO_BL_AWB = $contdata->NO_BL_AWB;
-                    $TGL_BL_AWB = $this->parsedate($contdata->TGL_BL_AWB);
-                    $NO_MASTER_BL_AWB = $contdata->NO_MASTER_BL_AWB;
-                    $TGL_MASTER_BL_AWB = $this->parsedate($contdata->TGL_MASTER_BL_AWB);
-                    $ID_CONSIGNEE = $contdata->ID_CONSIGNEE;
-                    $CONSIGNEE = $contdata->CONSIGNEE;
-                    $BRUTO = $contdata->BRUTO;
-                    $NO_BC11 = $contdata->NO_BC11;
-                    $TGL_BC11 = $this->parsedate($contdata->TGL_BC11);
-                    $NO_POS_BC11 = $contdata->NO_POS_BC11;
-                    $KD_TIMBUN = $contdata->KD_TIMBUN;
-                    $KD_DOK_INOUT = $contdata->KD_DOK_INOUT;
-                    $NO_DOK_INOUT = $contdata->NO_DOK_INOUT;
-                    $TGL_DOK_INOUT = $this->parsedate($contdata->TGL_DOK_INOUT);
-                    $WK_INOUT = $this->parsedate($contdata->WK_INOUT);
-                    $WK_EXE = $this->parsedate($contdata->WK_EXE);
-                    $KD_SAR_ANGKUT_INOUT = $contdata->KD_SAR_ANGKUT_INOUT;
-                    $NO_POL = $contdata->NO_POL;
-                    $FL_CONT_KOSONG = $contdata->FL_CONT_KOSONG;
-                    $ISO_CODE = $contdata->ISO_CODE;
-                    $PEL_MUAT = $contdata->PEL_MUAT;
-                    $PEL_TRANSIT = $contdata->PEL_TRANSIT;
-                    $PEL_BONGKAR = $contdata->PEL_BONGKAR;
-                    $GUDANG_TUJUAN = $contdata->GUDANG_TUJUAN;
-                    $KODE_KANTOR = $contdata->KODE_KANTOR;
-                    $NO_DAFTAR_PABEAN = $contdata->NO_DAFTAR_PABEAN;
-                    $TGL_DAFTAR_PABEAN = $this->parsedate($contdata->TGL_DAFTAR_PABEAN);
-                    $NO_SEGEL_BC = $contdata->NO_SEGEL_BC;
-                    $TGL_SEGEL_BC = $this->parsedate($contdata->TGL_SEGEL_BC);
-                    $NO_IJIN_TPS = $contdata->NO_IJIN_TPS;
-                    $TGL_IJIN_TPS = $this->parsedate($contdata->TGL_IJIN_TPS);
-                    $KD_CONT_TYPE = $this->tipekont($contdata->REEFER);
-                    $OOG = $contdata->OOG;
-                    $IMDG = $contdata->IMDG;
-                    $WK_REKAM = date("Y-m-d H:i:s");
+        foreach ($xml->DOCUMENT->COCOCONT as $hdrdata) {
+            foreach ($hdrdata->DETIL->CONT as $contdata) {
+                $KD_DOK = $hdrdata->HEADER->KD_DOK;
+                $KD_TPS = $hdrdata->HEADER->KD_TPS;
+                $NM_ANGKUT = $hdrdata->HEADER->NM_ANGKUT;
+                $NO_VOY_FLIGHT = $hdrdata->HEADER->NO_VOY_FLIGHT;
+                $CALL_SIGN = $hdrdata->HEADER->CALL_SIGN;;
+                $TGL_TIBA = $this->parsedate($hdrdata->HEADER->TGL_TIBA);
+                $KD_GUDANG = $hdrdata->HEADER->KD_GUDANG;
+                $REF_NUMBER = $hdrdata->HEADER->REF_NUMBER;
+                $NO_CONT = $contdata->NO_CONT;
+                $UK_CONT = $contdata->UK_CONT;
+                $NO_SEGEL = $contdata->NO_SEGEL;
+                $JNS_CONT = $contdata->JNS_CONT;
+                $NO_BL_AWB = $contdata->NO_BL_AWB;
+                $TGL_BL_AWB = $this->parsedate($contdata->TGL_BL_AWB);
+                $NO_MASTER_BL_AWB = $contdata->NO_MASTER_BL_AWB;
+                $TGL_MASTER_BL_AWB = $this->parsedate($contdata->TGL_MASTER_BL_AWB);
+                $ID_CONSIGNEE = $contdata->ID_CONSIGNEE;
+                $CONSIGNEE = $contdata->CONSIGNEE;
+                $BRUTO = $contdata->BRUTO;
+                $NO_BC11 = $contdata->NO_BC11;
+                $TGL_BC11 = $this->parsedate($contdata->TGL_BC11);
+                $NO_POS_BC11 = $contdata->NO_POS_BC11;
+                $KD_TIMBUN = $contdata->KD_TIMBUN;
+                $KD_DOK_INOUT = $contdata->KD_DOK_INOUT;
+                $NO_DOK_INOUT = $contdata->NO_DOK_INOUT;
+                $TGL_DOK_INOUT = $this->parsedate($contdata->TGL_DOK_INOUT);
+                $WK_INOUT = $this->parsedate($contdata->WK_INOUT);
+                $WK_EXE = $this->parsedate($contdata->WK_EXE);
+                $KD_SAR_ANGKUT_INOUT = $contdata->KD_SAR_ANGKUT_INOUT;
+                $NO_POL = $contdata->NO_POL;
+                $FL_CONT_KOSONG = $contdata->FL_CONT_KOSONG;
+                $ISO_CODE = $contdata->ISO_CODE;
+                $PEL_MUAT = $contdata->PEL_MUAT;
+                $PEL_TRANSIT = $contdata->PEL_TRANSIT;
+                $PEL_BONGKAR = $contdata->PEL_BONGKAR;
+                $GUDANG_TUJUAN = $contdata->GUDANG_TUJUAN;
+                $KODE_KANTOR = $contdata->KODE_KANTOR;
+                $NO_DAFTAR_PABEAN = $contdata->NO_DAFTAR_PABEAN;
+                $TGL_DAFTAR_PABEAN = $this->parsedate($contdata->TGL_DAFTAR_PABEAN);
+                $NO_SEGEL_BC = $contdata->NO_SEGEL_BC;
+                $TGL_SEGEL_BC = $this->parsedate($contdata->TGL_SEGEL_BC);
+                $NO_IJIN_TPS = $contdata->NO_IJIN_TPS;
+                $TGL_IJIN_TPS = $this->parsedate($contdata->TGL_IJIN_TPS);
+                $KD_CONT_TYPE = $this->tipekont($contdata->REEFER);
+                $OOG = $contdata->OOG;
+                $IMDG = $contdata->IMDG;
+                $WK_REKAM = date("Y-m-d H:i:s");
 
-                            // INSERT TO COCOSTHDR/COCOSTCONT
-                            // check data ada di cocosthdr
-                            $query = $this->db->query("SELECT * from t_cocostshdr where CALL_SIGN = '$CALL_SIGN' and NM_ANGKUT = '$NM_ANGKUT' and NO_VOY_FLIGHT = '$NO_VOY_FLIGHT'");
-                            $count = $query->num_rows();
-                            if ($count === 0){
-                                echo $NO_VOY_FLIGHT." + ".$CALL_SIGN."belum ada \r\n";
-                                $this->db->query("INSERT INTO t_cocostshdr (KD_ASAL_BRG, KD_TPS, KD_GUDANG, CALL_SIGN, NM_ANGKUT, NO_VOY_FLIGHT, TGL_TIBA, WK_REKAM) VALUES ('$KD_DOK', '$KD_TPS', '$KD_GUDANG', '$CALL_SIGN', '$NM_ANGKUT', '$NO_VOY_FLIGHT', '$TGL_TIBA', NOW())");
-                                $insert_id = $this->db->insert_id();
+                // INSERT TO COCOSTHDR/COCOSTCONT
+                // check data ada di cocosthdr
+                $query = $this->db->query("SELECT * from t_cocostshdr where CALL_SIGN = '$CALL_SIGN' and NM_ANGKUT = '$NM_ANGKUT' and NO_VOY_FLIGHT = '$NO_VOY_FLIGHT'");
+                $count = $query->num_rows();
+                if ($count === 0) {
+                    echo $NO_VOY_FLIGHT . " + " . $CALL_SIGN . "belum ada \r\n";
+                    $this->db->query("INSERT INTO t_cocostshdr (KD_ASAL_BRG, KD_TPS, KD_GUDANG, CALL_SIGN, NM_ANGKUT, NO_VOY_FLIGHT, TGL_TIBA, WK_REKAM) VALUES ('$KD_DOK', '$KD_TPS', '$KD_GUDANG', '$CALL_SIGN', '$NM_ANGKUT', '$NO_VOY_FLIGHT', '$TGL_TIBA', NOW())");
+                    $insert_id = $this->db->insert_id();
 
-                                echo  "selanjutnya insert ke cocostcont pake id = ".$insert_id."\r\n";
-                                $query = $this->db->query("INSERT INTO t_cocostscont
+                    echo  "selanjutnya insert ke cocostcont pake id = " . $insert_id . "\r\n";
+                    $query = $this->db->query("INSERT INTO t_cocostscont
                                     (ID, NO_CONT, UK_CONT, JNS_CONT, ISO_CODE, TEMPERATURE, KD_CONT_TIPE, BRUTO, NO_SEGEL, NO_BL_AWB, TGL_BL_AWB, NO_MASTER_BL_AWB, TGL_MASTER_BL_AWB, NO_BC11, TGL_BC11, NO_POS_BC11, ID_CONSIGNEE, CONSIGNEE, KD_TIMBUN, PEL_MUAT, PEL_TRANSIT, PEL_BONGKAR, KD_DOK_IN, NO_DOK_IN, TGL_DOK_IN, WK_IN, FL_CONT_KOSONG_IN, KD_SARANA_ANGKUT_IN, NO_POL_IN, GUDANG_TUJUAN_IN, NO_DAFTAR_PABEAN_IN, TGL_DAFTAR_PABEAN_IN, NO_SEGEL_BC_IN, TGL_SEGEL_BC_IN, NO_IJIN_TPS_IN, TGL_IJIN_TPS_IN, KODE_KANTOR_IN, KD_DOK_OUT, NO_DOK_OUT, TGL_DOK_OUT, WK_OUT, FL_CONT_KOSONG_OUT, KD_SARANA_ANGKUT_OUT, NO_POL_OUT, GUDANG_TUJUAN_OUT, NO_DAFTAR_PABEAN_OUT, TGL_DAFTAR_PABEAN_OUT, NO_SEGEL_BC_OUT, TGL_SEGEL_BC_OUT, NO_IJIN_TPS_OUT, TGL_IJIN_TPS_OUT, KODE_KANTOR_OUT, WK_REKAM, FL_BILLING)
                                     VALUES($insert_id, '$NO_CONT', '$UK_CONT', '$JNS_CONT', '$ISO_CODE', NULL, '$KD_CONT_TYPE', '$BRUTO', '$NO_SEGEL', '$NO_BL_AWB', '$TGL_BL_AWB', NULL, NULL, '$NO_BC11', '$TGL_BC11', '$NO_POS_BC11', '$ID_CONSIGNEE', '$CONSIGNEE', '$KD_TIMBUN', '$PEL_MUAT', '$PEL_TRANSIT', '$PEL_BONGKAR', NULL, NULL, NULL, '$WK_INOUT', '$FL_CONT_KOSONG', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '040300', NULL, NULL, NULL, NULL, '$FL_CONT_KOSONG', '$KD_SARANA_ANGKUT_OUT', '$NO_POL', '$GUDANG_TUJUAN', '$NO_DAFTAR_PABEAN', '$TGL_DAFTAR_PABEAN', '$NO_SEGEL_BC', '$TGL_SEGEL_BC', '$NO_IJIN_TPS', '$TGL_IJIN_TPS', '$KODE_KANTOR', '$WK_REKAM', 'N');
                                     ");
+                } else {
+                    $q = $this->db->query("SELECT * from t_cocostshdr where CALL_SIGN = '$CALL_SIGN' and NM_ANGKUT = '$NM_ANGKUT' and NO_VOY_FLIGHT = '$NO_VOY_FLIGHT'");
+                    foreach ($q->result() as $key => $value1) {
+                        $cocosthdrid = $value1->ID;
+                        //cek dulu sudah ada di cocostcont
+                        $query = $this->db->query("SELECT * from t_cocostshdr dc join t_cocostscont dc2 on dc.ID = dc2.ID where dc.NM_ANGKUT = '$NM_ANGKUT' and dc.NO_VOY_FLIGHT = '$NO_VOY_FLIGHT' and dc.CALL_SIGN  = '$CALL_SIGN' and dc2.NO_CONT = '$NO_CONT'");
+                        $count = $query->num_rows();
+                        // insert or update ke cocostcont
+                        echo "proses insert/update cocostcont id = " . $cocosthdrid . " dan kontainer = " . $NO_CONT . "\r\n";
 
-                            }
-                            else{
-                                $q = $this->db->query("SELECT * from t_cocostshdr where CALL_SIGN = '$CALL_SIGN' and NM_ANGKUT = '$NM_ANGKUT' and NO_VOY_FLIGHT = '$NO_VOY_FLIGHT'");
-                                foreach ($q->result() as $key => $value1) {
-                                    $cocosthdrid = $value1->ID;
-                                    //cek dulu sudah ada di cocostcont
-                                    $query = $this->db->query("SELECT * from t_cocostshdr dc join t_cocostscont dc2 on dc.ID = dc2.ID where dc.NM_ANGKUT = '$NM_ANGKUT' and dc.NO_VOY_FLIGHT = '$NO_VOY_FLIGHT' and dc.CALL_SIGN  = '$CALL_SIGN' and dc2.NO_CONT = '$NO_CONT'");
-                                    $count = $query->num_rows();
-                                    // insert or update ke cocostcont
-                                    echo "proses insert/update cocostcont id = " . $cocosthdrid . " dan kontainer = " . $NO_CONT . "\r\n";
-
-                                    $query = $this->db->query("
+                        $query = $this->db->query("
                                         INSERT INTO t_cocostscont (
                                             ID, NO_CONT, UK_CONT, JNS_CONT, ISO_CODE, TEMPERATURE, KD_CONT_TIPE, BRUTO, NO_SEGEL, 
                                             NO_BL_AWB, TGL_BL_AWB, NO_MASTER_BL_AWB, TGL_MASTER_BL_AWB, NO_BC11, TGL_BC11, NO_POS_BC11, 
@@ -177,48 +176,46 @@ CURLOPT_SSL_VERIFYHOST => false,
                                             JNS_CONT = VALUES(JNS_CONT)
                                     ");
 
-                                    // tampilkan hasil
-                                    if ($this->db->affected_rows() > 1) {
-                                        echo "insert baru untuk kontainer $NO_CONT\r\n";
-                                    } else {
-                                        echo "update data kontainer $NO_CONT\r\n";
-                                    }
-
-                                }
-
-                            }
-
+                        // tampilkan hasil
+                        if ($this->db->affected_rows() > 1) {
+                            echo "insert baru untuk kontainer $NO_CONT\r\n";
+                        } else {
+                            echo "update data kontainer $NO_CONT\r\n";
                         }
                     }
                 }
-    public function gantiformattglgblk($tgl){
-        $date=date_create_from_format("m/d/Y",$tgl);
-        $date1 = date_format($date,"Y-m-d");
+            }
+        }
+    }
+    public function gantiformattglgblk($tgl)
+    {
+        $date = date_create_from_format("m/d/Y", $tgl);
+        $date1 = date_format($date, "Y-m-d");
         return $date1;
     }
     public function getcustdoc()
     {
-        $start = date("YmdHis",strtotime("-60 minutes",strtotime("now")));
+        $start = date("YmdHis", strtotime("-60 minutes", strtotime("now")));
         $end = date("YmdHis");
         // echo $start."<br>";
         // echo $end;
         $url    = "https://api.npct1.co.id:9443/api/v1/get-custdoc";
         $user   = "BEHANDLE";
         $key    = "5d3a2ffcb778f4b1c224f2447c048c8f";
-        $addXML ='<request>
-                        <start>'.$start.'</start>
-                        <end>'.$end.'</end>
+        $addXML = '<request>
+                        <start>' . $start . '</start>
+                        <end>' . $end . '</end>
         </request>';
-        $addXML .='</request>
+        $addXML .= '</request>
         ';
 
-        $addXML= trim(preg_replace('/\s\s+/', '', str_replace("\n", " ", $addXML)));
-            // print_r($addXML);die();
+        $addXML = trim(preg_replace('/\s\s+/', '', str_replace("\n", " ", $addXML)));
+        // print_r($addXML);die();
         $curl = curl_init();
         curl_setopt_array($curl, array(
             CURLOPT_URL => $url,
-CURLOPT_SSL_VERIFYPEER => false,
-CURLOPT_SSL_VERIFYHOST => false,
+            CURLOPT_SSL_VERIFYPEER => false,
+            CURLOPT_SSL_VERIFYHOST => false,
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_ENCODING => '',
             CURLOPT_MAXREDIRS => 10,
@@ -226,10 +223,10 @@ CURLOPT_SSL_VERIFYHOST => false,
             CURLOPT_FOLLOWLOCATION => true,
             CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
             CURLOPT_CUSTOMREQUEST => 'POST',
-            CURLOPT_POSTFIELDS =>$addXML,
+            CURLOPT_POSTFIELDS => $addXML,
             CURLOPT_HTTPHEADER => array(
-                'User-ID: '.$user,
-                'NPCT-API-Key: '.$key,
+                'User-ID: ' . $user,
+                'NPCT-API-Key: ' . $key,
                 'Content-Type: application/xml'
             ),
         ));
@@ -237,11 +234,11 @@ CURLOPT_SSL_VERIFYHOST => false,
         if (!curl_errno($curl)) {
             $info = curl_getinfo($curl);
             // echo "Connection Success , This is Url : ", $info['url'], "\r\n";
-        }else{
-            echo "Connection Failed =".curl_error($curl);
+        } else {
+            echo "Connection Failed =" . curl_error($curl);
         }
-        curl_close($curl); 
-        $xml1 = str_replace('<?xml version="1.0"?>',"",$response);
+        curl_close($curl);
+        $xml1 = str_replace('<?xml version="1.0"?>', "", $response);
         $xml = simplexml_load_string($xml1);
         header("Content-Type: application/xml; charset=UTF-8");
         // echo $response;
@@ -309,7 +306,6 @@ CURLOPT_SSL_VERIFYHOST => false,
                             }
                         }
                     }
-
                 }
             }
 
@@ -383,29 +379,29 @@ CURLOPT_SSL_VERIFYHOST => false,
                     }
                 }
             }
-
         }
     }
-    public function getssm(){
-        $start = date("YmdHis",strtotime("-720 minutes",strtotime("now")));
+    public function getssm()
+    {
+        $start = date("YmdHis", strtotime("-720 minutes", strtotime("now")));
         $end = date("YmdHis");
         $url    = "https://api.npct1.co.id:9443/api/v1/get-ssm";
         $user   = "BEHANDLE";
         $key    = "5d3a2ffcb778f4b1c224f2447c048c8f";
-        $addXML ='<request>
-                        <start>'.$start.'</start>
-                        <end>'.$end.'</end>
+        $addXML = '<request>
+                        <start>' . $start . '</start>
+                        <end>' . $end . '</end>
         </request>';
-        $addXML .='</request>
+        $addXML .= '</request>
         ';
 
-        $addXML= trim(preg_replace('/\s\s+/', '', str_replace("\n", " ", $addXML)));
-            // print_r($addXML);die();
+        $addXML = trim(preg_replace('/\s\s+/', '', str_replace("\n", " ", $addXML)));
+        // print_r($addXML);die();
         $curl = curl_init();
         curl_setopt_array($curl, array(
             CURLOPT_URL => $url,
-CURLOPT_SSL_VERIFYPEER => false,
-CURLOPT_SSL_VERIFYHOST => false,
+            CURLOPT_SSL_VERIFYPEER => false,
+            CURLOPT_SSL_VERIFYHOST => false,
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_ENCODING => '',
             CURLOPT_MAXREDIRS => 10,
@@ -413,10 +409,10 @@ CURLOPT_SSL_VERIFYHOST => false,
             CURLOPT_FOLLOWLOCATION => true,
             CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
             CURLOPT_CUSTOMREQUEST => 'POST',
-            CURLOPT_POSTFIELDS =>$addXML,
+            CURLOPT_POSTFIELDS => $addXML,
             CURLOPT_HTTPHEADER => array(
-                'User-ID: '.$user,
-                'NPCT-API-Key: '.$key,
+                'User-ID: ' . $user,
+                'NPCT-API-Key: ' . $key,
                 'Content-Type: application/xml'
             ),
         ));
@@ -424,15 +420,15 @@ CURLOPT_SSL_VERIFYHOST => false,
         if (!curl_errno($curl)) {
             $info = curl_getinfo($curl);
             echo "Connection Success , This is Url : ", $info['url'], "\r\n";
-        }else{
-            echo "Connection Failed =".curl_error($curl);
+        } else {
+            echo "Connection Failed =" . curl_error($curl);
         }
         curl_close($curl);
         // echo $response;
-        $xml1 = str_replace('<?xml version="1.0" encoding="UTF-8" standalone="yes"?>',"",$response);
+        $xml1 = str_replace('<?xml version="1.0" encoding="UTF-8" standalone="yes"?>', "", $response);
         $xml = simplexml_load_string($xml1);
         $datenow = date("Y-m-d H:i:s");
-        foreach ($xml->DOCUMENTS->GETCONTAINERPERIKSA as $hdrdata){
+        foreach ($xml->DOCUMENTS->GETCONTAINERPERIKSA as $hdrdata) {
             $ngok = $hdrdata->asXML();;
             // var_dump($ngok);
             echo $ngok;
@@ -443,121 +439,123 @@ CURLOPT_SSL_VERIFYHOST => false,
         // $ngok = $xml->DOCUMENTS->GETCONTAINERPERIKSA->LOOP->KODE_RESPONSE;
         // var_dump($ngok);
     }
-    public function ondemand(){
+    public function ondemand()
+    {
         $nosppb = $this->input->post('nodok');
         $tglsppb = $this->input->post('tgldok');
         $npwpsppb = $this->input->post('npwp');
 
-                $url    = "https://api.npct1.co.id:9443/api/v1/get-ondemand";
-                $user   = "BEHANDLE";
-                $key    = "5d3a2ffcb778f4b1c224f2447c048c8f";
-                $addXML ='<request>
+        $url    = "https://api.npct1.co.id:9443/api/v1/get-ondemand";
+        $user   = "BEHANDLE";
+        $key    = "5d3a2ffcb778f4b1c224f2447c048c8f";
+        $addXML = '<request>
                 <document_code>1</document_code>
-                <document_no>'.$nosppb.'</document_no>
-                <document_date>'.$tglsppb.'</document_date>
-                <npwp>'.$npwpsppb.'</npwp>
+                <document_no>' . $nosppb . '</document_no>
+                <document_date>' . $tglsppb . '</document_date>
+                <npwp>' . $npwpsppb . '</npwp>
                 </request>';
-                $addXML .='</request>
+        $addXML .= '</request>
                 ';
 
-                $addXML= trim(preg_replace('/\s\s+/', '', str_replace("\n", " ", $addXML)));
-            // print_r($addXML);die();
-                $curl = curl_init();
-                curl_setopt_array($curl, array(
-                    CURLOPT_URL => $url,
-CURLOPT_SSL_VERIFYPEER => false,
-CURLOPT_SSL_VERIFYHOST => false,
-                    CURLOPT_RETURNTRANSFER => true,
-                    CURLOPT_ENCODING => '',
-                    CURLOPT_MAXREDIRS => 10,
-                    CURLOPT_TIMEOUT => 0,
-                    CURLOPT_FOLLOWLOCATION => true,
-                    CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-                    CURLOPT_CUSTOMREQUEST => 'POST',
-                    CURLOPT_POSTFIELDS =>$addXML,
-                    CURLOPT_HTTPHEADER => array(
-                        'User-ID: '.$user,
-                        'NPCT-API-Key: '.$key,
-                        'Content-Type: application/xml'
-                    ),
-                ));
-                $response = curl_exec($curl);
-                if (!curl_errno($curl)) {
-                    $info = curl_getinfo($curl);
-                    echo "Connection Success , This is Url : ", $info['url'], "<br>\r\n";
-                }else{
-                    echo "Connection Failed =".curl_error($curl);
-                }
-                curl_close($curl); 
-                $xml1 = str_replace('<?xml version="1.0"?>',"",$response);
+        $addXML = trim(preg_replace('/\s\s+/', '', str_replace("\n", " ", $addXML)));
+        // print_r($addXML);die();
+        $curl = curl_init();
+        curl_setopt_array($curl, array(
+            CURLOPT_URL => $url,
+            CURLOPT_SSL_VERIFYPEER => false,
+            CURLOPT_SSL_VERIFYHOST => false,
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_ENCODING => '',
+            CURLOPT_MAXREDIRS => 10,
+            CURLOPT_TIMEOUT => 0,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+            CURLOPT_CUSTOMREQUEST => 'POST',
+            CURLOPT_POSTFIELDS => $addXML,
+            CURLOPT_HTTPHEADER => array(
+                'User-ID: ' . $user,
+                'NPCT-API-Key: ' . $key,
+                'Content-Type: application/xml'
+            ),
+        ));
+        $response = curl_exec($curl);
+        if (!curl_errno($curl)) {
+            $info = curl_getinfo($curl);
+            echo "Connection Success , This is Url : ", $info['url'], "<br>\r\n";
+        } else {
+            echo "Connection Failed =" . curl_error($curl);
+        }
+        curl_close($curl);
+        $xml1 = str_replace('<?xml version="1.0"?>', "", $response);
 
-                $xml = simplexml_load_string($xml1);
-                $CAR = $xml->DOCUMENT->SPPB->HEADER->CAR;
-                $NO_SPPB = $xml->DOCUMENT->SPPB->HEADER->NO_SPPB;
-                $TGL_SPPB = $this->gantiformattglgblk($xml->DOCUMENT->SPPB->HEADER->TGL_SPPB);
-                $KD_KPBC = $xml->DOCUMENT->SPPB->HEADER->KD_KPBC;
-                $NO_PIB = $xml->DOCUMENT->SPPB->HEADER->NO_PIB;
-                $TGL_PIB = $this->gantiformattglgblk($xml->DOCUMENT->SPPB->HEADER->TGL_PIB);
-                $NPWP_IMP = $xml->DOCUMENT->SPPB->HEADER->NPWP_IMP;
-                $NAMA_IMP = $xml->DOCUMENT->SPPB->HEADER->NAMA_IMP;
-                $ALAMAT_IMP = $xml->DOCUMENT->SPPB->HEADER->ALAMAT_IMP;
-                $NPWP_PPJK = $xml->DOCUMENT->SPPB->HEADER->NPWP_PPJK;
-                $NAMA_PPJK = $xml->DOCUMENT->SPPB->HEADER->NAMA_PPJK;
-                $ALAMAT_PPJK = $xml->DOCUMENT->SPPB->HEADER->ALAMAT_PPJK;
-                $NM_ANGKUT = $xml->DOCUMENT->SPPB->HEADER->NM_ANGKUT;
-                $NO_VOY_FLIGHT = $xml->DOCUMENT->SPPB->HEADER->NO_VOY_FLIGHT;
-                $BRUTO = $xml->DOCUMENT->SPPB->HEADER->BRUTO;
-                $NETTO = $xml->DOCUMENT->SPPB->HEADER->NETTO;
-                $GUDANG = $xml->DOCUMENT->SPPB->HEADER->GUDANG;
-                $STATUS_JALUR = $xml->DOCUMENT->SPPB->HEADER->STATUS_JALUR;
-                $JML_CONT = $xml->DOCUMENT->SPPB->HEADER->JML_CONT;
-                $NO_BC11 = $xml->DOCUMENT->SPPB->HEADER->NO_BC11;
-                $TGL_BC11 = $this->gantiformattglgblk($xml->DOCUMENT->SPPB->HEADER->TGL_BC11);
-                $NO_POS_BC11 = $xml->DOCUMENT->SPPB->HEADER->NO_POS_BC11;
-                $NO_BL_AWB = $xml->DOCUMENT->SPPB->HEADER->NO_BL_AWB;
-                $TG_BL_AWB = $this->gantiformattglgblk($xml->DOCUMENT->SPPB->HEADER->TG_BL_AWB);
-                $NO_MASTER_BL_AWB = $xml->DOCUMENT->SPPB->HEADER->NO_MASTER_BL_AWB;
-                $TG_MASTER_BL_AWB = $this->gantiformattglgblk($xml->DOCUMENT->SPPB->HEADER->TG_MASTER_BL_AWB);
-                $datenow = date("Y-m-d H:i:s"); 
-                
-            $responget = 'success';
+        $xml = simplexml_load_string($xml1);
+        $CAR = $xml->DOCUMENT->SPPB->HEADER->CAR;
+        $NO_SPPB = $xml->DOCUMENT->SPPB->HEADER->NO_SPPB;
+        $TGL_SPPB = $this->gantiformattglgblk($xml->DOCUMENT->SPPB->HEADER->TGL_SPPB);
+        $KD_KPBC = $xml->DOCUMENT->SPPB->HEADER->KD_KPBC;
+        $NO_PIB = $xml->DOCUMENT->SPPB->HEADER->NO_PIB;
+        $TGL_PIB = $this->gantiformattglgblk($xml->DOCUMENT->SPPB->HEADER->TGL_PIB);
+        $NPWP_IMP = $xml->DOCUMENT->SPPB->HEADER->NPWP_IMP;
+        $NAMA_IMP = $xml->DOCUMENT->SPPB->HEADER->NAMA_IMP;
+        $ALAMAT_IMP = $xml->DOCUMENT->SPPB->HEADER->ALAMAT_IMP;
+        $NPWP_PPJK = $xml->DOCUMENT->SPPB->HEADER->NPWP_PPJK;
+        $NAMA_PPJK = $xml->DOCUMENT->SPPB->HEADER->NAMA_PPJK;
+        $ALAMAT_PPJK = $xml->DOCUMENT->SPPB->HEADER->ALAMAT_PPJK;
+        $NM_ANGKUT = $xml->DOCUMENT->SPPB->HEADER->NM_ANGKUT;
+        $NO_VOY_FLIGHT = $xml->DOCUMENT->SPPB->HEADER->NO_VOY_FLIGHT;
+        $BRUTO = $xml->DOCUMENT->SPPB->HEADER->BRUTO;
+        $NETTO = $xml->DOCUMENT->SPPB->HEADER->NETTO;
+        $GUDANG = $xml->DOCUMENT->SPPB->HEADER->GUDANG;
+        $STATUS_JALUR = $xml->DOCUMENT->SPPB->HEADER->STATUS_JALUR;
+        $JML_CONT = $xml->DOCUMENT->SPPB->HEADER->JML_CONT;
+        $NO_BC11 = $xml->DOCUMENT->SPPB->HEADER->NO_BC11;
+        $TGL_BC11 = $this->gantiformattglgblk($xml->DOCUMENT->SPPB->HEADER->TGL_BC11);
+        $NO_POS_BC11 = $xml->DOCUMENT->SPPB->HEADER->NO_POS_BC11;
+        $NO_BL_AWB = $xml->DOCUMENT->SPPB->HEADER->NO_BL_AWB;
+        $TG_BL_AWB = $this->gantiformattglgblk($xml->DOCUMENT->SPPB->HEADER->TG_BL_AWB);
+        $NO_MASTER_BL_AWB = $xml->DOCUMENT->SPPB->HEADER->NO_MASTER_BL_AWB;
+        $TG_MASTER_BL_AWB = $this->gantiformattglgblk($xml->DOCUMENT->SPPB->HEADER->TG_MASTER_BL_AWB);
+        $datenow = date("Y-m-d H:i:s");
 
-            if (strpos($response, 'Data tidak ditemukan') !== false) {
-                $responget = 'data tidak ditemukan';
-            };
+        $responget = 'success';
 
-            if ($responget == 'data tidak ditemukan') {
-                // return $this->httpres(200, 'error', '', 'Dokumen Tidak Di temukan gan');
-                return header('X-PHP-Response-Code: 404', true, 404);
-                echo 'penis';
-            }
+        if (strpos($response, 'Data tidak ditemukan') !== false) {
+            $responget = 'data tidak ditemukan';
+        };
+
+        if ($responget == 'data tidak ditemukan') {
+            // return $this->httpres(200, 'error', '', 'Dokumen Tidak Di temukan gan');
+            return header('X-PHP-Response-Code: 404', true, 404);
+            echo 'penis';
+        }
 
 
-            if ($responget !== 'data tidak ditemukan') {
-                $query = $this->db->query("SELECT * from dum_permit_hdr where NO_DOK_INOUT = '$NO_SPPB' and TGL_DOK_INOUT = '$TGL_SPPB'");
-                    $count = $query->num_rows();
-                    if ($count === 0){
-                        $this->db->query("INSERT INTO dum_permit_hdr (CAR, NO_DOK_INOUT, KD_DOK_INOUT, TGL_DOK_INOUT, KD_KANTOR, NO_DAFTAR_PABEAN, TGL_DAFTAR_PABEAN, ID_CONSIGNEE, CONSIGNEE, ALAMAT_CONSIGNEE, NPWP_PPJK, NAMA_PPJK, ALAMAT_PPJK, NM_ANGKUT, NO_VOY_FLIGHT, BRUTO, NETTO, KD_GUDANG, STATUS_JALUR, JML_CONT, NO_BC11, TGL_BC11, NO_POS_BC11, NO_BL_AWB, TGL_BL_AWB, NO_MASTER_BL_AWB, TGL_MASTER_BL_AWB)
+        if ($responget !== 'data tidak ditemukan') {
+            $query = $this->db->query("SELECT * from dum_permit_hdr where NO_DOK_INOUT = '$NO_SPPB' and TGL_DOK_INOUT = '$TGL_SPPB'");
+            $count = $query->num_rows();
+            if ($count === 0) {
+                $this->db->query("INSERT INTO dum_permit_hdr (CAR, NO_DOK_INOUT, KD_DOK_INOUT, TGL_DOK_INOUT, KD_KANTOR, NO_DAFTAR_PABEAN, TGL_DAFTAR_PABEAN, ID_CONSIGNEE, CONSIGNEE, ALAMAT_CONSIGNEE, NPWP_PPJK, NAMA_PPJK, ALAMAT_PPJK, NM_ANGKUT, NO_VOY_FLIGHT, BRUTO, NETTO, KD_GUDANG, STATUS_JALUR, JML_CONT, NO_BC11, TGL_BC11, NO_POS_BC11, NO_BL_AWB, TGL_BL_AWB, NO_MASTER_BL_AWB, TGL_MASTER_BL_AWB)
                         VALUES ('$CAR', '$NO_SPPB', '1','$TGL_SPPB', '$KD_KPBC', '$NO_PIB', '$TGL_PIB', '$NPWP_IMP', '$NAMA_IMP', '$ALAMAT_IMP', '$NPWP_PPJK', '$NAMA_PPJK', '$ALAMAT_PPJK', '$NM_ANGKUT', '$NO_VOY_FLIGHT', '$BRUTO', '$NETTO', '$GUDANG', '$STATUS_JALUR', '$JML_CONT', '$NO_BC11', '$TGL_BC11', '$NO_POS_BC11', '$NO_BL_AWB', '$TG_BL_AWB', '$NO_MASTER_BL_AWB', '$TG_MASTER_BL_AWB')");
-                        $insert_id = $this->db->insert_id();
+                $insert_id = $this->db->insert_id();
 
-                        foreach ($xml->DOCUMENT->SPPB->DETIL->CONT as $contdata){
-                            $ID = $contdata->ID;
-                            $NO_CONT = $contdata->NO_CONT;
-                            $SIZE = $contdata->SIZE;
-                            $JNS_MUAT = $contdata->JNS_MUAT;
-                            $this->db->query("INSERT IGNORE INTO dum_permit_cont (ID, NO_CONT, KD_CONT_UKURAN, KD_CONT_JENIS, TGL_STATUS)
+                foreach ($xml->DOCUMENT->SPPB->DETIL->CONT as $contdata) {
+                    $ID = $contdata->ID;
+                    $NO_CONT = $contdata->NO_CONT;
+                    $SIZE = $contdata->SIZE;
+                    $JNS_MUAT = $contdata->JNS_MUAT;
+                    $this->db->query("INSERT IGNORE INTO dum_permit_cont (ID, NO_CONT, KD_CONT_UKURAN, KD_CONT_JENIS, TGL_STATUS)
                                 VALUES ('$insert_id', '$NO_CONT', '$SIZE', '$JNS_MUAT', '$datenow')");
-                        }
-                    } else {
-                        echo 'akwokwok';
-                    }
+                }
+            } else {
+                echo 'akwokwok';
             }
-            // $this->db->query("INSERT INTO `tpk_ipc`.`solver_req_dokumen_log` (`url`, `tipe`, `no_dok`, `tgl_dok`, `npwp`, `data_respons`) VALUES ('https://api.npct1.co.id:9443/api/v1/get-ondemand', '$type', '$no_dok', '$tgl_dok', '$npwp', '$responget')");
+        }
+        // $this->db->query("INSERT INTO `tpk_ipc`.`solver_req_dokumen_log` (`url`, `tipe`, `no_dok`, `tgl_dok`, `npwp`, `data_respons`) VALUES ('https://api.npct1.co.id:9443/api/v1/get-ondemand', '$type', '$no_dok', '$tgl_dok', '$npwp', '$responget')");
     }
-    public function msgsixbeta(){
-            header('Content-Type: application/xml');
-            $q = $this->db->query("SELECT ts.NO_SPK, tc.NM_ANGKUT, tc.NO_VOY_FLIGHT, tc.CALL_SIGN, ts.JNS_DOK as 'JNSDOKIN', tg.NO_CONT, tr.VOY_IN, ts.NO_DOK as 'DOKIN', DATE_FORMAT(ts.TGL_DOK, '%Y%m%d%H%i%s') as 'TGDOKIN',
+    public function msgsixbeta()
+    {
+        header('Content-Type: application/xml');
+        $q = $this->db->query("SELECT ts.NO_SPK, tc.NM_ANGKUT, tc.NO_VOY_FLIGHT, tc.CALL_SIGN, ts.JNS_DOK as 'JNSDOKIN', tg.NO_CONT, tr.VOY_IN, ts.NO_DOK as 'DOKIN', DATE_FORMAT(ts.TGL_DOK, '%Y%m%d%H%i%s') as 'TGDOKIN',
             DATE_FORMAT(rb.PRN_BEHANDLE_IN, '%Y%m%d%H%i%s') as 'BEHADNLE_IN',
             DATE_FORMAT(rb.PRN_BEHANDLE_IN, '%Y%m%d%H%i%s') as 'STACKING_BEFORE',
             DATE_FORMAT(ppk.WK_RESPON, '%Y%m%d%H%i%s') as 'RESPON_PPK',
@@ -584,85 +582,85 @@ CURLOPT_SSL_VERIFYHOST => false,
         foreach ($q->result() as $key => $value1) {
             $cdata = '<request>
                             <containers>
-                                <reff_number>'.$value1->REF_NUMBER.'</reff_number>
-                                <vessel_name>'.$value1->NM_ANGKUT.'</vessel_name>
-                                <call_sign>'.$value1->CALL_SIGN.'</call_sign>
-                                <voyage_in>'.$value1->VOY_IN.'</voyage_in>
-                                <voyage_out>'.$value1->VOY_IN.'</voyage_out>
-                                <cont_no>'.$value1->NO_CONT.'</cont_no>
-                                <document_type>'.$value1->JNSDOKIN.'</document_type>
-                                <document_no>'.$value1->DOKIN.'</document_no>
-                                <document_date>'.$value1->TGDOKIN.'</document_date>
+                                <reff_number>' . $value1->REF_NUMBER . '</reff_number>
+                                <vessel_name>' . $value1->NM_ANGKUT . '</vessel_name>
+                                <call_sign>' . $value1->CALL_SIGN . '</call_sign>
+                                <voyage_in>' . $value1->VOY_IN . '</voyage_in>
+                                <voyage_out>' . $value1->VOY_IN . '</voyage_out>
+                                <cont_no>' . $value1->NO_CONT . '</cont_no>
+                                <document_type>' . $value1->JNSDOKIN . '</document_type>
+                                <document_no>' . $value1->DOKIN . '</document_no>
+                                <document_date>' . $value1->TGDOKIN . '</document_date>
                                 <process>
                                     <in_behandle>
-                                        <document_type>'.$value1->JNSDOKIN.'</document_type>
-                                        <document_no>'.$value1->DOKIN.'</document_no>
-                                        <document_date>'.$value1->TGDOKIN.'</document_date>
-                                        <actual_time>'.$value1->BEHADNLE_IN.'</actual_time>
+                                        <document_type>' . $value1->JNSDOKIN . '</document_type>
+                                        <document_no>' . $value1->DOKIN . '</document_no>
+                                        <document_date>' . $value1->TGDOKIN . '</document_date>
+                                        <actual_time>' . $value1->BEHADNLE_IN . '</actual_time>
                                     </in_behandle>
                                     <stacking_yard_before>
-                                        <document_type>'.$value1->JNSDOKIN.'</document_type>
-                                        <document_no>'.$value1->DOKIN.'</document_no>
-                                        <document_date>'.$value1->TGDOKIN.'</document_date>
-                                        <actual_time>'.$value1->STACKING_BEFORE.'</actual_time>
+                                        <document_type>' . $value1->JNSDOKIN . '</document_type>
+                                        <document_no>' . $value1->DOKIN . '</document_no>
+                                        <document_date>' . $value1->TGDOKIN . '</document_date>
+                                        <actual_time>' . $value1->STACKING_BEFORE . '</actual_time>
                                     </stacking_yard_before>
                                     <response_ppk>
-                                        <document_type>'.$value1->JNSDOKIN.'</document_type>
-                                        <document_no>'.$value1->DOKIN.'</document_no>
-                                        <document_date>'.$value1->TGDOKIN.'</document_date>
-                                        <actual_time>'.$value1->RESPON_PPK.'</actual_time>
+                                        <document_type>' . $value1->JNSDOKIN . '</document_type>
+                                        <document_no>' . $value1->DOKIN . '</document_no>
+                                        <document_date>' . $value1->TGDOKIN . '</document_date>
+                                        <actual_time>' . $value1->RESPON_PPK . '</actual_time>
                                     </response_ppk>
                                     <planning_inspection>
-                                        <document_type>'.$value1->JNSDOKIN.'</document_type>
-                                        <document_no>'.$value1->DOKIN.'</document_no>
-                                        <document_date>'.$value1->TGDOKIN.'</document_date>
-                                        <actual_time>'.$value1->WK_BEHANDLE.'</actual_time>
+                                        <document_type>' . $value1->JNSDOKIN . '</document_type>
+                                        <document_no>' . $value1->DOKIN . '</document_no>
+                                        <document_date>' . $value1->TGDOKIN . '</document_date>
+                                        <actual_time>' . $value1->WK_BEHANDLE . '</actual_time>
                                     </planning_inspection>
                                     <stacking_cic>
-                                        <document_type>'.$value1->JNSDOKIN.'</document_type>
-                                        <document_no>'.$value1->DOKIN.'</document_no>
-                                        <document_date>'.$value1->TGDOKIN.'</document_date>
-                                        <actual_time>'.$value1->WK_BEHANDLE.'</actual_time>
+                                        <document_type>' . $value1->JNSDOKIN . '</document_type>
+                                        <document_no>' . $value1->DOKIN . '</document_no>
+                                        <document_date>' . $value1->TGDOKIN . '</document_date>
+                                        <actual_time>' . $value1->WK_BEHANDLE . '</actual_time>
                                     </stacking_cic>
                                     <start_inspection>
-                                        <document_type>'.$value1->JNSDOKIN.'</document_type>
-                                        <document_no>'.$value1->DOKIN.'</document_no>
-                                        <document_date>'.$value1->TGDOKIN.'</document_date>
-                                        <actual_time>'.$value1->START_INSPECTION.'</actual_time>
+                                        <document_type>' . $value1->JNSDOKIN . '</document_type>
+                                        <document_no>' . $value1->DOKIN . '</document_no>
+                                        <document_date>' . $value1->TGDOKIN . '</document_date>
+                                        <actual_time>' . $value1->START_INSPECTION . '</actual_time>
                                     </start_inspection>
                                     <end_inspection>
-                                        <document_type>'.$value1->JNSDOKIN.'</document_type>
-                                        <document_no>'.$value1->DOKIN.'</document_no>
-                                        <document_date>'.$value1->TGDOKIN.'</document_date>
-                                        <actual_time>'.$value1->FINISH_INSPECTION.'</actual_time>
+                                        <document_type>' . $value1->JNSDOKIN . '</document_type>
+                                        <document_no>' . $value1->DOKIN . '</document_no>
+                                        <document_date>' . $value1->TGDOKIN . '</document_date>
+                                        <actual_time>' . $value1->FINISH_INSPECTION . '</actual_time>
                                     </end_inspection>
                                     <stacking_yard_after>
-                                        <document_type>'.$value1->JNSDOKIN.'</document_type>
-                                        <document_no>'.$value1->DOKIN.'</document_no>
-                                        <document_date>'.$value1->TGDOKIN.'</document_date>
-                                        <actual_time>'.$value1->MARSHALLING_EX_B1.'</actual_time>
+                                        <document_type>' . $value1->JNSDOKIN . '</document_type>
+                                        <document_no>' . $value1->DOKIN . '</document_no>
+                                        <document_date>' . $value1->TGDOKIN . '</document_date>
+                                        <actual_time>' . $value1->MARSHALLING_EX_B1 . '</actual_time>
                                     </stacking_yard_after>
                                     <gatepass>
-                                        <document_type>'.$value1->JNSDOKOUT.'</document_type>
-                                        <document_no>'.$value1->NO_DOK.'</document_no>
-                                        <document_date>'.$value1->TGDOKOUT.'</document_date>
-                                        <actual_time>'.$value1->GATEPASS.'</actual_time>
+                                        <document_type>' . $value1->JNSDOKOUT . '</document_type>
+                                        <document_no>' . $value1->NO_DOK . '</document_no>
+                                        <document_date>' . $value1->TGDOKOUT . '</document_date>
+                                        <actual_time>' . $value1->GATEPASS . '</actual_time>
                                     </gatepass>
                                     <out_behandle>
-                                        <document_type>'.$value1->JNSDOKOUT.'</document_type>
-                                        <document_no>'.$value1->NO_DOK.'</document_no>
-                                        <document_date>'.$value1->TGDOKOUT.'</document_date>
-                                        <actual_time>'.$value1->WK_GATEOUT.'</actual_time>
+                                        <document_type>' . $value1->JNSDOKOUT . '</document_type>
+                                        <document_no>' . $value1->NO_DOK . '</document_no>
+                                        <document_date>' . $value1->TGDOKOUT . '</document_date>
+                                        <actual_time>' . $value1->WK_GATEOUT . '</actual_time>
                                     </out_behandle>
                                 </process>
                             </containers>
                         </request>';
-                        echo $cdata;
-                    }
-            
+            echo $cdata;
+        }
     }
 
-    public function msgsix(){
+    public function msgsix()
+    {
 
         $q = $this->db->query("SELECT ts.NO_SPK, tc.NM_ANGKUT, tc.NO_VOY_FLIGHT, tc.CALL_SIGN, ts.JNS_DOK as 'JNSDOKIN', tg.NO_CONT, tr.VOY_IN, ts.NO_DOK as 'DOKIN', DATE_FORMAT(ts.TGL_DOK, '%Y%m%d%H%i%s') as 'TGDOKIN',
             DATE_FORMAT(rb.PRN_BEHANDLE_IN, '%Y%m%d%H%i%s') as 'BEHADNLE_IN',
@@ -691,328 +689,139 @@ CURLOPT_SSL_VERIFYHOST => false,
         foreach ($q->result() as $key => $value1) {
             $cdata = '<request>
                             <containers>
-                                <reff_number>'.$value1->REF_NUMBER.'</reff_number>
-                                <vessel_name>'.$value1->NM_ANGKUT.'</vessel_name>
-                                <call_sign>'.$value1->CALL_SIGN.'</call_sign>
-                                <voyage_in>'.$value1->VOY_IN.'</voyage_in>
-                                <voyage_out>'.$value1->VOY_IN.'</voyage_out>
-                                <cont_no>'.$value1->NO_CONT.'</cont_no>
-                                <document_type>'.$value1->JNSDOKIN.'</document_type>
-                                <document_no>'.$value1->DOKIN.'</document_no>
-                                <document_date>'.$value1->TGDOKIN.'</document_date>
+                                <reff_number>' . $value1->REF_NUMBER . '</reff_number>
+                                <vessel_name>' . $value1->NM_ANGKUT . '</vessel_name>
+                                <call_sign>' . $value1->CALL_SIGN . '</call_sign>
+                                <voyage_in>' . $value1->VOY_IN . '</voyage_in>
+                                <voyage_out>' . $value1->VOY_IN . '</voyage_out>
+                                <cont_no>' . $value1->NO_CONT . '</cont_no>
+                                <document_type>' . $value1->JNSDOKIN . '</document_type>
+                                <document_no>' . $value1->DOKIN . '</document_no>
+                                <document_date>' . $value1->TGDOKIN . '</document_date>
                                 <process>
                                     <in_behandle>
-                                        <document_type>'.$value1->JNSDOKIN.'</document_type>
-                                        <document_no>'.$value1->DOKIN.'</document_no>
-                                        <document_date>'.$value1->TGDOKIN.'</document_date>
-                                        <actual_time>'.$value1->BEHADNLE_IN.'</actual_time>
+                                        <document_type>' . $value1->JNSDOKIN . '</document_type>
+                                        <document_no>' . $value1->DOKIN . '</document_no>
+                                        <document_date>' . $value1->TGDOKIN . '</document_date>
+                                        <actual_time>' . $value1->BEHADNLE_IN . '</actual_time>
                                     </in_behandle>
                                     <stacking_yard_before>
-                                        <document_type>'.$value1->JNSDOKIN.'</document_type>
-                                        <document_no>'.$value1->DOKIN.'</document_no>
-                                        <document_date>'.$value1->TGDOKIN.'</document_date>
-                                        <actual_time>'.$value1->STACKING_BEFORE.'</actual_time>
+                                        <document_type>' . $value1->JNSDOKIN . '</document_type>
+                                        <document_no>' . $value1->DOKIN . '</document_no>
+                                        <document_date>' . $value1->TGDOKIN . '</document_date>
+                                        <actual_time>' . $value1->STACKING_BEFORE . '</actual_time>
                                     </stacking_yard_before>
                                     <response_ppk>
-                                        <document_type>'.$value1->JNSDOKIN.'</document_type>
-                                        <document_no>'.$value1->DOKIN.'</document_no>
-                                        <document_date>'.$value1->TGDOKIN.'</document_date>
-                                        <actual_time>'.$value1->RESPON_PPK.'</actual_time>
+                                        <document_type>' . $value1->JNSDOKIN . '</document_type>
+                                        <document_no>' . $value1->DOKIN . '</document_no>
+                                        <document_date>' . $value1->TGDOKIN . '</document_date>
+                                        <actual_time>' . $value1->RESPON_PPK . '</actual_time>
                                     </response_ppk>
                                     <planning_inspection>
-                                        <document_type>'.$value1->JNSDOKIN.'</document_type>
-                                        <document_no>'.$value1->DOKIN.'</document_no>
-                                        <document_date>'.$value1->TGDOKIN.'</document_date>
-                                        <actual_time>'.$value1->WK_BEHANDLE.'</actual_time>
+                                        <document_type>' . $value1->JNSDOKIN . '</document_type>
+                                        <document_no>' . $value1->DOKIN . '</document_no>
+                                        <document_date>' . $value1->TGDOKIN . '</document_date>
+                                        <actual_time>' . $value1->WK_BEHANDLE . '</actual_time>
                                     </planning_inspection>
                                     <stacking_cic>
-                                        <document_type>'.$value1->JNSDOKIN.'</document_type>
-                                        <document_no>'.$value1->DOKIN.'</document_no>
-                                        <document_date>'.$value1->TGDOKIN.'</document_date>
-                                        <actual_time>'.$value1->WK_BEHANDLE.'</actual_time>
+                                        <document_type>' . $value1->JNSDOKIN . '</document_type>
+                                        <document_no>' . $value1->DOKIN . '</document_no>
+                                        <document_date>' . $value1->TGDOKIN . '</document_date>
+                                        <actual_time>' . $value1->WK_BEHANDLE . '</actual_time>
                                     </stacking_cic>
                                     <start_inspection>
-                                        <document_type>'.$value1->JNSDOKIN.'</document_type>
-                                        <document_no>'.$value1->DOKIN.'</document_no>
-                                        <document_date>'.$value1->TGDOKIN.'</document_date>
-                                        <actual_time>'.$value1->START_INSPECTION.'</actual_time>
+                                        <document_type>' . $value1->JNSDOKIN . '</document_type>
+                                        <document_no>' . $value1->DOKIN . '</document_no>
+                                        <document_date>' . $value1->TGDOKIN . '</document_date>
+                                        <actual_time>' . $value1->START_INSPECTION . '</actual_time>
                                     </start_inspection>
                                     <end_inspection>
-                                        <document_type>'.$value1->JNSDOKIN.'</document_type>
-                                        <document_no>'.$value1->DOKIN.'</document_no>
-                                        <document_date>'.$value1->TGDOKIN.'</document_date>
-                                        <actual_time>'.$value1->FINISH_INSPECTION.'</actual_time>
+                                        <document_type>' . $value1->JNSDOKIN . '</document_type>
+                                        <document_no>' . $value1->DOKIN . '</document_no>
+                                        <document_date>' . $value1->TGDOKIN . '</document_date>
+                                        <actual_time>' . $value1->FINISH_INSPECTION . '</actual_time>
                                     </end_inspection>
                                     <stacking_yard_after>
-                                        <document_type>'.$value1->JNSDOKIN.'</document_type>
-                                        <document_no>'.$value1->DOKIN.'</document_no>
-                                        <document_date>'.$value1->TGDOKIN.'</document_date>
-                                        <actual_time>'.$value1->MARSHALLING_EX_B1.'</actual_time>
+                                        <document_type>' . $value1->JNSDOKIN . '</document_type>
+                                        <document_no>' . $value1->DOKIN . '</document_no>
+                                        <document_date>' . $value1->TGDOKIN . '</document_date>
+                                        <actual_time>' . $value1->MARSHALLING_EX_B1 . '</actual_time>
                                     </stacking_yard_after>
                                     <gatepass>
-                                        <document_type>'.$value1->JNSDOKOUT.'</document_type>
-                                        <document_no>'.$value1->NO_DOK.'</document_no>
-                                        <document_date>'.$value1->TGDOKOUT.'</document_date>
-                                        <actual_time>'.$value1->GATEPASS.'</actual_time>
+                                        <document_type>' . $value1->JNSDOKOUT . '</document_type>
+                                        <document_no>' . $value1->NO_DOK . '</document_no>
+                                        <document_date>' . $value1->TGDOKOUT . '</document_date>
+                                        <actual_time>' . $value1->GATEPASS . '</actual_time>
                                     </gatepass>
                                     <out_behandle>
-                                        <document_type>'.$value1->JNSDOKOUT.'</document_type>
-                                        <document_no>'.$value1->NO_DOK.'</document_no>
-                                        <document_date>'.$value1->TGDOKOUT.'</document_date>
-                                        <actual_time>'.$value1->WK_GATEOUT.'</actual_time>
+                                        <document_type>' . $value1->JNSDOKOUT . '</document_type>
+                                        <document_no>' . $value1->NO_DOK . '</document_no>
+                                        <document_date>' . $value1->TGDOKOUT . '</document_date>
+                                        <actual_time>' . $value1->WK_GATEOUT . '</actual_time>
                                     </out_behandle>
                                 </process>
                             </containers>
                         </request>';
-                        // echo $cdata;
+            // echo $cdata;
 
-        $start = date("YmdHis",strtotime("-15 minutes",strtotime("now")));
-        $end = date("YmdHis");
-        $url    = "https://api.npct1.co.id:9443/api/v1/set-behandle";
-        $user   = "BEHANDLE";
-        $key    = "5d3a2ffcb778f4b1c224f2447c048c8f";
-        $addXML = $cdata;
-        $addXML .='</request>
+            $start = date("YmdHis", strtotime("-15 minutes", strtotime("now")));
+            $end = date("YmdHis");
+            $url    = "https://api.npct1.co.id:9443/api/v1/set-behandle";
+            $user   = "BEHANDLE";
+            $key    = "5d3a2ffcb778f4b1c224f2447c048c8f";
+            $addXML = $cdata;
+            $addXML .= '</request>
         ';
 
-        $addXML= trim(preg_replace('/\s\s+/', '', str_replace("\n", " ", $addXML)));
+            $addXML = trim(preg_replace('/\s\s+/', '', str_replace("\n", " ", $addXML)));
             // print_r($addXML);die();
-        $curl = curl_init();
-        curl_setopt_array($curl, array(
-            CURLOPT_URL => $url,
-CURLOPT_SSL_VERIFYPEER => false,
-CURLOPT_SSL_VERIFYHOST => false,
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_ENCODING => '',
-            CURLOPT_MAXREDIRS => 10,
-            CURLOPT_TIMEOUT => 0,
-            CURLOPT_FOLLOWLOCATION => true,
-            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-            CURLOPT_CUSTOMREQUEST => 'POST',
-            CURLOPT_POSTFIELDS =>$addXML,
-            CURLOPT_HTTPHEADER => array(
-                'User-ID: '.$user,
-                'NPCT-API-Key: '.$key,
-                'Content-Type: application/xml'
-            ),
-        ));
-        $response = curl_exec($curl);
-        if (!curl_errno($curl)) {
-            $info = curl_getinfo($curl);
-            echo "Connection Success , This is Url : ", $info['url'], "\r\n";
-            $this->db->query("UPDATE t_op_delivery set FL_SEND_BC = 'Y' where NO_SPK = '$value1->NO_SPK' and NO_CONT = '$value1->NO_CONT'");
-            echo $response;
-            $datenow = date("Y-m-d H:i:s");
-            $spk = $value1->NO_SPK;
-            $cont = $value1->NO_CONT;
-            $this->db->query("INSERT INTO log_send_bc (NO_SPK, NO_CONTAINER, RESPONDATA, XML, WK_SEND) VALUES ('$spk', '$cont', '$response', '$addXML', '$datenow')");
-        }else{
-            echo "Connection Failed =".curl_error($curl);
+            $curl = curl_init();
+            curl_setopt_array($curl, array(
+                CURLOPT_URL => $url,
+                CURLOPT_SSL_VERIFYPEER => false,
+                CURLOPT_SSL_VERIFYHOST => false,
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_ENCODING => '',
+                CURLOPT_MAXREDIRS => 10,
+                CURLOPT_TIMEOUT => 0,
+                CURLOPT_FOLLOWLOCATION => true,
+                CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+                CURLOPT_CUSTOMREQUEST => 'POST',
+                CURLOPT_POSTFIELDS => $addXML,
+                CURLOPT_HTTPHEADER => array(
+                    'User-ID: ' . $user,
+                    'NPCT-API-Key: ' . $key,
+                    'Content-Type: application/xml'
+                ),
+            ));
+            $response = curl_exec($curl);
+            if (!curl_errno($curl)) {
+                $info = curl_getinfo($curl);
+                echo "Connection Success , This is Url : ", $info['url'], "\r\n";
+                $this->db->query("UPDATE t_op_delivery set FL_SEND_BC = 'Y' where NO_SPK = '$value1->NO_SPK' and NO_CONT = '$value1->NO_CONT'");
+                echo $response;
+                $datenow = date("Y-m-d H:i:s");
+                $spk = $value1->NO_SPK;
+                $cont = $value1->NO_CONT;
+                $this->db->query("INSERT INTO log_send_bc (NO_SPK, NO_CONTAINER, RESPONDATA, XML, WK_SEND) VALUES ('$spk', '$cont', '$response', '$addXML', '$datenow')");
+            } else {
+                echo "Connection Failed =" . curl_error($curl);
+            }
+            curl_close($curl);
         }
-        curl_close($curl);
-                    }
     }
 
     public function auto_ondemand_spjm()
     {
         $query = $this->db->query("
-                SELECT B.FL_MANUAL, A.NO_DOK, DATE_FORMAT(A.TGL_DOK, '%d%m%Y') AS TGL_DOK 
-                FROM list_dokumens A
-                LEFT JOIN t_permit_hdr B ON A.NO_DOK = B.NO_DOK_INOUT AND A.TGL_DOK = B.TGL_DOK_INOUT
-                WHERE A.FL_STATUS = 'N' AND A.TYPE_DOK = 'SPJM' AND B.FL_MANUAL IS NULL");
-
-        if ($query->num_rows() > 0) {
-            foreach ($query->result() as $row) {
-                echo "FL_MANUAL: " . $row->FL_MANUAL . "<br>";
-                echo "NO_DOK: " . $row->NO_DOK . "<br>";
-                echo "TGL_DOK: " . $row->TGL_DOK . "<br><br>";
-                echo "<br>";
-
-                $url = "https://api.npct1.co.id:9443/api/v1/get-customs-ondemand";
-                $user = "BEHANDLE";
-                $key = "5d3a2ffcb778f4b1c224f2447c048c8f";
-                $addXML = '<request>
-        <document_code>19</document_code>
-        <document_no>' . $row->NO_DOK . '</document_no>
-        <document_date>' . $row->TGL_DOK . '</document_date> 
-        <npwp></npwp>';
-                $addXML .= '</request>';
-
-                $addXML = trim(preg_replace('/\s\s+/', '', str_replace("\n", " ", $addXML)));
-                // print_r($addXML);die();
-                $curl = curl_init();
-                curl_setopt_array(
-                    $curl,
-                    array(
-                        CURLOPT_URL => $url,
-CURLOPT_SSL_VERIFYPEER => false,
-CURLOPT_SSL_VERIFYHOST => false,
-                        CURLOPT_RETURNTRANSFER => true,
-                        CURLOPT_ENCODING => '',
-                        CURLOPT_MAXREDIRS => 10,
-                        CURLOPT_TIMEOUT => 0,
-                        CURLOPT_FOLLOWLOCATION => true,
-                        CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-                        CURLOPT_CUSTOMREQUEST => 'POST',
-                        CURLOPT_POSTFIELDS => $addXML,
-                        CURLOPT_HTTPHEADER => array(
-                            'User-ID: ' . $user,
-                            'NPCT-API-Key: ' . $key,
-                            'Content-Type: application/xml'
-                        ),
-                    )
-                );
-                $response = curl_exec($curl);
-                if (!curl_errno($curl)) {
-                    $info = curl_getinfo($curl);
-                    echo "Connection Success , This is Url : ", $info['url'], "<br>\r\n";
-                } else {
-                    echo "Connection Failed =" . curl_error($curl);
-                    echo $response;
-                    die();
-                }
-                curl_close($curl);
-                $xml1 = str_replace('<?xml version="1.0"?>', "", $response);
-                $xml2 = str_replace('&apos;', "", $xml1);
-
-                $xml = simplexml_load_string($xml2);
-
-                $code = (string) $xml->code;
-
-                if ($code == '0') {
-                    //proses sukses
-                    $car = (string) $xml->DOCUMENT->SPJM->HEADER->CAR;
-                    $kd_kantor = (string) $xml->DOCUMENT->SPJM->HEADER->KD_KANTOR;
-                    $no_pib = (string) $xml->DOCUMENT->SPJM->HEADER->NO_PIB;
-                    $tgl_pib = date('Y-m-d', strtotime(str_replace('/', '-', (string) $xml->DOCUMENT->SPJM->HEADER->TGL_PIB)));
-                    $npwp_imp = (string) $xml->DOCUMENT->SPJM->HEADER->NPWP_IMP;
-                    $nama_imp = (string) $xml->DOCUMENT->SPJM->HEADER->NAMA_IMP;
-                    $npwp_ppjk = (string) $xml->DOCUMENT->SPJM->HEADER->NPWP_PPJK;
-                    $nama_ppjk = (string) $xml->DOCUMENT->SPJM->HEADER->NAMA_PPJK;
-                    $gudang = (string) $xml->DOCUMENT->SPJM->HEADER->GUDANG;
-                    $jml_cont = (string) $xml->DOCUMENT->SPJM->HEADER->JML_CONT;
-                    $no_bc11 = (string) $xml->DOCUMENT->SPJM->HEADER->NO_BC11;
-                    $tgl_bc11 = date('Y-m-d', strtotime(str_replace('/', '-', (string) $xml->DOCUMENT->SPJM->HEADER->TGL_BC11)));
-                    $no_pos_bc11 = (string) $xml->DOCUMENT->SPJM->HEADER->NO_POS_BC11;
-                    $fl_karantina = (string) $xml->DOCUMENT->SPJM->HEADER->FL_KARANTINA;
-                    $nm_angkut = (string) $xml->DOCUMENT->SPJM->HEADER->NM_ANGKUT;
-                    $no_voy_flight = (string) $xml->DOCUMENT->SPJM->HEADER->NO_VOY_FLIGHT;
-
-                    // Accessing DOK elements
-                    $no_dok = (string) $xml->DOCUMENT->SPJM->DETIL->DOK->NO_DOK;
-                    $tgl_dok = date('Y-m-d', strtotime(str_replace('/', '-', (string) $xml->DOCUMENT->SPJM->DETIL->DOK->TGL_DOK)));
-
-                    // Check if NO_DOK_INOUT and TGL_DOK_INOUT already exist in t_permit_hdr
-                    $this->db->where('NO_DOK_INOUT', $no_pib);
-                    $this->db->where('TGL_DOK_INOUT', $tgl_pib);
-                    $query = $this->db->get('t_permit_hdr');
-
-                    if ($query->num_rows() > 0) {
-                        // Record exists, get the ID
-                        $row = $query->row();
-                        $insert_id = $row->ID;
-                    } else {
-                        // Prepare the array for insertion
-                        $tmpData = array(
-                            "CAR" => $car,
-                            "KD_KANTOR" => $kd_kantor,
-                            "KD_DOK_INOUT" => 19,
-                            "NO_DOK_INOUT" => $no_pib,
-                            "TGL_DOK_INOUT" => $tgl_pib,
-                            "NO_DAFTAR_PABEAN" => $no_pib,
-                            "TGL_DAFTAR_PABEAN" => $tgl_pib,
-                            "ID_CONSIGNEE" => $npwp_imp,
-                            "CONSIGNEE" => $nama_imp,
-                            "NPWP_PPJK" => $npwp_ppjk,
-                            "NAMA_PPJK" => $nama_ppjk,
-                            "NM_ANGKUT" => $nm_angkut,
-                            "NO_VOY_FLIGHT" => $no_voy_flight,
-                            "KD_GUDANG" => $gudang,
-                            "JML_CONT" => $jml_cont,
-                            "NO_BC11" => $no_bc11,
-                            "TGL_BC11" => $tgl_bc11,
-                            "NO_POS_BC11" => $no_pos_bc11,
-                            "FL_KARANTINA" => $fl_karantina,
-                            "TGL_STATUS" => date('Y-m-d H:i:s')
-                        );
-
-                        // Insert into t_permit_hdr and get the insert ID
-                        $this->db->insert('t_permit_hdr', $tmpData);
-                        $insert_id = $this->db->insert_id(); // Get the last inserted ID
-                    }
-
-                    // Loop through CONT elements and insert into t_permit_cont
-                    foreach ($xml->DOCUMENT->SPJM->DETIL->CONT as $cont) {
-                        $no_cont = (string) $cont->NO_CONT;
-
-                        // Check if the CONT with the same NO_CONT and ID already exists
-                        $this->db->where('ID', $insert_id);
-                        $this->db->where('NO_CONT', $no_cont);
-                        $query = $this->db->get('t_permit_cont');
-
-                        if ($query->num_rows() == 0) {
-                            // Prepare the array for t_permit_cont
-                            $tmpContData = array(
-                                "ID" => $insert_id,
-                                "NO_CONT" => $no_cont,
-                                "KD_CONT_UKURAN" => (string) $cont->SIZE,
-                                "FL_PERIKSA" => (string) $cont->FL_PERIKSA,
-                                "TGL_STATUS" => date('Y-m-d H:i:s') // Current timestamp
-                            );
-
-                            // Insert into t_permit_cont
-                            $this->db->insert('t_permit_cont', $tmpContData);
-                        }
-                        $datenow = date('Y-m-d H:i:s');
-                        $responget = 'Sukses Ondemand Data';
-                        $this->db->query("INSERT INTO `tpk_ipc`.`solver_req_dokumen_log` (`url`, `tipe`, `no_dok`, `tgl_dok`, `npwp`, `data_respons`) VALUES ('https://api.npct1.co.id:9443/api/v1/get-customs-ondemand', 'spjm', '$nosppb', '$tglsppb', '$npwpsppb', '$responget')");
-
-                        $this->db->query("INSERT INTO `tpk_ipc`.`log_services` (`METHOD`, `XML_REQUEST`, `XML_RESPONSE`, `WK_REKAM`, `FL_NPCT1`, `FL_SENT_RIZKI`) VALUES ('ONDEMAND SPJM', '$addXML', '$response', '$datenow', 'N', 'N')");
-                    }
-
-                } elseif ($code == '01') {
-                    $datenow = date('Y-m-d H:i:s');
-                    // Failed
-                    $responget = (string) $xml->description;
-                    $this->db->query("INSERT INTO `tpk_ipc`.`solver_req_dokumen_log` (`url`, `tipe`, `no_dok`, `tgl_dok`, `npwp`, `data_respons`) VALUES ('https://api.npct1.co.id:9443/api/v1/get-customs-ondemand', 'spjm', '$nosppb', '$tglsppb', '$npwpsppb', '$responget')");
-
-                    $this->db->query("INSERT INTO `tpk_ipc`.`log_services` (`METHOD`, `XML_REQUEST`, `XML_RESPONSE`, `WK_REKAM`, `FL_NPCT1`, `FL_SENT_RIZKI`) VALUES ('GET DOKUMEN SPPB MANUAL', '$addXML', '$response', '$datenow', 'N', 'N')");
-                } else {
-                    $datenow = date('Y-m-d H:i:s');
-                    // Failed
-                    $responget = (string) $xml->description;
-                    $this->db->query("INSERT INTO `tpk_ipc`.`solver_req_dokumen_log` (`url`, `tipe`, `no_dok`, `tgl_dok`, `npwp`, `data_respons`) VALUES ('https://api.npct1.co.id:9443/api/v1/get-customs-ondemand', 'spjm', '$nosppb', '$tglsppb', '$npwpsppb', '$responget')");
-
-                    $this->db->query("INSERT INTO `tpk_ipc`.`log_services` (`METHOD`, `XML_REQUEST`, `XML_RESPONSE`, `WK_REKAM`, `FL_NPCT1`, `FL_SENT_RIZKI`) VALUES ('GET DOKUMEN SPPB MANUAL', '$addXML', '$response', '$datenow', 'N', 'N')");
-                }
-            }
-        } else {
-            echo "No results found.";
-        }
-
-    }
-
-    public function auto_get_spjm()
-    {
-        $query = $this->db->query("
-            SELECT 
-            A.NO_DOK, 
-            DATE_FORMAT(A.TGL_DOK, '%d%m%Y') AS TGL_DOK, 
-            A.NO_CONT, 
-            A.PERIKSA, 
-            B.KD_REQ, 
-            B.JNS_DOK 
-            FROM 
-            t_rekon_dokumen_npct1 A
-            LEFT JOIN 
-            t_request B ON A.NO_DOK = B.NO_DOK AND A.TGL_DOK = B.TGL_DOK
-            LEFT JOIN 
-            t_request_cont C ON C.ID = B.ID AND A.NO_CONT = C.NO_CONT
-            WHERE 
-            B.KD_REQ IS NULL 
-            AND A.TYPE_DOK = 'SPJ'
-            ORDER BY 
-            A.ID DESC
+            SELECT B.FL_MANUAL, A.NO_DOK, DATE_FORMAT(A.TGL_DOK, '%d%m%Y') AS TGL_DOK
+            FROM list_dokumens A
+            LEFT JOIN t_permit_hdr B
+                ON A.NO_DOK = B.NO_DOK_INOUT
+                AND A.TGL_DOK = B.TGL_DOK_INOUT
+            WHERE A.FL_STATUS = 'N'
+                AND A.TYPE_DOK = 'SPJM'
+                AND B.FL_MANUAL IS NULL
         ");
 
         if ($query->num_rows() > 0) {
@@ -1020,195 +829,821 @@ CURLOPT_SSL_VERIFYHOST => false,
                 echo "FL_MANUAL: " . $row->FL_MANUAL . "<br>";
                 echo "NO_DOK: " . $row->NO_DOK . "<br>";
                 echo "TGL_DOK: " . $row->TGL_DOK . "<br><br>";
-                echo "<br>";
 
                 $url = "https://api.npct1.co.id:9443/api/v1/get-customs-ondemand";
                 $user = "BEHANDLE";
                 $key = "5d3a2ffcb778f4b1c224f2447c048c8f";
-                $addXML = '<request>
-        <document_code>19</document_code>
-        <document_no>' . $row->NO_DOK . '</document_no>
-        <document_date>' . $row->TGL_DOK . '</document_date> 
-        <npwp></npwp>';
-                $addXML .= '</request>';
 
-                $addXML = trim(preg_replace('/\s\s+/', '', str_replace("\n", " ", $addXML)));
-                // print_r($addXML);die();
+                /*
+                * REQUEST MASIH XML
+                */
+                $addXML = '<request>
+                    <document_code>19</document_code>
+                    <document_no>' . $row->NO_DOK . '</document_no>
+                    <document_date>' . $row->TGL_DOK . '</document_date>
+                    <npwp></npwp>
+                </request>';
+
+                $addXML = trim(preg_replace('/\s+/', ' ', $addXML));
+
                 $curl = curl_init();
-                curl_setopt_array(
-                    $curl,
-                    array(
-                        CURLOPT_URL => $url,
-CURLOPT_SSL_VERIFYPEER => false,
-CURLOPT_SSL_VERIFYHOST => false,
-                        CURLOPT_RETURNTRANSFER => true,
-                        CURLOPT_ENCODING => '',
-                        CURLOPT_MAXREDIRS => 10,
-                        CURLOPT_TIMEOUT => 0,
-                        CURLOPT_FOLLOWLOCATION => true,
-                        CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-                        CURLOPT_CUSTOMREQUEST => 'POST',
-                        CURLOPT_POSTFIELDS => $addXML,
-                        CURLOPT_HTTPHEADER => array(
-                            'User-ID: ' . $user,
-                            'NPCT-API-Key: ' . $key,
-                            'Content-Type: application/xml'
-                        ),
-                    )
-                );
+                curl_setopt_array($curl, array(
+                    CURLOPT_URL => $url,
+                    CURLOPT_SSL_VERIFYPEER => false,
+                    CURLOPT_SSL_VERIFYHOST => false,
+                    CURLOPT_RETURNTRANSFER => true,
+                    CURLOPT_ENCODING => '',
+                    CURLOPT_MAXREDIRS => 10,
+                    CURLOPT_TIMEOUT => 0,
+                    CURLOPT_FOLLOWLOCATION => true,
+                    CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+                    CURLOPT_CUSTOMREQUEST => 'POST',
+                    CURLOPT_POSTFIELDS => $addXML,
+                    CURLOPT_HTTPHEADER => array(
+                        'User-ID: ' . $user,
+                        'NPCT-API-Key: ' . $key,
+                        'Content-Type: application/xml'
+                    ),
+                ));
+
                 $response = curl_exec($curl);
-                if (!curl_errno($curl)) {
-                    $info = curl_getinfo($curl);
-                    echo "Connection Success , This is Url : ", $info['url'], "<br>\r\n";
-                } else {
-                    echo "Connection Failed =" . curl_error($curl);
-                    echo $response;
-                    die();
+
+                if (curl_errno($curl)) {
+                    echo "Connection Failed = " . curl_error($curl);
+                    curl_close($curl);
+                    continue;
                 }
                 curl_close($curl);
-                $xml1 = str_replace('<?xml version="1.0"?>', "", $response);
-                $xml2 = str_replace('&apos;', "", $xml1);
+                /*
+                * =========================================================
+                * RESPONSE XML -> JSON
+                * =========================================================
+                */
 
-                $xml = simplexml_load_string($xml2);
+                $responseJson = json_decode($response, true);
 
-                $code = (string) $xml->code;
+                if (json_last_error() !== JSON_ERROR_NONE) {
+                    $responseClean = str_replace('&apos;', '', $response);
+                    $responseClean = trim($responseClean);
 
-                if ($code == '0') {
-                    //proses sukses
-                    $car = (string) $xml->DOCUMENT->SPJM->HEADER->CAR;
-                    $kd_kantor = (string) $xml->DOCUMENT->SPJM->HEADER->KD_KANTOR;
-                    $no_pib = (string) $xml->DOCUMENT->SPJM->HEADER->NO_PIB;
-                    $tgl_pib = date('Y-m-d', strtotime(str_replace('/', '-', (string) $xml->DOCUMENT->SPJM->HEADER->TGL_PIB)));
-                    $npwp_imp = (string) $xml->DOCUMENT->SPJM->HEADER->NPWP_IMP;
-                    $nama_imp = (string) $xml->DOCUMENT->SPJM->HEADER->NAMA_IMP;
-                    $npwp_ppjk = (string) $xml->DOCUMENT->SPJM->HEADER->NPWP_PPJK;
-                    $nama_ppjk = (string) $xml->DOCUMENT->SPJM->HEADER->NAMA_PPJK;
-                    $gudang = (string) $xml->DOCUMENT->SPJM->HEADER->GUDANG;
-                    $jml_cont = (string) $xml->DOCUMENT->SPJM->HEADER->JML_CONT;
-                    $no_bc11 = (string) $xml->DOCUMENT->SPJM->HEADER->NO_BC11;
-                    $tgl_bc11 = date('Y-m-d', strtotime(str_replace('/', '-', (string) $xml->DOCUMENT->SPJM->HEADER->TGL_BC11)));
-                    $no_pos_bc11 = (string) $xml->DOCUMENT->SPJM->HEADER->NO_POS_BC11;
-                    $fl_karantina = (string) $xml->DOCUMENT->SPJM->HEADER->FL_KARANTINA;
-                    $nm_angkut = (string) $xml->DOCUMENT->SPJM->HEADER->NM_ANGKUT;
-                    $no_voy_flight = (string) $xml->DOCUMENT->SPJM->HEADER->NO_VOY_FLIGHT;
+                    /*
+                    * Jika API masih mengembalikan XML, convert XML -> JSON
+                    */
+                    libxml_use_internal_errors(true);
+                    $xml = simplexml_load_string($responseClean, "SimpleXMLElement", LIBXML_NOCDATA);
 
-                    // Accessing DOK elements
-                    $no_dok = (string) $xml->DOCUMENT->SPJM->DETIL->DOK->NO_DOK;
-                    $tgl_dok = date('Y-m-d', strtotime(str_replace('/', '-', (string) $xml->DOCUMENT->SPJM->DETIL->DOK->TGL_DOK)));
+                    if ($xml === false) {
+                        $datenow = date('Y-m-d H:i:s');
+                        $responget = 'Invalid response from HUB service';
 
-                    // Check if NO_DOK_INOUT and TGL_DOK_INOUT already exist in t_permit_hdr
+                        $this->db->query("
+                            INSERT INTO `tpk_ipc`.`solver_req_dokumen_log`
+                            (`url`, `tipe`, `no_dok`, `tgl_dok`, `npwp`, `data_respons`, `tambahan`, `response_log`)
+                            VALUES (
+                                '$url',
+                                'spjm',
+                                '{$row->NO_DOK}',
+                                '{$row->TGL_DOK}',
+                                '',
+                                '$responget',
+                                '$addXML',
+                                '$response'
+                            )
+                        ");
+
+                        $this->db->query("
+                            INSERT INTO `tpk_ipc`.`log_services`
+                            (`METHOD`, `XML_REQUEST`, `XML_RESPONSE`, `WK_REKAM`, `FL_NPCT1`, `FL_SENT_RIZKI`)
+                            VALUES (
+                                'ONDEMAND SPJM',
+                                '$addXML',
+                                '$response',
+                                '$datenow',
+                                'N',
+                                'N'
+                            )
+                        ");
+                        continue;
+                    }
+
+                    /*
+                    * XML diubah menjadi associative array
+                    */
+                    $responseJson = json_decode(json_encode($xml), true);
+                }
+
+                /*
+                * =========================================================
+                * AMBIL RESPONSE CODE
+                * =========================================================
+                */
+                $code = isset($responseJson['code'])
+                    ? (string) $responseJson['code']
+                    : null;
+
+                if ($code == '0' || $code == '00') {
+                    /*
+                    * =====================================================
+                    * HEADER SPJM
+                    * =====================================================
+                    */
+                    $header = isset($responseJson['DOCUMENT']['SPJM']['HEADER'])
+                        ? $responseJson['DOCUMENT']['SPJM']['HEADER']
+                        : array();
+
+                    $car = $this->getCarNumber((object) $header);
+
+                    $kd_kantor = isset($header['KD_KANTOR'])
+                        ? trim((string) $header['KD_KANTOR'])
+                        : null;
+
+                    $no_pib = isset($header['NO_PIB'])
+                        ? trim((string) $header['NO_PIB'])
+                        : null;
+
+                    $tgl_pib = isset($header['TGL_PIB'])
+                        ? $this->normalizeDateNpct($header['TGL_PIB'])
+                        : null;
+
+                    $npwp_imp = isset($header['NPWP_IMP'])
+                        ? $this->normalizeNpwp($header['NPWP_IMP'])
+                        : null;
+
+                    $nama_imp = isset($header['NAMA_IMP'])
+                        ? $this->normalizeCompanyName($header['NAMA_IMP'])
+                        : null;
+
+                    $npwp_ppjk = isset($header['NPWP_PPJK'])
+                        ? $this->normalizeNpwp($header['NPWP_PPJK'])
+                        : null;
+
+                    $nama_ppjk = isset($header['NAMA_PPJK'])
+                        ? $this->normalizeCompanyName($header['NAMA_PPJK'])
+                        : null;
+
+                    $gudang = isset($header['GUDANG'])
+                        ? trim((string) $header['GUDANG'])
+                        : null;
+
+                    $jml_cont = isset($header['JML_CONT'])
+                        ? trim((string) $header['JML_CONT'])
+                        : null;
+
+                    $no_bc11 = isset($header['NO_BC11'])
+                        ? trim((string) $header['NO_BC11'])
+                        : null;
+
+                    $tgl_bc11 = isset($header['TGL_BC11'])
+                        ? $this->normalizeDateNpct($header['TGL_BC11'])
+                        : null;
+
+                    $no_pos_bc11 = isset($header['NO_POS_BC11'])
+                        ? trim((string) $header['NO_POS_BC11'])
+                        : null;
+
+                    $fl_karantina = isset($header['FL_KARANTINA'])
+                        ? trim((string) $header['FL_KARANTINA'])
+                        : null;
+
+                    $nm_angkut = isset($header['NM_ANGKUT'])
+                        ? trim((string) $header['NM_ANGKUT'])
+                        : null;
+
+                    $no_voy_flight = isset($header['NO_VOY_FLIGHT'])
+                        ? trim((string) $header['NO_VOY_FLIGHT'])
+                        : null;
+
+                    /*
+                    * =====================================================
+                    * DETIL DOK
+                    * =====================================================
+                    */
+                    $detail = isset($responseJson['DOCUMENT']['SPJM']['DETIL'])
+                        ? $responseJson['DOCUMENT']['SPJM']['DETIL']
+                        : array();
+
+                    $dok = isset($detail['DOK'])
+                        ? $detail['DOK']
+                        : array();
+
+                    $no_dok_detail = isset($dok['NO_DOK'])
+                        ? trim((string) $dok['NO_DOK'])
+                        : null;
+
+                    $tgl_dok_detail = isset($dok['TGL_DOK'])
+                        ? $this->normalizeDateNpct($dok['TGL_DOK'])
+                        : null;
+
+                    $datenow = date('Y-m-d H:i:s');
+
+                    /*
+                    * =====================================================
+                    * CEK HEADER
+                    * =====================================================
+                    */
                     $this->db->where('NO_DOK_INOUT', $no_pib);
                     $this->db->where('TGL_DOK_INOUT', $tgl_pib);
-                    $query = $this->db->get('t_permit_hdr');
+                    $queryPermit = $this->db->get('t_permit_hdr');
 
-                    if ($query->num_rows() > 0) {
-                        // Record exists, get the ID
-                        $row = $query->row();
-                        $insert_id = $row->ID;
+                    if ($queryPermit->num_rows() > 0) {
+
+                        $permitRow = $queryPermit->row();
+                        $insert_id = $permitRow->ID;
                     } else {
-                        // Prepare the array for insertion
                         $tmpData = array(
-                            "CAR" => $car,
-                            "KD_KANTOR" => $kd_kantor,
-                            "KD_DOK_INOUT" => 19,
-                            "NO_DOK_INOUT" => $no_pib,
-                            "TGL_DOK_INOUT" => $tgl_pib,
-                            "NO_DAFTAR_PABEAN" => $no_pib,
-                            "TGL_DAFTAR_PABEAN" => $tgl_pib,
-                            "ID_CONSIGNEE" => $npwp_imp,
-                            "CONSIGNEE" => $nama_imp,
-                            "NPWP_PPJK" => $npwp_ppjk,
-                            "NAMA_PPJK" => $nama_ppjk,
-                            "NM_ANGKUT" => $nm_angkut,
-                            "NO_VOY_FLIGHT" => $no_voy_flight,
-                            "KD_GUDANG" => $gudang,
-                            "JML_CONT" => $jml_cont,
-                            "NO_BC11" => $no_bc11,
-                            "TGL_BC11" => $tgl_bc11,
-                            "NO_POS_BC11" => $no_pos_bc11,
-                            "FL_KARANTINA" => $fl_karantina,
-                            "TGL_STATUS" => date('Y-m-d H:i:s')
+                            'CAR' => $car,
+                            'KD_KANTOR' => $kd_kantor,
+                            'KD_DOK_INOUT' => 19,
+                            'NO_DOK_INOUT' => $no_pib,
+                            'TGL_DOK_INOUT' => $tgl_pib,
+                            'NO_DAFTAR_PABEAN' => $no_pib,
+                            'TGL_DAFTAR_PABEAN' => $tgl_pib,
+                            'ID_CONSIGNEE' => $npwp_imp,
+                            'CONSIGNEE' => $nama_imp,
+                            'NPWP_PPJK' => $npwp_ppjk,
+                            'NAMA_PPJK' => $nama_ppjk,
+                            'NM_ANGKUT' => $nm_angkut,
+                            'NO_VOY_FLIGHT' => $no_voy_flight,
+                            'KD_GUDANG' => $gudang,
+                            'JML_CONT' => $jml_cont,
+                            'NO_BC11' => $no_bc11,
+                            'TGL_BC11' => $tgl_bc11,
+                            'NO_POS_BC11' => $no_pos_bc11,
+                            'FL_KARANTINA' => $fl_karantina,
+                            'TGL_STATUS' => $datenow
                         );
 
-                        // Insert into t_permit_hdr and get the insert ID
                         $this->db->insert('t_permit_hdr', $tmpData);
-                        $insert_id = $this->db->insert_id(); // Get the last inserted ID
+                        $insert_id = $this->db->insert_id();
                     }
+                    /*
+                    * =====================================================
+                    * CONTAINER
+                    * =====================================================
+                    */
+                    $containers = isset($detail['CONT'])
+                        ? $detail['CONT']
+                        : array();
 
-                    // Loop through CONT elements and insert into t_permit_cont
-                    foreach ($xml->DOCUMENT->SPJM->DETIL->CONT as $cont) {
-                        $no_cont = (string) $cont->NO_CONT;
-
-                        // Check if the CONT with the same NO_CONT and ID already exists
-                        $this->db->where('ID', $insert_id);
-                        $this->db->where('NO_CONT', $no_cont);
-                        $query = $this->db->get('t_permit_cont');
-
-                        if ($query->num_rows() == 0) {
-                            // Prepare the array for t_permit_cont
-                            $tmpContData = array(
-                                "ID" => $insert_id,
-                                "NO_CONT" => $no_cont,
-                                "KD_CONT_UKURAN" => (string) $cont->SIZE,
-                                "FL_PERIKSA" => (string) $cont->FL_PERIKSA,
-                                "TGL_STATUS" => date('Y-m-d H:i:s') // Current timestamp
-                            );
-
-                            // Insert into t_permit_cont
-                            $this->db->insert('t_permit_cont', $tmpContData);
+                    /*
+                    * Kalau hanya 1 CONT, JSON biasanya menghasilkan associative
+                    * array. Kalau banyak CONT, menjadi indexed array.
+                    */
+                    if (!empty($containers)) {
+                        if (isset($containers['NO_CONT'])) {
+                            $containers = array($containers);
                         }
-                        $datenow = date('Y-m-d H:i:s');
-                        $responget = 'Sukses Ondemand Data';
-                        $this->db->query("INSERT INTO `tpk_ipc`.`solver_req_dokumen_log` (`url`, `tipe`, `no_dok`, `tgl_dok`, `npwp`, `data_respons`) VALUES ('https://api.npct1.co.id:9443/api/v1/get-customs-ondemand', 'spjm', '$nosppb', '$tglsppb', '$npwpsppb', '$responget')");
+                        foreach ($containers as $cont) {
+                            $no_cont = isset($cont['NO_CONT'])
+                                ? trim((string) $cont['NO_CONT'])
+                                : null;
 
-                        $this->db->query("INSERT INTO `tpk_ipc`.`log_services` (`METHOD`, `XML_REQUEST`, `XML_RESPONSE`, `WK_REKAM`, `FL_NPCT1`, `FL_SENT_RIZKI`) VALUES ('ONDEMAND SPJM', '$addXML', '$response', '$datenow', 'N', 'N')");
+                            if (!$no_cont) {
+                                continue;
+                            }
+                            $size = isset($cont['SIZE'])
+                                ? trim((string) $cont['SIZE'])
+                                : null;
+
+                            $fl_periksa = isset($cont['FL_PERIKSA'])
+                                ? trim((string) $cont['FL_PERIKSA'])
+                                : null;
+
+                            $this->db->where('ID', $insert_id);
+                            $this->db->where('NO_CONT', $no_cont);
+                            $queryCont = $this->db->get('t_permit_cont');
+
+                            if ($queryCont->num_rows() == 0) {
+
+                                $tmpContData = array(
+                                    'ID' => $insert_id,
+                                    'NO_CONT' => $no_cont,
+                                    'KD_CONT_UKURAN' => $size,
+                                    'FL_PERIKSA' => $fl_periksa,
+                                    'TGL_STATUS' => $datenow
+                                );
+
+                                $this->db->insert('t_permit_cont', $tmpContData);
+                            }
+                        }
                     }
 
+                    /*
+                    * =====================================================
+                    * LOG SUCCESS
+                    * =====================================================
+                    */
+                    $responget = 'Sukses Ondemand Data';
+
+                    $this->db->query("
+                        INSERT INTO `tpk_ipc`.`solver_req_dokumen_log`
+                        (`url`, `tipe`, `no_dok`, `tgl_dok`, `npwp`, `data_respons`, `tambahan`, `response_log`)
+                        VALUES (
+                            '$url',
+                            'spjm',
+                            '{$row->NO_DOK}',
+                            '{$row->TGL_DOK}',
+                            '',
+                            '$responget',
+                            '$addXML',
+                            '$response'
+                        )
+                    ");
+
+                    $this->db->query("
+                        INSERT INTO `tpk_ipc`.`log_services`
+                        (`METHOD`, `XML_REQUEST`, `XML_RESPONSE`, `WK_REKAM`, `FL_NPCT1`, `FL_SENT_RIZKI`)
+                        VALUES (
+                            'ONDEMAND SPJM',
+                            '$addXML',
+                            '$response',
+                            '$datenow',
+                            'N',
+                            'N'
+                        )
+                    ");
                 } elseif ($code == '01') {
                     $datenow = date('Y-m-d H:i:s');
-                    // Failed
-                    $responget = (string) $xml->description;
-                    $this->db->query("INSERT INTO `tpk_ipc`.`solver_req_dokumen_log` (`url`, `tipe`, `no_dok`, `tgl_dok`, `npwp`, `data_respons`) VALUES ('https://api.npct1.co.id:9443/api/v1/get-customs-ondemand', 'spjm', '$nosppb', '$tglsppb', '$npwpsppb', '$responget')");
+                    $responget = isset($responseJson['description'])
+                        ? (string) $responseJson['description']
+                        : 'Data tidak ditemukan';
 
-                    $this->db->query("INSERT INTO `tpk_ipc`.`log_services` (`METHOD`, `XML_REQUEST`, `XML_RESPONSE`, `WK_REKAM`, `FL_NPCT1`, `FL_SENT_RIZKI`) VALUES ('GET DOKUMEN SPPB MANUAL', '$addXML', '$response', '$datenow', 'N', 'N')");
+                    $this->db->query("
+                        INSERT INTO `tpk_ipc`.`solver_req_dokumen_log`
+                        (`url`, `tipe`, `no_dok`, `tgl_dok`, `npwp`, `data_respons`, `tambahan`, `response_log`)
+                        VALUES (
+                            '$url',
+                            'spjm',
+                            '{$row->NO_DOK}',
+                            '{$row->TGL_DOK}',
+                            '',
+                            '$responget',
+                            '$addXML',
+                            '$response'
+                        )
+                    ");
+
+                    $this->db->query("
+                        INSERT INTO `tpk_ipc`.`log_services`
+                        (`METHOD`, `XML_REQUEST`, `XML_RESPONSE`, `WK_REKAM`, `FL_NPCT1`, `FL_SENT_RIZKI`)
+                        VALUES (
+                            'GET DOKUMEN SPJM',
+                            '$addXML',
+                            '$response',
+                            '$datenow',
+                            'N',
+                            'N'
+                        )
+                    ");
                 } else {
                     $datenow = date('Y-m-d H:i:s');
-                    // Failed
-                    $responget = (string) $xml->description;
-                    $this->db->query("INSERT INTO `tpk_ipc`.`solver_req_dokumen_log` (`url`, `tipe`, `no_dok`, `tgl_dok`, `npwp`, `data_respons`) VALUES ('https://api.npct1.co.id:9443/api/v1/get-customs-ondemand', 'spjm', '$nosppb', '$tglsppb', '$npwpsppb', '$responget')");
+                    $responget = isset($responseJson['description'])
+                        ? (string) $responseJson['description']
+                        : 'Unknown error from HUB service';
+                    $this->db->query("
+                        INSERT INTO `tpk_ipc`.`solver_req_dokumen_log`
+                        (`url`, `tipe`, `no_dok`, `tgl_dok`, `npwp`, `data_respons`, `tambahan`, `response_log`)
+                        VALUES (
+                            '$url',
+                            'spjm',
+                            '{$row->NO_DOK}',
+                            '{$row->TGL_DOK}',
+                            '',
+                            '$responget',
+                            '$addXML',
+                            '$response'
+                        )
+                    ");
 
-                    $this->db->query("INSERT INTO `tpk_ipc`.`log_services` (`METHOD`, `XML_REQUEST`, `XML_RESPONSE`, `WK_REKAM`, `FL_NPCT1`, `FL_SENT_RIZKI`) VALUES ('GET DOKUMEN SPPB MANUAL', '$addXML', '$response', '$datenow', 'N', 'N')");
+                    $this->db->query("
+                        INSERT INTO `tpk_ipc`.`log_services`
+                        (`METHOD`, `XML_REQUEST`, `XML_RESPONSE`, `WK_REKAM`, `FL_NPCT1`, `FL_SENT_RIZKI`)
+                        VALUES (
+                            'GET DOKUMEN SPJM',
+                            '$addXML',
+                            '$response',
+                            '$datenow',
+                            'N',
+                            'N'
+                        )
+                    ");
                 }
             }
         } else {
             echo "No results found.";
         }
+    }
 
+    public function auto_get_spjm()
+    {
+        $query = $this->db->query("
+            SELECT 
+                A.NO_DOK,
+                DATE_FORMAT(A.TGL_DOK, '%d%m%Y') AS TGL_DOK,
+                A.NO_CONT,
+                A.PERIKSA,
+                B.KD_REQ,
+                B.JNS_DOK
+            FROM t_rekon_dokumen_npct1 A
+            LEFT JOIN t_request B 
+                ON A.NO_DOK = B.NO_DOK 
+                AND A.TGL_DOK = B.TGL_DOK
+            LEFT JOIN t_request_cont C 
+                ON C.ID = B.ID 
+                AND A.NO_CONT = C.NO_CONT
+            WHERE B.KD_REQ IS NULL
+                AND A.TYPE_DOK = 'SPJ'
+            ORDER BY A.ID DESC
+        ");
+
+        if ($query->num_rows() > 0) {
+            foreach ($query->result() as $row) {
+                $url  = "https://api.npct1.co.id:9443/api/v1/get-customs-ondemand";
+                $user = "BEHANDLE";
+                $key  = "5d3a2ffcb778f4b1c224f2447c048c8f";
+                $addXML = '<request>
+                    <document_code>19</document_code>
+                    <document_no>' . $row->NO_DOK . '</document_no>
+                    <document_date>' . $row->TGL_DOK . '</document_date>
+                    <npwp></npwp>
+                </request>';
+
+                $addXML = trim(preg_replace('/\s+/', ' ', $addXML));
+
+                $curl = curl_init();
+
+                curl_setopt_array($curl, array(
+                    CURLOPT_URL            => $url,
+                    CURLOPT_SSL_VERIFYPEER => false,
+                    CURLOPT_SSL_VERIFYHOST => false,
+                    CURLOPT_RETURNTRANSFER => true,
+                    CURLOPT_ENCODING       => '',
+                    CURLOPT_MAXREDIRS      => 10,
+                    CURLOPT_TIMEOUT        => 0,
+                    CURLOPT_FOLLOWLOCATION => true,
+                    CURLOPT_HTTP_VERSION   => CURL_HTTP_VERSION_1_1,
+                    CURLOPT_CUSTOMREQUEST  => 'POST',
+                    CURLOPT_POSTFIELDS     => $addXML,
+                    CURLOPT_HTTPHEADER     => array(
+                        'User-ID: ' . $user,
+                        'NPCT-API-Key: ' . $key,
+                        'Content-Type: application/xml'
+                    ),
+                ));
+                $response = curl_exec($curl);
+                if (curl_errno($curl)) {
+                    echo "Connection Failed = " . curl_error($curl);
+                    curl_close($curl);
+                    continue;
+                }
+                curl_close($curl);
+                $datenow = date('Y-m-d H:i:s');
+
+                // ============================================================
+                // RESPONSE JSON
+                // ============================================================
+                $json = json_decode($response);
+                if (json_last_error() !== JSON_ERROR_NONE || !$json) {
+                    $responget = 'Invalid JSON response: ' . json_last_error_msg();
+                    $this->db->query("
+                        INSERT INTO `tpk_ipc`.`solver_req_dokumen_log`
+                        (`url`, `tipe`, `no_dok`, `tgl_dok`, `npwp`, `data_respons`)
+                        VALUES (
+                            '$url',
+                            'spjm',
+                            '{$row->NO_DOK}',
+                            '{$row->TGL_DOK}',
+                            '',
+                            '$responget'
+                        )
+                    ");
+
+                    $this->db->query("
+                        INSERT INTO `tpk_ipc`.`log_services`
+                        (`METHOD`, `XML_REQUEST`, `XML_RESPONSE`, `WK_REKAM`, `FL_NPCT1`, `FL_SENT_RIZKI`)
+                        VALUES (
+                            'ONDEMAND SPJM',
+                            '$addXML',
+                            '$response',
+                            '$datenow',
+                            'N',
+                            'N'
+                        )
+                    ");
+
+                    continue;
+                }
+                // ============================================================
+                // CODE RESPONSE
+                // SPJM sebelumnya menggunakan code = 0
+                // ============================================================
+                $code = isset($json->code) ? (string) $json->code : '';
+                // ============================================================
+                // SUCCESS
+                // ============================================================
+                if ($code === '0' || $code === '00') {
+                    if (!isset($json->DOCUMENT->SPJM->HEADER)) {
+                        $responget = 'Response berhasil tetapi data SPJM tidak ditemukan';
+                        $this->db->query("
+                            INSERT INTO `tpk_ipc`.`solver_req_dokumen_log`
+                            (`url`, `tipe`, `no_dok`, `tgl_dok`, `npwp`, `data_respons`)
+                            VALUES (
+                                '$url',
+                                'spjm',
+                                '{$row->NO_DOK}',
+                                '{$row->TGL_DOK}',
+                                '',
+                                '$responget'
+                            )
+                        ");
+                        continue;
+                    }
+                    $header = $json->DOCUMENT->SPJM->HEADER;
+                    // ========================================================
+                    // HEADER
+                    // ========================================================
+                    $car = $this->getCarNumber($header);
+
+                    $kd_kantor = isset($header->KD_KANTOR)
+                        ? trim((string) $header->KD_KANTOR)
+                        : null;
+
+                    $no_pib = isset($header->NO_PIB)
+                        ? trim((string) $header->NO_PIB)
+                        : null;
+
+                    $tgl_pib = isset($header->TGL_PIB)
+                        ? $this->normalizeDateNpct((string) $header->TGL_PIB)
+                        : null;
+
+                    $npwp_imp = $this->getNpwpConsignee($header);
+
+                    $nama_imp = $this->getConsigneeName($header);
+
+                    $npwp_ppjk = isset($header->NPWP_PPJK)
+                        ? $this->normalizeNpwp((string) $header->NPWP_PPJK)
+                        : null;
+
+                    $nama_ppjk = isset($header->NAMA_PPJK)
+                        ? $this->normalizeCompanyName((string) $header->NAMA_PPJK)
+                        : null;
+
+                    $gudang = isset($header->GUDANG)
+                        ? trim((string) $header->GUDANG)
+                        : null;
+
+                    $jml_cont = isset($header->JML_CONT)
+                        ? trim((string) $header->JML_CONT)
+                        : null;
+
+                    $no_bc11 = isset($header->NO_BC11)
+                        ? trim((string) $header->NO_BC11)
+                        : null;
+
+                    $tgl_bc11 = isset($header->TGL_BC11)
+                        ? $this->normalizeDateNpct((string) $header->TGL_BC11)
+                        : null;
+
+                    $no_pos_bc11 = isset($header->NO_POS_BC11)
+                        ? trim((string) $header->NO_POS_BC11)
+                        : null;
+
+                    $fl_karantina = isset($header->FL_KARANTINA)
+                        ? trim((string) $header->FL_KARANTINA)
+                        : null;
+
+                    $nm_angkut = isset($header->NM_ANGKUT)
+                        ? trim((string) $header->NM_ANGKUT)
+                        : null;
+
+                    $no_voy_flight = isset($header->NO_VOY_FLIGHT)
+                        ? trim((string) $header->NO_VOY_FLIGHT)
+                        : null;
+                    // ========================================================
+                    // DOKUMEN
+                    // Semua nomor/tanggal dokumen masuk object yang sama
+                    // ========================================================
+                    $dok = isset($json->DOCUMENT->SPJM->DETIL->DOK)
+                        ? $json->DOCUMENT->SPJM->DETIL->DOK
+                        : null;
+                    $dokumen = array(
+                        'NO_DOK'  => $dok && isset($dok->NO_DOK)
+                            ? trim((string) $dok->NO_DOK)
+                            : null,
+                        'TGL_DOK' => $dok && isset($dok->TGL_DOK)
+                            ? $this->normalizeDateNpct((string) $dok->TGL_DOK)
+                            : null,
+                        'NO_PIB'  => $no_pib,
+                        'TGL_PIB' => $tgl_pib,
+                        'NO_BC11'  => $no_bc11,
+                        'TGL_BC11' => $tgl_bc11
+                    );
+
+                    // ========================================================
+                    // HEADER OBJECT
+                    // ========================================================
+                    $permitData = array(
+                        'CAR'                  => $car,
+                        'KD_KANTOR'            => $kd_kantor,
+                        'KD_DOK_INOUT'         => 19,
+                        'NO_DOK_INOUT'         => $no_pib,
+                        'TGL_DOK_INOUT'        => $tgl_pib,
+                        'NO_DAFTAR_PABEAN'     => $no_pib,
+                        'TGL_DAFTAR_PABEAN'    => $tgl_pib,
+                        'ID_CONSIGNEE'         => $npwp_imp,
+                        'CONSIGNEE'            => $nama_imp,
+                        'NPWP_PPJK'            => $npwp_ppjk,
+                        'NAMA_PPJK'            => $nama_ppjk,
+                        'NM_ANGKUT'            => $nm_angkut,
+                        'NO_VOY_FLIGHT'        => $no_voy_flight,
+                        'KD_GUDANG'            => $gudang,
+                        'JML_CONT'             => $jml_cont,
+                        'NO_BC11'              => $no_bc11,
+                        'TGL_BC11'             => $tgl_bc11,
+                        'NO_POS_BC11'          => $no_pos_bc11,
+                        'FL_KARANTINA'         => $fl_karantina,
+                        'TGL_STATUS'           => $datenow
+                    );
+                    // ========================================================
+                    // CEK HEADER
+                    // ========================================================
+                    $this->db->where('NO_DOK_INOUT', $no_pib);
+                    $this->db->where('TGL_DOK_INOUT', $tgl_pib);
+                    $queryPermit = $this->db->get('t_permit_hdr');
+                    if ($queryPermit->num_rows() > 0) {
+                        $permit = $queryPermit->row();
+                        $insert_id = $permit->ID;
+                    } else {
+                        $this->db->insert('t_permit_hdr', $permitData);
+                        $insert_id = $this->db->insert_id();
+                    }
+                    // ========================================================
+                    // CONTAINER
+                    // ========================================================
+                    $containers = array();
+                    if (
+                        isset($json->DOCUMENT->SPJM->DETIL->CONT)
+                    ) {
+                        $containers = $json->DOCUMENT->SPJM->DETIL->CONT;
+                        // Kalau hanya satu object, ubah menjadi array
+                        if (!is_array($containers)) {
+                            $containers = array($containers);
+                        }
+                    }
+
+                    foreach ($containers as $cont) {
+                        $no_cont = isset($cont->NO_CONT)
+                            ? trim((string) $cont->NO_CONT)
+                            : null;
+                        if (!$no_cont) {
+                            continue;
+                        }
+                        $this->db->where('ID', $insert_id);
+                        $this->db->where('NO_CONT', $no_cont);
+                        $queryCont = $this->db->get('t_permit_cont');
+                        if ($queryCont->num_rows() === 0) {
+                            $tmpContData = array(
+                                'ID'              => $insert_id,
+                                'NO_CONT'         => $no_cont,
+                                'KD_CONT_UKURAN'  => isset($cont->SIZE)
+                                    ? trim((string) $cont->SIZE)
+                                    : null,
+                                'FL_PERIKSA'      => isset($cont->FL_PERIKSA)
+                                    ? trim((string) $cont->FL_PERIKSA)
+                                    : null,
+                                'TGL_STATUS'      => $datenow
+                            );
+                            $this->db->insert('t_permit_cont', $tmpContData);
+                        }
+                    }
+                    // ========================================================
+                    // LOG SUCCESS
+                    // ========================================================
+                    $responget = 'Sukses Ondemand Data';
+                    $this->db->query("
+                        INSERT INTO `tpk_ipc`.`solver_req_dokumen_log`
+                        (`url`, `tipe`, `no_dok`, `tgl_dok`, `npwp`, `data_respons`)
+                        VALUES (
+                            '$url',
+                            'spjm',
+                            '{$row->NO_DOK}',
+                            '{$row->TGL_DOK}',
+                            '$npwp_imp',
+                            '$responget'
+                        )
+                    ");
+
+                    $this->db->query("
+                        INSERT INTO `tpk_ipc`.`log_services`
+                        (`METHOD`, `XML_REQUEST`, `XML_RESPONSE`, `WK_REKAM`, `FL_NPCT1`, `FL_SENT_RIZKI`)
+                        VALUES (
+                            'ONDEMAND SPJM',
+                            '$addXML',
+                            '$response',
+                            '$datenow',
+                            'N',
+                            'N'
+                        )
+                    ");
+
+                // ============================================================
+                // FAILED
+                // ============================================================
+                } elseif ($code === '01') {
+                    $responget = isset($json->description)
+                        ? (string) $json->description
+                        : 'Data tidak ditemukan';
+
+                    $this->db->query("
+                        INSERT INTO `tpk_ipc`.`solver_req_dokumen_log`
+                        (`url`, `tipe`, `no_dok`, `tgl_dok`, `npwp`, `data_respons`)
+                        VALUES (
+                            '$url',
+                            'spjm',
+                            '{$row->NO_DOK}',
+                            '{$row->TGL_DOK}',
+                            '',
+                            '$responget'
+                        )
+                    ");
+
+                    $this->db->query("
+                        INSERT INTO `tpk_ipc`.`log_services`
+                        (`METHOD`, `XML_REQUEST`, `XML_RESPONSE`, `WK_REKAM`, `FL_NPCT1`, `FL_SENT_RIZKI`)
+                        VALUES (
+                            'GET DOKUMEN SPJM',
+                            '$addXML',
+                            '$response',
+                            '$datenow',
+                            'N',
+                            'N'
+                        )
+                    ");
+
+                // ============================================================
+                // UNKNOWN ERROR
+                // ============================================================
+                } else {
+                    $description = isset($json->description)
+                        ? (string) $json->description
+                        : 'Unknown error from HUB service';
+
+                    $responget = 'Unknown error ' . $description;
+                    $this->db->query("
+                        INSERT INTO `tpk_ipc`.`solver_req_dokumen_log`
+                        (`url`, `tipe`, `no_dok`, `tgl_dok`, `npwp`, `data_respons`)
+                        VALUES (
+                            '$url',
+                            'spjm',
+                            '{$row->NO_DOK}',
+                            '{$row->TGL_DOK}',
+                            '',
+                            '$responget'
+                        )
+                    ");
+
+                    $this->db->query("
+                        INSERT INTO `tpk_ipc`.`log_services`
+                        (`METHOD`, `XML_REQUEST`, `XML_RESPONSE`, `WK_REKAM`, `FL_NPCT1`, `FL_SENT_RIZKI`)
+                        VALUES (
+                            'GET DOKUMEN SPJM',
+                            '$addXML',
+                            '$response',
+                            '$datenow',
+                            'N',
+                            'N'
+                        )
+                    ");
+                }
+            }
+        } else {
+            echo "No results found.";
+        }
     }
 
     public function getcustdocdev()
     {
-        $start = date("YmdHis",strtotime("-720 minutes",strtotime("now")));
+        $start = date("YmdHis", strtotime("-720 minutes", strtotime("now")));
         $end = date("YmdHis");
         // echo $start."<br>";
         // echo $end;
         $url    = "https://api.npct1.co.id:9443/api/v1/get-custdoc";
         $user   = "BEHANDLE";
         $key    = "5d3a2ffcb778f4b1c224f2447c048c8f";
-        $addXML ='<request>
-                        <start>'.$start.'</start>
-                        <end>'.$end.'</end>
+        $addXML = '<request>
+                        <start>' . $start . '</start>
+                        <end>' . $end . '</end>
         </request>';
-        $addXML .='</request>
+        $addXML .= '</request>
         ';
 
-        $addXML= trim(preg_replace('/\s\s+/', '', str_replace("\n", " ", $addXML)));
-            // print_r($addXML);die();
+        $addXML = trim(preg_replace('/\s\s+/', '', str_replace("\n", " ", $addXML)));
+        // print_r($addXML);die();
         $curl = curl_init();
         curl_setopt_array($curl, array(
             CURLOPT_URL => $url,
-CURLOPT_SSL_VERIFYPEER => false,
-CURLOPT_SSL_VERIFYHOST => false,
+            CURLOPT_SSL_VERIFYPEER => false,
+            CURLOPT_SSL_VERIFYHOST => false,
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_ENCODING => '',
             CURLOPT_MAXREDIRS => 10,
@@ -1216,10 +1651,10 @@ CURLOPT_SSL_VERIFYHOST => false,
             CURLOPT_FOLLOWLOCATION => true,
             CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
             CURLOPT_CUSTOMREQUEST => 'POST',
-            CURLOPT_POSTFIELDS =>$addXML,
+            CURLOPT_POSTFIELDS => $addXML,
             CURLOPT_HTTPHEADER => array(
-                'User-ID: '.$user,
-                'NPCT-API-Key: '.$key,
+                'User-ID: ' . $user,
+                'NPCT-API-Key: ' . $key,
                 'Content-Type: application/xml'
             ),
         ));
@@ -1227,11 +1662,11 @@ CURLOPT_SSL_VERIFYHOST => false,
         if (!curl_errno($curl)) {
             $info = curl_getinfo($curl);
             // echo "Connection Success , This is Url : ", $info['url'], "\r\n";
-        }else{
-            echo "Connection Failed =".curl_error($curl);
+        } else {
+            echo "Connection Failed =" . curl_error($curl);
         }
-        curl_close($curl); 
-        $xml1 = str_replace('<?xml version="1.0"?>',"",$response);
+        curl_close($curl);
+        $xml1 = str_replace('<?xml version="1.0"?>', "", $response);
         $xml = simplexml_load_string($xml1);
         header("Content-Type: application/xml; charset=UTF-8");
         // echo $response;
@@ -1299,7 +1734,6 @@ CURLOPT_SSL_VERIFYHOST => false,
                             }
                         }
                     }
-
                 }
             }
 
@@ -1373,7 +1807,209 @@ CURLOPT_SSL_VERIFYHOST => false,
                     }
                 }
             }
-
         }
+    }
+
+    public function getCarNumber($header)
+    {
+        if (isset($header->car) && trim((string) $header->car) !== '') {
+            return trim((string) $header->car);
+        }
+
+        // fallback jika API suatu saat mengirim ID
+        if (isset($header->id) && trim((string) $header->id) !== '') {
+            return trim((string) $header->id);
+        }
+
+        return null;
+    }
+
+
+    public function normalizeDateNpct($tgl)
+    {
+        $tgl = trim($tgl);
+
+        if ($tgl === '') {
+            return null;
+        }
+
+        // Case 1: YYYYMMDD
+        // Contoh: 20260119
+        if (preg_match('/^\d{8}$/', $tgl)) {
+            $date = DateTime::createFromFormat('Ymd', $tgl);
+
+            return $date
+                ? $date->format('Y-m-d')
+                : null;
+        }
+
+        // Case 2: DD/MM/YYYY
+        // Contoh: 08/01/2026
+        if (preg_match('/^\d{2}\/\d{2}\/\d{4}$/', $tgl)) {
+            $date = DateTime::createFromFormat('d/m/Y', $tgl);
+
+            return $date
+                ? $date->format('Y-m-d')
+                : null;
+        }
+
+        // Case 3: DD-MM-YYYY
+        // Contoh: 19-08-2026
+        if (preg_match('/^\d{2}-\d{2}-\d{4}$/', $tgl)) {
+            $date = DateTime::createFromFormat('d-m-Y', $tgl);
+
+            return $date
+                ? $date->format('Y-m-d')
+                : null;
+        }
+
+        // Case 4: YYYY-MM-DD
+        // Contoh: 2026-08-19
+        if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $tgl)) {
+            $date = DateTime::createFromFormat('Y-m-d', $tgl);
+
+            return $date
+                ? $date->format('Y-m-d')
+                : null;
+        }
+
+        // Case 5: datetime
+        // Contoh:
+        // 19-08-2026 06:46:30
+        // 2026-08-19 06:46:30
+        $time = strtotime($tgl);
+
+        if ($time !== false) {
+            return date('Y-m-d', $time);
+        }
+
+        return null;
+    }
+
+
+    public function normalizeNpwp($npwp)
+    {
+        // Ambil angka saja
+        $npwp = preg_replace('/\D/', '', $npwp);
+
+        // NPWP lama 15 digit
+        if (strlen($npwp) === 15) {
+            return $npwp;
+        }
+
+        // NPWP 16 digit
+        if (strlen($npwp) === 16) {
+            return $npwp;
+        }
+
+        // NPWP CEISA / padding > 16 digit
+        if (strlen($npwp) > 16) {
+            return substr($npwp, 0, 15);
+        }
+
+        return $npwp;
+    }
+
+
+    public function getNpwpConsignee($header)
+    {
+        /*
+        * Semua jenis dokumen sekarang menggunakan:
+        *
+        * data.header.customer_id
+        */
+
+        if (
+            isset($header->customer_id) &&
+            trim((string) $header->customer_id) !== ''
+        ) {
+            return $this->normalizeNpwp(
+                (string) $header->customer_id
+            );
+        }
+
+        return null;
+    }
+
+
+    public function getConsigneeName($header)
+    {
+        /*
+        * Semua jenis dokumen sekarang menggunakan:
+        *
+        * data.header.customer_name
+        */
+
+        if (
+            isset($header->customer_name) &&
+            trim((string) $header->customer_name) !== ''
+        ) {
+            return $this->normalizeCompanyName(
+                (string) $header->customer_name
+            );
+        }
+
+        return null;
+    }
+
+
+    public function normalizeCompanyName($name)
+    {
+        $name = trim($name);
+
+        // Uppercase
+        $name = strtoupper($name);
+
+        // Rapikan spasi
+        $name = preg_replace('/\s+/', ' ', $name);
+
+        // Hapus karakter aneh
+        $name = preg_replace(
+            '/[^A-Z0-9\.\&\-\s]/',
+            '',
+            $name
+        );
+
+        return $name;
+    }
+
+
+    public function getNoDokInOut($header)
+    {
+        /*
+        * Semua jenis dokumen:
+        *
+        * document_no
+        */
+
+        if (
+            isset($header->document_no) &&
+            trim((string) $header->document_no) !== ''
+        ) {
+            return trim((string) $header->document_no);
+        }
+
+        return null;
+    }
+
+
+    public function getTglDokInOut($header)
+    {
+        /*
+        * Semua jenis dokumen:
+        *
+        * document_date
+        */
+
+        if (
+            isset($header->document_date) &&
+            trim((string) $header->document_date) !== ''
+        ) {
+            return $this->normalizeDateNpct(
+                (string) $header->document_date
+            );
+        }
+
+        return null;
     }
 }
