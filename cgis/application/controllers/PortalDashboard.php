@@ -83,18 +83,18 @@ class PortalDashboard extends CI_Controller
     //////////////////// HELPER MANUAL ////////////////////
     public function getCarNumber($header)
     {
-        // prioritas 1: CAR
-        if (isset($header->CAR) && trim((string)$header->CAR) !== '') {
-            return trim((string)$header->CAR);
+        if (isset($header->car) && trim((string) $header->car) !== '') {
+            return trim((string) $header->car);
         }
 
-        // prioritas 2: ID
-        if (isset($header->ID) && trim((string)$header->ID) !== '') {
-            return trim((string)$header->ID);
+        // fallback jika API suatu saat mengirim ID
+        if (isset($header->id) && trim((string) $header->id) !== '') {
+            return trim((string) $header->id);
         }
 
         return null;
     }
+
 
     public function normalizeDateNpct($tgl)
     {
@@ -104,136 +104,180 @@ class PortalDashboard extends CI_Controller
             return null;
         }
 
-        // Case 1: YYYYMMDD (20260119)
+        // Case 1: YYYYMMDD
+        // Contoh: 20260119
         if (preg_match('/^\d{8}$/', $tgl)) {
-            return DateTime::createFromFormat('Ymd', $tgl)->format('Y-m-d');
+            $date = DateTime::createFromFormat('Ymd', $tgl);
+
+            return $date
+                ? $date->format('Y-m-d')
+                : null;
         }
 
-        // Case 2: DD/MM/YYYY (08/01/2026)
+        // Case 2: DD/MM/YYYY
+        // Contoh: 08/01/2026
         if (preg_match('/^\d{2}\/\d{2}\/\d{4}$/', $tgl)) {
-            return DateTime::createFromFormat('d/m/Y', $tgl)->format('Y-m-d');
+            $date = DateTime::createFromFormat('d/m/Y', $tgl);
+
+            return $date
+                ? $date->format('Y-m-d')
+                : null;
         }
 
-        // Case 3: fallback (kalau ternyata format lain)
+        // Case 3: DD-MM-YYYY
+        // Contoh: 19-08-2026
+        if (preg_match('/^\d{2}-\d{2}-\d{4}$/', $tgl)) {
+            $date = DateTime::createFromFormat('d-m-Y', $tgl);
+
+            return $date
+                ? $date->format('Y-m-d')
+                : null;
+        }
+
+        // Case 4: YYYY-MM-DD
+        // Contoh: 2026-08-19
+        if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $tgl)) {
+            $date = DateTime::createFromFormat('Y-m-d', $tgl);
+
+            return $date
+                ? $date->format('Y-m-d')
+                : null;
+        }
+
+        // Case 5: datetime
+        // Contoh:
+        // 19-08-2026 06:46:30
+        // 2026-08-19 06:46:30
         $time = strtotime($tgl);
+
         if ($time !== false) {
             return date('Y-m-d', $time);
         }
 
-        // gagal parse
         return null;
     }
 
+
     public function normalizeNpwp($npwp)
     {
-        // ambil angka saja
+        // Ambil angka saja
         $npwp = preg_replace('/\D/', '', $npwp);
 
-        // NPWP lama 15 digit → biarin
+        // NPWP lama 15 digit
         if (strlen($npwp) === 15) {
             return $npwp;
         }
 
-        // NPWP 16 digit NIK-based → biarin
+        // NPWP 16 digit
         if (strlen($npwp) === 16) {
             return $npwp;
         }
 
-        // NPWP CEISA / padding → potong ke 15 digit pertama
+        // NPWP CEISA / padding > 16 digit
         if (strlen($npwp) > 16) {
             return substr($npwp, 0, 15);
         }
 
         return $npwp;
     }
-    public function getNpwpConsignee($header, $docType = null)
+
+
+    public function getNpwpConsignee($header)
     {
-        // === KHUSUS NPE (EXPORT) ===
-        if ($docType === 'NPE') {
-            if (isset($header->NPWP_EKS) && trim((string)$header->NPWP_EKS) !== '') {
-                return $this->normalizeNpwp((string)$header->NPWP_EKS);
-            }
-            return null;
-        }
+        /*
+        * Semua jenis dokumen sekarang menggunakan:
+        *
+        * data.header.customer_id
+        */
 
-        // === IMPORT / DEFAULT ===
-        if (isset($header->NPWP_IMP) && trim((string)$header->NPWP_IMP) !== '') {
-            return $this->normalizeNpwp((string)$header->NPWP_IMP);
-        }
-
-        if (isset($header->ID_CONSIGNEE) && trim((string)$header->ID_CONSIGNEE) !== '') {
-            return $this->normalizeNpwp((string)$header->ID_CONSIGNEE);
+        if (
+            isset($header->customer_id) &&
+            trim((string) $header->customer_id) !== ''
+        ) {
+            return $this->normalizeNpwp(
+                (string) $header->customer_id
+            );
         }
 
         return null;
     }
 
-    public function getConsigneeName($header, $docType = null)
+
+    public function getConsigneeName($header)
     {
-        // === KHUSUS NPE (EXPORTER) ===
-        if ($docType === 'NPE') {
-            if (isset($header->NAMA_EKS) && trim((string)$header->NAMA_EKS) !== '') {
-                return $this->normalizeCompanyName((string)$header->NAMA_EKS);
-            }
-            return null;
-        }
+        /*
+        * Semua jenis dokumen sekarang menggunakan:
+        *
+        * data.header.customer_name
+        */
 
-        // === IMPORT / DEFAULT ===
-        if (isset($header->NM_IMP) && trim((string)$header->NM_IMP) !== '') {
-            return $this->normalizeCompanyName((string)$header->NM_IMP);
-        }
-
-        if (isset($header->CONSIGNEE) && trim((string)$header->CONSIGNEE) !== '') {
-            return $this->normalizeCompanyName((string)$header->CONSIGNEE);
+        if (
+            isset($header->customer_name) &&
+            trim((string) $header->customer_name) !== ''
+        ) {
+            return $this->normalizeCompanyName(
+                (string) $header->customer_name
+            );
         }
 
         return null;
     }
+
 
     public function normalizeCompanyName($name)
     {
         $name = trim($name);
 
-        // upper-case biar konsisten
+        // Uppercase
         $name = strtoupper($name);
 
-        // rapihin spasi
+        // Rapikan spasi
         $name = preg_replace('/\s+/', ' ', $name);
 
-        // hapus karakter aneh
-        $name = preg_replace('/[^A-Z0-9\.\&\-\s]/', '', $name);
+        // Hapus karakter aneh
+        $name = preg_replace(
+            '/[^A-Z0-9\.\&\-\s]/',
+            '',
+            $name
+        );
 
         return $name;
     }
 
-    public function getNoDokInOut($docNode)
-    {
-        // default (MANUAL, DOKPAB, dll)
-        if (isset($docNode->HEADER->NO_DOK_INOUT)) {
-            return (string) $docNode->HEADER->NO_DOK_INOUT;
-        }
 
-        // khusus NPE
-        if ($docNode->getName() === 'NPE' && isset($docNode->HEADER->NONPE)) {
-            return (string) $docNode->HEADER->NONPE;
+    public function getNoDokInOut($header)
+    {
+        /*
+        * Semua jenis dokumen:
+        *
+        * document_no
+        */
+
+        if (
+            isset($header->document_no) &&
+            trim((string) $header->document_no) !== ''
+        ) {
+            return trim((string) $header->document_no);
         }
 
         return null;
     }
 
-    public function getTglDokInOut($docNode)
-    {
-        // default
-        if (isset($docNode->HEADER->TGL_DOK_INOUT)) {
-            return $this->normalizeDateNpct(
-                (string) $docNode->HEADER->TGL_DOK_INOUT
-            );
-        }
 
-        // khusus NPE
-        if ($docNode->getName() === 'NPE' && isset($docNode->HEADER->TGLNPE)) {
+    public function getTglDokInOut($header)
+    {
+        /*
+        * Semua jenis dokumen:
+        *
+        * document_date
+        */
+
+        if (
+            isset($header->document_date) &&
+            trim((string) $header->document_date) !== ''
+        ) {
             return $this->normalizeDateNpct(
-                (string) $docNode->HEADER->TGLNPE
+                (string) $header->document_date
             );
         }
 
@@ -271,24 +315,33 @@ class PortalDashboard extends CI_Controller
         $npwp = preg_replace("/[^a-zA-Z0-9]+/", "", $this->input->post('npwp'));
 
         if ($type != '') {
-
             if ($type == 'sppb') {
                 $url = "10.1.5.130/TPSServices/WsGetImpor_Sppb_NPCT1.php?NO_SPPB=$no_dok&TGL_SPPB=$tgl_dok&NPWP=$npwp";
             } elseif ($type == 'sppbnew') {
-
                 $url    = "https://api.npct1.co.id:9443/api/v1/get-customs-ondemand";
                 $user   = "BEHANDLE";
                 $key    = "5d3a2ffcb778f4b1c224f2447c048c8f";
-                $addXML = '<request>
-                <document_code>1</document_code>
-                <document_no>' . $nosppb . '</document_no>
-                <document_date>' . $tglsppb . '</document_date>
-                <npwp>' . $npwpsppb . '</npwp>';
-                $addXML .= '</request>';
 
-                $addXML = trim(preg_replace('/\s\s+/', '', str_replace("\n", " ", $addXML)));
-                // print_r($addXML);die();
+                $addXML = '<request>
+                    <document_code>1</document_code>
+                    <document_no>' . $nosppb . '</document_no>
+                    <document_date>' . $tglsppb . '</document_date>
+                    <npwp>' . $npwpsppb . '</npwp>
+                </request>';
+
+                $addXML = trim(
+                    preg_replace(
+                        '/\s\s+/',
+                        '',
+                        str_replace("\n", " ", $addXML)
+                    )
+                );
+
+                // ==========================================================
+                // CURL REQUEST
+                // ==========================================================
                 $curl = curl_init();
+
                 curl_setopt_array($curl, array(
                     CURLOPT_URL => $url,
                     CURLOPT_SSL_VERIFYPEER => false,
@@ -308,105 +361,494 @@ class PortalDashboard extends CI_Controller
                     ),
                 ));
                 $response = curl_exec($curl);
-                if (!curl_errno($curl)) {
-                    $info = curl_getinfo($curl);
-                    echo "Connection Success , This is Url : ", $info['url'], "<br>\r\n";
-                } else {
-                    echo "Connection Failed =" . curl_error($curl);
+
+                // ==========================================================
+                // CURL ERROR
+                // ==========================================================
+                if (curl_errno($curl)) {
+                    echo "Connection Failed = " . curl_error($curl);
                     echo $response;
-                    // die();
+                } else {
+                    $info = curl_getinfo($curl);
+                    echo "Connection Success , This is Url : "
+                        . $info['url']
+                        . "<br>\r\n";
                 }
                 curl_close($curl);
-                $xml1 = str_replace('<?xml version="1.0"?>', "", $response);
-                $xml2 = str_replace('&apos;', "", $xml1);
 
+                // ==========================================================
+                // CURRENT DATETIME
+                // ==========================================================
                 $currentdatetime = date("Y-m-d H:i:s");
+                $datenow = date("Y-m-d H:i:s");
 
-                $xml = simplexml_load_string($xml2);
-                $CAR = $xml->DOCUMENT->SPPB->HEADER->CAR;
-                $NO_SPPB = $xml->DOCUMENT->SPPB->HEADER->NO_SPPB;
-                $TGL_SPPB = $this->gantiformattglgblk($xml->DOCUMENT->SPPB->HEADER->TGL_SPPB);
-                $KD_KPBC = $xml->DOCUMENT->SPPB->HEADER->KD_KPBC;
-                $NO_PIB = $xml->DOCUMENT->SPPB->HEADER->NO_PIB;
-                $TGL_PIB = $this->gantiformattglgblk($xml->DOCUMENT->SPPB->HEADER->TGL_PIB);
-                $NPWP_IMP = $xml->DOCUMENT->SPPB->HEADER->NPWP_IMP;
-                $NAMA_IMP = $xml->DOCUMENT->SPPB->HEADER->NAMA_IMP;
-                $ALAMAT_IMP = $xml->DOCUMENT->SPPB->HEADER->ALAMAT_IMP;
-                $NPWP_PPJK = $xml->DOCUMENT->SPPB->HEADER->NPWP_PPJK;
-                $NAMA_PPJK = $xml->DOCUMENT->SPPB->HEADER->NAMA_PPJK;
-                $ALAMAT_PPJK = $xml->DOCUMENT->SPPB->HEADER->ALAMAT_PPJK;
-                $NM_ANGKUT = $xml->DOCUMENT->SPPB->HEADER->NM_ANGKUT;
-                $NO_VOY_FLIGHT = $xml->DOCUMENT->SPPB->HEADER->NO_VOY_FLIGHT;
-                $BRUTO = $xml->DOCUMENT->SPPB->HEADER->BRUTO;
-                $NETTO = $xml->DOCUMENT->SPPB->HEADER->NETTO;
-                $GUDANG = $xml->DOCUMENT->SPPB->HEADER->GUDANG;
-                $STATUS_JALUR = $xml->DOCUMENT->SPPB->HEADER->STATUS_JALUR;
-                $JML_CONT = $xml->DOCUMENT->SPPB->HEADER->JML_CONT;
-                $NO_BC11 = $xml->DOCUMENT->SPPB->HEADER->NO_BC11;
-                $TGL_BC11 = $this->gantiformattglgblk($xml->DOCUMENT->SPPB->HEADER->TGL_BC11);
-                $NO_POS_BC11 = $xml->DOCUMENT->SPPB->HEADER->NO_POS_BC11;
-                $NO_BL_AWB = $xml->DOCUMENT->SPPB->HEADER->NO_BL_AWB;
-                $TG_BL_AWB = $this->gantiformattglgblk($xml->DOCUMENT->SPPB->HEADER->TG_BL_AWB);
-                $NO_MASTER_BL_AWB = $xml->DOCUMENT->SPPB->HEADER->NO_MASTER_BL_AWB;
-                $TG_MASTER_BL_AWB = $this->gantiformattglgblk($xml->DOCUMENT->SPPB->HEADER->TG_MASTER_BL_AWB);
+                // ==========================================================
+                // PARSE JSON RESPONSE
+                // ==========================================================
+                $json = json_decode($response);
 
-                foreach ($xml->DOCUMENT->SPPB->DETIL->CONT as $contdata) {
-                    $NO_CONT = $contdata->NO_CONT;
-                    $SIZE = $contdata->SIZE;
-                    $JNS_MUAT = $contdata->JNS_MUAT;
-                    $datenow = date("Y-m-d H:i:s");
-                    //check document udah ada pa belom di permit
-                    $query = $this->db->query("SELECT * from t_permit_hdr where NO_DOK_INOUT = '$NO_SPPB' and TGL_DOK_INOUT = '$TGL_SPPB'");
-                    $count = $query->num_rows();
-                    if ($count === 0) {
-                        $this->db->query("INSERT INTO t_permit_hdr (CAR, KD_KANTOR, KD_DOK_INOUT, NO_DOK_INOUT, TGL_DOK_INOUT, NO_DAFTAR_PABEAN, TGL_DAFTAR_PABEAN, ID_CONSIGNEE, CONSIGNEE, ALAMAT_CONSIGNEE, NPWP_PPJK, NAMA_PPJK, ALAMAT_PPJK, NM_ANGKUT, NO_VOY_FLIGHT, KD_GUDANG, JML_CONT, BRUTO, NETTO, NO_BC11, TGL_BC11, NO_POS_BC11, NO_BL_AWB, TGL_BL_AWB, NO_MASTER_BL_AWB, TGL_MASTER_BL_AWB, KD_KANTOR_PENGAWAS, KD_KANTOR_BONGKAR, FL_SEGEL, STATUS_JALUR, FL_KARANTINA, KD_STATUS, TGL_STATUS, FL_BAPLIE, BAPLIE_DATE, ANGKUTKODE_TPS, ANGKUTNAMA_TPS, ANGKUTNO_TPS, TMP_TIMBUN_TPS, STATUS, STATUS_MAIL, KD_STATUS_BIL, WK_STATUS, FL_MANUAL, OPERATOR, FL_MIGRASI, FL_NHI, FL_LNSW, LNSW_KD_RESPON, LNSW_IDLOG, LNSW_NOAJU, LNSW_TGLAJU)
-                            VALUES ('$CAR', '$KD_KPBC', '1', '$NO_SPPB', '$TGL_SPPB', '$NO_PIB', '$TGL_PIB', '$NPWP_IMP', '$NAMA_IMP', '$ALAMAT_IMP', '$NPWP_PPJK', '$NAMA_PPJK', '$ALAMAT_PPJK', '$NM_ANGKUT', '$NO_VOY_FLIGHT', '$GUDANG', '$JML_CONT', '$BRUTO', '$NETTO', '$NO_BC11', '$TGL_BC11', '$NO_POS_BC11', '$NO_BL_AWB', '$TG_BL_AWB', '$NO_MASTER_BL_AWB', '$TG_MASTER_BL_AWB', NULL, NULL, NULL, '$STATUS_JALUR', NULL, '100', '$datenow', '0', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'N', 'DASHBOARD', NULL, NULL, NULL, NULL, NULL, NULL, NULL)");
-                        $insert_id = $this->db->insert_id();
-                        //insert ke permit cont
-                        $this->db->query("INSERT into t_permit_cont (ID, NO_CONT, KD_CONT_UKURAN, KD_CONT_JENIS, TGL_STATUS) values ('$insert_id', '$NO_CONT', '$SIZE', '$JNS_MUAT', '$currentdatetime')");
-                    } else {
-                        $q = $this->db->query("SELECT * from t_permit_hdr where NO_DOK_INOUT = '$NO_SPPB' and TGL_DOK_INOUT = '$TGL_SPPB'");
-                        foreach ($q->result() as $key => $value1) {
-                            $permitid = $value1->ID;
-                            //    echo 'insert pake id = '.$permitid;
-                            // cek sudah ada data kontainer biar gak duplikat
-                            $query = $this->db->query("SELECT * from t_permit_cont where ID = '$permitid' and NO_CONT = '$NO_CONT'");
+                // ==========================================================
+                // VALIDATE JSON
+                // ==========================================================
+                if (json_last_error() !== JSON_ERROR_NONE) {
+                    $responget = 'Invalid JSON Response: ' . json_last_error_msg();
+                    $userondemand = $_SESSION['USERLOGIN'];
+                    $this->db->query("
+                        INSERT INTO `tpk_ipc`.`solver_req_dokumen_log`
+                        (
+                            `url`,
+                            `tipe`,
+                            `no_dok`,
+                            `tgl_dok`,
+                            `npwp`,
+                            `data_respons`,
+                            `tambahan`,
+                            `response_log`,
+                            `user`
+                        )
+                        VALUES (
+                            '$url',
+                            '$type',
+                            '$no_dok',
+                            '$tgl_dok',
+                            '$npwp',
+                            '$responget',
+                            '$addXML',
+                            '$response',
+                            '$userondemand'
+                        )
+                    ");
+                    $this->db->query("
+                        INSERT INTO `tpk_ipc`.`log_services`
+                        (
+                            `METHOD`,
+                            `XML_REQUEST`,
+                            `XML_RESPONSE`,
+                            `WK_REKAM`,
+                            `FL_NPCT1`,
+                            `FL_SENT_RIZKI`
+                        )
+                        VALUES (
+                            'GET DOKUMEN SPPB MANUAL',
+                            '$addXML',
+                            '$response',
+                            '$datenow',
+                            'N',
+                            'N'
+                        )
+                    ");
+
+                    echo $responget;
+                    die();
+                }
+
+                // ==========================================================
+                // GET RESPONSE CODE
+                // ==========================================================
+                $code = isset($json->response)
+                    ? (string) $json->response
+                    : '';
+
+                // ==========================================================
+                // SUCCESS
+                // ==========================================================
+                if (
+                    $code === '00' &&
+                    isset($json->data) &&
+                    isset($json->data->header)
+                ) {
+                    // ======================================================
+                    // GET HEADER
+                    // ======================================================
+                    $header = $json->data->header;
+                    // ======================================================
+                    // HEADER DATA
+                    // ======================================================
+
+                    // CAR
+                    $CAR = $this->getCarNumber($header);
+
+                    // KODE KANTOR / KPBC
+                    $KD_KPBC = isset($header->kpbc)
+                        ? trim((string) $header->kpbc)
+                        : null;
+
+                    // ======================================================
+                    // NOMOR & TANGGAL SPPB
+                    // ======================================================
+                    $NO_SPPB = $this->getNoDokInOut($header);
+
+                    $TGL_SPPB = $this->getTglDokInOut($header);
+
+                    // ======================================================
+                    // NOMOR & TANGGAL PIB
+                    // ======================================================
+                    $NO_PIB = isset($header->pabean_no)
+                        ? trim((string) $header->pabean_no)
+                        : null;
+                    $TGL_PIB = isset($header->pabean_date)
+                        ? $this->normalizeDateNpct(
+                            (string) $header->pabean_date
+                        )
+                        : null;
+
+                    // ======================================================
+                    // IMPORTIR
+                    // ======================================================
+                    $NPWP_IMP = $this->getNpwpConsignee($header);
+                    $NAMA_IMP = $this->getConsigneeName($header);
+
+                    // ======================================================
+                    // ALAMAT IMPORTIR
+                    // ======================================================
+                    $ALAMAT_IMP = isset($header->customer_address)
+                        ? trim((string) $header->customer_address)
+                        : null;
+
+                    // ======================================================
+                    // PPJK
+                    // ======================================================
+                    $NPWP_PPJK = isset($header->ppjk_id)
+                        ? trim((string) $header->ppjk_id)
+                        : null;
+
+                    $NAMA_PPJK = isset($header->ppjk_name)
+                        ? trim((string) $header->ppjk_name)
+                        : null;
+
+                    $ALAMAT_PPJK = isset($header->ppjk_address)
+                        ? trim((string) $header->ppjk_address)
+                        : null;
+
+                    // ======================================================
+                    // ANGKUTAN
+                    // ======================================================
+                    $NM_ANGKUT = isset($header->vessel_name)
+                        ? trim((string) $header->vessel_name)
+                        : null;
+
+                    $NO_VOY_FLIGHT = isset($header->voyage)
+                        ? trim((string) $header->voyage)
+                        : null;
+
+                    // ======================================================
+                    // BRUTO / NETTO
+                    // ======================================================
+                    $BRUTO = isset($header->bruto)
+                        ? trim((string) $header->bruto)
+                        : null;
+
+                    $NETTO = isset($header->netto)
+                        ? trim((string) $header->netto)
+                        : null;
+
+                    // ======================================================
+                    // GUDANG
+                    // ======================================================
+                    $GUDANG = isset($header->warehouse_origin)
+                        ? trim((string) $header->warehouse_origin)
+                        : null;
+
+                    // ======================================================
+                    // STATUS JALUR
+                    // ======================================================
+                    $STATUS_JALUR = isset($header->path_status)
+                        ? trim((string) $header->path_status)
+                        : null;
+
+                    // ======================================================
+                    // JUMLAH CONTAINER
+                    // ======================================================
+                    $JML_CONT = isset($header->total_cont)
+                        ? (string) $header->total_cont
+                        : '0';
+
+                    // ======================================================
+                    // BC11
+                    // ======================================================
+                    $NO_BC11 = isset($header->bc11_no)
+                        ? trim((string) $header->bc11_no)
+                        : null;
+
+                    $TGL_BC11 = isset($header->bc11_date)
+                        ? $this->normalizeDateNpct(
+                            (string) $header->bc11_date
+                        )
+                        : null;
+
+                    $NO_POS_BC11 = isset($header->bc11_pos)
+                        ? trim((string) $header->bc11_pos)
+                        : null;
+
+                    // ======================================================
+                    // BL / AWB
+                    // ======================================================
+                    $NO_BL_AWB = isset($header->bl_no)
+                        ? trim((string) $header->bl_no)
+                        : null;
+
+                    $TG_BL_AWB = isset($header->bl_date)
+                        ? $this->normalizeDateNpct(
+                            (string) $header->bl_date
+                        )
+                        : null;
+
+                    // ======================================================
+                    // MASTER BL / AWB
+                    // ======================================================
+                    $NO_MASTER_BL_AWB = isset($header->master_bl_no)
+                        ? trim((string) $header->master_bl_no)
+                        : null;
+
+                    $TG_MASTER_BL_AWB = isset($header->master_bl_date)
+                        ? $this->normalizeDateNpct(
+                            (string) $header->master_bl_date
+                        )
+                        : null;
+                    // ======================================================
+                    // CONTAINER
+                    // ======================================================
+                    if (
+                        isset($json->data->containers) &&
+                        is_array($json->data->containers)
+                    ) {
+
+                        foreach ($json->data->containers as $contdata) {
+                            // ----------------------------------------------
+                            // Container Number
+                            // ----------------------------------------------
+                            $NO_CONT = isset($contdata->cont_no)
+                                ? trim((string) $contdata->cont_no)
+                                : '';
+
+                            if ($NO_CONT === '') {
+                                continue;
+                            }
+
+                            // ----------------------------------------------
+                            // Container Size
+                            // ----------------------------------------------
+                            $SIZE = isset($contdata->cont_size)
+                                ? trim((string) $contdata->cont_size)
+                                : '';
+
+                            // ----------------------------------------------
+                            // Container Type / Jenis Muat
+                            // ----------------------------------------------
+                            $JNS_MUAT = isset($contdata->full_empty)
+                                ? trim((string) $contdata->full_empty)
+                                : '';
+
+                            // ==================================================
+                            // CHECK HEADER EXISTING
+                            // ==================================================
+                            $query = $this->db->query(
+                                "
+                                    SELECT ID
+                                    FROM t_permit_hdr
+                                    WHERE NO_DOK_INOUT = ?
+                                    AND TGL_DOK_INOUT = ?
+                                ",
+                                array(
+                                    $NO_SPPB,
+                                    $TGL_SPPB
+                                )
+                            );
                             $count = $query->num_rows();
+
+                            // ==================================================
+                            // HEADER BELUM ADA
+                            // ==================================================
                             if ($count === 0) {
-                                $this->db->query("INSERT IGNORE into t_permit_cont (ID, NO_CONT, KD_CONT_UKURAN, KD_CONT_JENIS, TGL_STATUS) values ('$permitid', '$NO_CONT', '$SIZE', '$JNS_MUAT', '$datenow')");
+                                $dataHdr = array(
+                                    'CAR'                  => $CAR,
+                                    'KD_KANTOR'            => $KD_KPBC,
+                                    'KD_DOK_INOUT'         => '1',
+                                    'NO_DOK_INOUT'         => $NO_SPPB,
+                                    'TGL_DOK_INOUT'        => $TGL_SPPB,
+                                    'NO_DAFTAR_PABEAN'     => $NO_PIB,
+                                    'TGL_DAFTAR_PABEAN'    => $TGL_PIB,
+                                    'ID_CONSIGNEE'         => $NPWP_IMP,
+                                    'CONSIGNEE'            => $NAMA_IMP,
+                                    'ALAMAT_CONSIGNEE'     => $ALAMAT_IMP,
+                                    'NPWP_PPJK'            => $NPWP_PPJK,
+                                    'NAMA_PPJK'            => $NAMA_PPJK,
+                                    'ALAMAT_PPJK'          => $ALAMAT_PPJK,
+                                    'NM_ANGKUT'            => $NM_ANGKUT,
+                                    'NO_VOY_FLIGHT'        => $NO_VOY_FLIGHT,
+                                    'KD_GUDANG'            => $GUDANG,
+                                    'JML_CONT'             => $JML_CONT,
+                                    'BRUTO'                => $BRUTO,
+                                    'NETTO'                => $NETTO,
+                                    'NO_BC11'              => $NO_BC11,
+                                    'TGL_BC11'             => $TGL_BC11,
+                                    'NO_POS_BC11'          => $NO_POS_BC11,
+                                    'NO_BL_AWB'            => $NO_BL_AWB,
+                                    'TGL_BL_AWB'           => $TG_BL_AWB,
+                                    'NO_MASTER_BL_AWB'     => $NO_MASTER_BL_AWB,
+                                    'TGL_MASTER_BL_AWB'    => $TG_MASTER_BL_AWB,
+                                    'KD_KANTOR_PENGAWAS'   => null,
+                                    'KD_KANTOR_BONGKAR'    => null,
+                                    'FL_SEGEL'             => null,
+                                    'STATUS_JALUR'         => $STATUS_JALUR,
+                                    'FL_KARANTINA'         => null,
+                                    'KD_STATUS'            => '100',
+                                    'TGL_STATUS'           => $datenow,
+                                    'FL_BAPLIE'            => '0',
+                                    'BAPLIE_DATE'          => null,
+                                    'ANGKUTKODE_TPS'       => null,
+                                    'ANGKUTNAMA_TPS'       => null,
+                                    'ANGKUTNO_TPS'         => null,
+                                    'TMP_TIMBUN_TPS'       => null,
+                                    'STATUS'               => null,
+                                    'STATUS_MAIL'          => null,
+                                    'KD_STATUS_BIL'        => null,
+                                    'WK_STATUS'            => null,
+                                    'FL_MANUAL'            => 'N',
+                                    'OPERATOR'             => 'DASHBOARD',
+                                    'FL_MIGRASI'           => null,
+                                    'FL_NHI'               => null,
+                                    'FL_LNSW'              => null,
+                                    'LNSW_KD_RESPON'       => null,
+                                    'LNSW_IDLOG'           => null,
+                                    'LNSW_NOAJU'           => null,
+                                    'LNSW_TGLAJU'          => null
+                                );
+
+                                // ==================================================
+                                // INSERT HEADER
+                                // ==================================================
+                                $this->db->insert(
+                                    't_permit_hdr',
+                                    $dataHdr
+                                );
+
+                                $insert_id = $this->db->insert_id();
+
+                                // ==================================================
+                                // INSERT CONTAINER
+                                // ==================================================
+                                $dataCont = array(
+                                    'ID'              => $insert_id,
+                                    'NO_CONT'         => $NO_CONT,
+                                    'KD_CONT_UKURAN'  => $SIZE,
+                                    'KD_CONT_JENIS'   => $JNS_MUAT,
+                                    'TGL_STATUS'     => $currentdatetime
+                                );
+
+                                $this->db->insert(
+                                    't_permit_cont',
+                                    $dataCont
+                                );
                             } else {
-                                // echo 'data dah ada.<br>';
+                                // ==================================================
+                                // HEADER SUDAH ADA
+                                // ==================================================
+                                $row = $query->row();
+                                $permitid = $row->ID;
+
+                                // ==================================================
+                                // CHECK CONTAINER EXISTING
+                                // ==================================================
+                                $queryCont = $this->db->query(
+                                    "
+                                        SELECT ID
+                                        FROM t_permit_cont
+                                        WHERE ID = ?
+                                        AND NO_CONT = ?
+                                    ",
+                                    array(
+                                        $permitid,
+                                        $NO_CONT
+                                    )
+                                );
+
+                                if ($queryCont->num_rows() === 0) {
+                                    $dataCont = array(
+                                        'ID'              => $permitid,
+                                        'NO_CONT'         => $NO_CONT,
+                                        'KD_CONT_UKURAN'  => $SIZE,
+                                        'KD_CONT_JENIS'   => $JNS_MUAT,
+                                        'TGL_STATUS'     => $datenow
+                                    );
+
+                                    $this->db->insert(
+                                        't_permit_cont',
+                                        $dataCont
+                                    );
+                                }
                             }
                         }
                     }
-                }
-
-                $xmlheader = simplexml_load_string($xml2);
-
-                // Extract the code value
-                $code = (string) $xmlheader->code;
-                $userondemand = $_SESSION['USERLOGIN'];
-                // Process the code using if-else
-                if ($code === '00') {
-                    // Success
+                    // ======================================================
+                    // SUCCESS RESPONSE
+                    // ======================================================
                     $responget = 'Sukses Ondemand Data';
-                    $this->db->query("INSERT INTO `tpk_ipc`.`solver_req_dokumen_log` (`url`, `tipe`, `no_dok`, `tgl_dok`, `npwp`, `data_respons`, `tambahan`,`response_log`,`user`) VALUES ('https://api.npct1.co.id:9443/api/v1/get-customs-ondemand', '$type', '$no_dok', '$tgl_dok', '$npwp', '$responget', '$addXML','$response', '$userondemand')");
-
-                    $this->db->query("INSERT INTO `tpk_ipc`.`log_services` (`METHOD`, `XML_REQUEST`, `XML_RESPONSE`, `WK_REKAM`, `FL_NPCT1`, `FL_SENT_RIZKI`) VALUES ('GET DOKUMEN SPPB MANUAL', '$addXML', '$response', '$datenow', 'N', 'N')");
                 } elseif ($code === '01') {
-                    // Failed
-                    $responget =  (string) $xmlheader->description;
-                    $this->db->query("INSERT INTO `tpk_ipc`.`solver_req_dokumen_log` (`url`, `tipe`, `no_dok`, `tgl_dok`, `npwp`, `data_respons`, `tambahan`,`response_log`,`user`) VALUES ('https://api.npct1.co.id:9443/api/v1/get-customs-ondemand', '$type', '$no_dok', '$tgl_dok', '$npwp', '$responget', '$addXML','$response', '$userondemand')");
-
-                    $this->db->query("INSERT INTO `tpk_ipc`.`log_services` (`METHOD`, `XML_REQUEST`, `XML_RESPONSE`, `WK_REKAM`, `FL_NPCT1`, `FL_SENT_RIZKI`) VALUES ('GET DOKUMEN SPPB MANUAL', '$addXML', '$response', '$datenow', 'N', 'N')");
+                    // ======================================================
+                    // DATA NOT FOUND
+                    // ======================================================
+                    $responget = isset($json->message)
+                        ? trim((string) $json->message)
+                        : 'Records not found';
                 } else {
-                    // Unknown error
-                    $responget = "Unknown error " . $xmlheader->description;
-                    $this->db->query("INSERT INTO `tpk_ipc`.`solver_req_dokumen_log` (`url`, `tipe`, `no_dok`, `tgl_dok`, `npwp`, `data_respons`, `tambahan`,`response_log`,`user`) VALUES ('https://api.npct1.co.id:9443/api/v1/get-customs-ondemand', '$type', '$no_dok', '$tgl_dok', '$npwp', '$responget', '$addXML','$response', '$userondemand')");
-
-                    $this->db->query("INSERT INTO `tpk_ipc`.`log_services` (`METHOD`, `XML_REQUEST`, `XML_RESPONSE`, `WK_REKAM`, `FL_NPCT1`, `FL_SENT_RIZKI`) VALUES ('GET DOKUMEN SPPB MANUAL', '$addXML', '$response', '$datenow', 'N', 'N')");
+                    // ======================================================
+                    // UNKNOWN ERROR
+                    // ======================================================
+                    $message = isset($json->message)
+                        ? trim((string) $json->message)
+                        : 'Unknown error';
+                    $responget = 'Unknown error ' . $message;
                 }
 
+                // ==========================================================
+                // LOG REQUEST / RESPONSE
+                // ==========================================================
+                $userondemand = $_SESSION['USERLOGIN'];
+                $this->db->query("
+                    INSERT INTO `tpk_ipc`.`solver_req_dokumen_log`
+                    (
+                        `url`,
+                        `tipe`,
+                        `no_dok`,
+                        `tgl_dok`,
+                        `npwp`,
+                        `data_respons`,
+                        `tambahan`,
+                        `response_log`,
+                        `user`
+                    )
+                    VALUES (
+                        '$url',
+                        '$type',
+                        '$no_dok',
+                        '$tgl_dok',
+                        '$npwp',
+                        '$responget',
+                        '$addXML',
+                        '$response',
+                        '$userondemand'
+                    )
+                ");
+                $this->db->query("
+                    INSERT INTO `tpk_ipc`.`log_services`
+                    (
+                        `METHOD`,
+                        `XML_REQUEST`,
+                        `XML_RESPONSE`,
+                        `WK_REKAM`,
+                        `FL_NPCT1`,
+                        `FL_SENT_RIZKI`
+                    )
+                    VALUES (
+                        'GET DOKUMEN SPPB MANUAL',
+                        '$addXML',
+                        '$response',
+                        '$datenow',
+                        'N',
+                        'N'
+                    )
+                ");
                 redirect("/PortalDashboard/doksppbnew");
                 die();
                 // end sppbnew
@@ -420,7 +862,7 @@ class PortalDashboard extends CI_Controller
                             <document_no>' . $nosppb . '</document_no>
                             <document_date>' . $tglsppb . '</document_date>
                             <npwp>' . $npwpsppb . '</npwp>';
-                                $addXML .= '</request>
+                $addXML .= '</request>
                             ';
 
                 $addXML = trim(preg_replace('/\s\s+/', '', str_replace("\n", " ", $addXML)));
@@ -453,130 +895,343 @@ class PortalDashboard extends CI_Controller
                     die();
                 }
                 curl_close($curl);
-                echo $response;
-
-                $xml1 = str_replace('<?xml version="1.0"?>', "", $response);
-                $xml = simplexml_load_string($xml1);
-
-                // Check if the response contains 'Data Tidak Ditemukan'
-                $responget = 'success';
-                $code = (string)$xml->code;
-                if (strpos($response, 'Data Tidak Ditemukan') !== false) {
-                    $responget = 'data tidak ditemukan';
+                // ==========================================================
+                // PARSE JSON RESPONSE
+                // ==========================================================
+                $json = json_decode($response);
+                if (json_last_error() !== JSON_ERROR_NONE) {
+                    $responget = 'Invalid JSON Response: ' . json_last_error_msg();
+                    echo $responget;
+                    die();
                 }
 
-                if ($code  == '00') {
-                    $responget = 'success';
-                } else {
-                    $responget = 'Tidak Ditemukan';
-                }
-                // echo $code; die();
-                if ($code === '00') {
-                    foreach ($xml->DOCUMENT->children() as $docNode) {
-                        // Extract HEADER data
+                // ==========================================================
+                // GET RESPONSE CODE
+                // ==========================================================
+                // SUCCESS : 00
+                // FAILED  : 01
+                // OTHER   : API ERROR
+                // ==========================================================
+                $code = isset($json->response)
+                    ? (string) $json->response
+                    : '';
 
-                        if (!isset($docNode->HEADER)) {
-                            continue;
-                        }
-                        $docType = $docNode->getName();
+                // ==========================================================
+                // SUCCESS
+                // ==========================================================
+                if ($code === '00' && isset($json->data)) {
+                    // ======================================================
+                    // GET HEADER
+                    // ======================================================
+                    $header = $json->data->header;
 
-                        $ID = $this->getCarNumber($docNode->HEADER);
-                        $KD_KANTOR = (string) $docNode->HEADER->KD_KANTOR;
-                        // antisipasi NPE
-                        if (isset($docNode->HEADER->KD_DOK_INOUT)) {
-                            $KD_DOK_INOUT = (string) $docNode->HEADER->KD_DOK_INOUT;
-                        } elseif ($docType === 'NPE') {
-                            $KD_DOK_INOUT = '6';
-                        } else {
-                            $KD_DOK_INOUT = null;
-                        }
+                    // ======================================================
+                    // HEADER DATA
+                    // ======================================================
+                    // CAR
+                    $ID = $this->getCarNumber($header);
 
-                        $NO_DOK_INOUT  = $this->getNoDokInOut($docNode);
-                        $TGL_DOK_INOUT = $this->getTglDokInOut($docNode);
-                        $NPWP_CONSIGNEE = $this->getNpwpConsignee($docNode->HEADER);
-                        $CONSIGNEE = $this->getConsigneeName($docNode->HEADER);
-                        $NO_DAFTAR_PABEAN = isset($docNode->HEADER->NO_DAFTAR) ? (string) $docNode->HEADER->NO_DAFTAR : null;
-                        $TGL_DAFTAR_PABEAN = isset($docNode->HEADER->TGL_DAFTAR) ? $this->normalizeDateNpct((string) $docNode->HEADER->TGL_DAFTAR) : null;
-                        $NPWP_PPJK = (string) $docNode->HEADER->NPWP_PPJK;
-                        $NAMA_PPJK = (string) $docNode->HEADER->NAMA_PPJK;
-                        $NM_ANGKUT = (string) $docNode->HEADER->NM_ANGKUT;
-                        $NO_VOY_FLIGHT = (string) $docNode->HEADER->NO_VOY_FLIGHT;
-                        $KD_GUDANG = (string) $docNode->HEADER->KD_GUDANG;
-                        $JML_CONT = (string) $docNode->HEADER->JML_CONT;
-                        $NO_BC11 = (string) $docNode->HEADER->NO_BC11;
-                        $TGL_BC11 = $this->normalizeDateNpct((string) $docNode->HEADER->TGL_BC11);
-                        $NO_POS_BC11 = (string) $docNode->HEADER->NO_POS_BC11;
-                        $NO_BL_AWB = (string) $docNode->HEADER->NO_BL_AWB;
-                        $TG_BL_AWB = $this->normalizeDateNpct((string) $docNode->HEADER->TG_BL_AWB);
-                        $FL_SEGEL = (string) $docNode->HEADER->FL_SEGEL;
-                        $datenow = date("Y-m-d H:i:s");
+                    // KODE KANTOR
+                    $KD_KANTOR = isset($header->kpbc)
+                        ? trim((string) $header->kpbc)
+                        : null;
 
-                        // if ($this->input->post('nodok') == 'S-632/KPU.1/KPU.104/2026') var_dump($docNode);die();
-                        // Check if the record exists
-                        $query = $this->db->query(
-                            "SELECT * FROM t_permit_hdr WHERE NO_DOK_INOUT = ? AND TGL_DOK_INOUT = ? AND CAR = ?",
-                            array($NO_DOK_INOUT, $TGL_DOK_INOUT, $ID)
+                    // KODE DOKUMEN
+                    // Contoh SPJM = 19
+                    $KD_DOK_INOUT = isset($header->document_id)
+                        ? trim((string) $header->document_id)
+                        : null;
+
+                    // NOMOR DOKUMEN
+                    // Semua jenis dokumen menggunakan document_no
+                    $NO_DOK_INOUT = $this->getNoDokInOut($header);
+
+                    // TANGGAL DOKUMEN
+                    // Semua jenis dokumen menggunakan document_date
+                    $TGL_DOK_INOUT = $this->getTglDokInOut($header);
+
+                    // ======================================================
+                    // CONSIGNEE / IMPORTIR / EXPORTER
+                    // ======================================================
+                    $NPWP_CONSIGNEE = $this->getNpwpConsignee($header);
+                    $CONSIGNEE = $this->getConsigneeName($header);
+
+                    // ======================================================
+                    // PABEAN
+                    // ======================================================
+                    $NO_DAFTAR_PABEAN = isset($header->pabean_no)
+                        ? trim((string) $header->pabean_no)
+                        : null;
+
+                    $TGL_DAFTAR_PABEAN = isset($header->pabean_date)
+                        ? $this->normalizeDateNpct(
+                            (string) $header->pabean_date
+                        )
+                        : null;
+
+                    // ======================================================
+                    // PPJK
+                    // ======================================================
+                    $NPWP_PPJK = isset($header->ppjk_id)
+                        ? trim((string) $header->ppjk_id)
+                        : null;
+
+                    $NAMA_PPJK = isset($header->ppjk_name)
+                        ? trim((string) $header->ppjk_name)
+                        : null;
+
+                    // ======================================================
+                    // ANGKUTAN
+                    // ======================================================
+                    $NM_ANGKUT = isset($header->vessel_name)
+                        ? trim((string) $header->vessel_name)
+                        : null;
+
+                    $NO_VOY_FLIGHT = isset($header->voyage)
+                        ? trim((string) $header->voyage)
+                        : null;
+
+                    // ======================================================
+                    // GUDANG
+                    // ======================================================
+                    $KD_GUDANG = isset($header->warehouse_origin)
+                        ? trim((string) $header->warehouse_origin)
+                        : null;
+
+                    // ======================================================
+                    // JUMLAH CONTAINER
+                    // ======================================================
+                    $JML_CONT = isset($header->total_cont)
+                        ? (string) $header->total_cont
+                        : '0';
+
+                    // ======================================================
+                    // BC 11
+                    // ======================================================
+                    $NO_BC11 = isset($header->bc11_no)
+                        ? trim((string) $header->bc11_no)
+                        : null;
+
+                    $TGL_BC11 = isset($header->bc11_date)
+                        ? $this->normalizeDateNpct(
+                            (string) $header->bc11_date
+                        )
+                        : null;
+
+                    $NO_POS_BC11 = isset($header->bc11_pos)
+                        ? trim((string) $header->bc11_pos)
+                        : null;
+
+                    // ======================================================
+                    // BL / AWB
+                    // ======================================================
+                    $NO_BL_AWB = isset($header->bl_no)
+                        ? trim((string) $header->bl_no)
+                        : null;
+
+                    $TG_BL_AWB = isset($header->bl_date)
+                        ? $this->normalizeDateNpct(
+                            (string) $header->bl_date
+                        )
+                        : null;
+
+                    // ======================================================
+                    // SEAL
+                    // ======================================================
+                    $FL_SEGEL = isset($header->seal_indicator)
+                        ? trim((string) $header->seal_indicator)
+                        : null;
+
+                    // ======================================================
+                    // CURRENT TIMESTAMP
+                    // ======================================================
+                    $datenow = date("Y-m-d H:i:s");
+                    // ======================================================
+                    // VALIDASI MINIMAL DATA
+                    // ======================================================
+                    if (
+                        empty($ID) ||
+                        empty($NO_DOK_INOUT) ||
+                        empty($TGL_DOK_INOUT)
+                    ) {
+                        $responget = 'Data JSON tidak lengkap';
+                        echo $responget;
+                        die();
+                    }
+                    // ======================================================
+                    // CHECK HEADER EXISTING
+                    // ======================================================
+                    $query = $this->db->query(
+                        "
+                            SELECT ID
+                            FROM t_permit_hdr
+                            WHERE NO_DOK_INOUT = ?
+                            AND TGL_DOK_INOUT = ?
+                            AND CAR = ?
+                        ",
+                        array(
+                            $NO_DOK_INOUT,
+                            $TGL_DOK_INOUT,
+                            $ID
+                        )
+                    );
+                    $count = $query->num_rows();
+                    // ======================================================
+                    // INSERT HEADER
+                    // ======================================================
+                    if ($count === 0) {
+                        $dataHdr = array(
+                            'CAR'              => $ID,
+                            'KD_KANTOR'        => $KD_KANTOR,
+                            'KD_DOK_INOUT'     => $KD_DOK_INOUT,
+                            'NO_DOK_INOUT'     => $NO_DOK_INOUT,
+                            'TGL_DOK_INOUT'    => $TGL_DOK_INOUT,
+                            'NO_DAFTAR_PABEAN' => $NO_DAFTAR_PABEAN,
+                            'TGL_DAFTAR_PABEAN' => $TGL_DAFTAR_PABEAN,
+                            'ID_CONSIGNEE'     => $NPWP_CONSIGNEE,
+                            'CONSIGNEE'        => $CONSIGNEE,
+                            'NPWP_PPJK'        => $NPWP_PPJK,
+                            'NAMA_PPJK'        => $NAMA_PPJK,
+                            'NM_ANGKUT'        => $NM_ANGKUT,
+                            'NO_VOY_FLIGHT'    => $NO_VOY_FLIGHT,
+                            'KD_GUDANG'        => $KD_GUDANG,
+                            'JML_CONT'         => $JML_CONT,
+                            'NO_BC11'          => $NO_BC11,
+                            'TGL_BC11'         => $TGL_BC11,
+                            'NO_POS_BC11'      => $NO_POS_BC11,
+                            'NO_BL_AWB'        => $NO_BL_AWB,
+                            'TGL_BL_AWB'       => $TG_BL_AWB,
+                            'FL_SEGEL'         => $FL_SEGEL,
+                            'TGL_STATUS'       => $datenow
                         );
-                        $count = $query->num_rows();
+                        $this->db->insert(
+                            't_permit_hdr',
+                            $dataHdr
+                        );
+                        $insert_id = $this->db->insert_id();
+                    } else {
+                        // ==================================================
+                        // HEADER SUDAH ADA
+                        // ==================================================
                         $row = $query->row();
-                        $ID_SEARCH = $row->ID;
-
-                        if ($count === 0) {
-                            // Insert new HEADER record
-                            $dataHdr = array(
-                                'CAR'           => $ID,
-                                'KD_KANTOR'     => $KD_KANTOR,
-                                'KD_DOK_INOUT'  => $KD_DOK_INOUT,
-                                'NO_DOK_INOUT'  => $NO_DOK_INOUT,
-                                'TGL_DOK_INOUT' => $TGL_DOK_INOUT,
-                                'NO_DAFTAR_PABEAN' => $NO_DAFTAR_PABEAN,
-                                'TGL_DAFTAR_PABEAN' => $TGL_DAFTAR_PABEAN,
-
-                                'ID_CONSIGNEE'  => $NPWP_CONSIGNEE,
-                                'CONSIGNEE'     => $CONSIGNEE,
-
-                                'NPWP_PPJK'     => $NPWP_PPJK,
-                                'NAMA_PPJK'     => $NAMA_PPJK,
-
-                                'NM_ANGKUT'     => $NM_ANGKUT,
-                                'NO_VOY_FLIGHT' => $NO_VOY_FLIGHT,
-                                'KD_GUDANG'     => $KD_GUDANG,
-                                'JML_CONT'      => $JML_CONT,
-
-                                'NO_BC11'       => $NO_BC11,
-                                'TGL_BC11'      => $TGL_BC11,
-                                'NO_POS_BC11'   => $NO_POS_BC11,
-
-                                'NO_BL_AWB'     => $NO_BL_AWB,
-                                'TGL_BL_AWB'    => $TG_BL_AWB,
-
-                                'FL_SEGEL'      => $FL_SEGEL,
-                                'TGL_STATUS'    => $datenow
+                        $insert_id = $row->ID;
+                    }
+                    // ======================================================
+                    // PROCESS CONTAINERS
+                    // ======================================================
+                    if (
+                        isset($json->data->containers) &&
+                        is_array($json->data->containers)
+                    ) {
+                        foreach ($json->data->containers as $contdata) {
+                            // ----------------------------------------------
+                            // NO CONTAINER
+                            // ----------------------------------------------
+                            $NO_CONT = isset($contdata->cont_no)
+                                ? trim((string) $contdata->cont_no)
+                                : '';
+                            if ($NO_CONT === '') {
+                                continue;
+                            }
+                            // ----------------------------------------------
+                            // SIZE
+                            // ----------------------------------------------
+                            $SIZE = isset($contdata->cont_size)
+                                ? trim((string) $contdata->cont_size)
+                                : '';
+                            // ----------------------------------------------
+                            // JENIS / FULL EMPTY
+                            // ----------------------------------------------
+                            $JNS_MUAT = isset($contdata->full_empty)
+                                ? trim((string) $contdata->full_empty)
+                                : '';
+                            // ----------------------------------------------
+                            // CHECK INDICATOR
+                            // ----------------------------------------------
+                            $FL_PERIKSA = isset($contdata->check_indicator)
+                                ? trim((string) $contdata->check_indicator)
+                                : '';
+                            // ----------------------------------------------
+                            // APPROVE INDICATOR
+                            // ----------------------------------------------
+                            $FL_APPROVE = isset($contdata->approve_indicator)
+                                ? trim((string) $contdata->approve_indicator)
+                                : '';
+                            // ==================================================
+                            // CHECK CONTAINER EXISTING
+                            // ==================================================
+                            $queryCont = $this->db->query(
+                                "
+                                    SELECT ID, NO_CONT
+                                    FROM t_permit_cont
+                                    WHERE ID = ?
+                                    AND NO_CONT = ?
+                                ",
+                                array(
+                                    $insert_id,
+                                    $NO_CONT
+                                )
                             );
-                            $this->db->insert('t_permit_hdr', $dataHdr);
-                            $insert_id = $this->db->insert_id();
-                        } else {
-                            $insert_id = $ID_SEARCH;
-                        }
+                            // ==================================================
+                            // INSERT CONTAINER
+                            // ==================================================
+                            if ($queryCont->num_rows() === 0) {
+                                $tmpContData = array(
+                                    'ID'              => $insert_id,
+                                    'NO_CONT'         => $NO_CONT,
+                                    'KD_CONT_UKURAN'  => $SIZE,
+                                    'KD_CONT_JENIS'   => $JNS_MUAT,
+                                    'FL_PERIKSA'      => $FL_PERIKSA,
+                                    'TGL_STATUS'     => $datenow
+                                );
+                                $this->db->insert(
+                                    't_permit_cont',
+                                    $tmpContData
+                                );
+                            } else {
+                                // ==================================================
+                                // UPDATE CONTAINER
+                                // ==================================================
+                                $this->db->where(
+                                    'ID',
+                                    $insert_id
+                                );
 
-                        // Process DETIL CONT data
-                        if (isset($docNode->DETIL->CONT)) {
-                            foreach ($docNode->DETIL->CONT as $contdata) {
-                                $NO_CONT = (string) $contdata->NO_CONT;
-                                $SIZE = (string) $contdata->SIZE;
-                                $JNS_MUAT = (string) $contdata->JNS_MUAT;
+                                $this->db->where(
+                                    'NO_CONT',
+                                    $NO_CONT
+                                );
 
-                                // Insert or update CONT data
-                                $this->db->query("INSERT INTO t_permit_cont (ID, NO_CONT, KD_CONT_UKURAN, KD_CONT_JENIS, TGL_STATUS)
-                                VALUES ('$insert_id', '$NO_CONT', '$SIZE', '$JNS_MUAT', '$datenow')
-                                ON DUPLICATE KEY UPDATE 
-                                KD_CONT_UKURAN = '$SIZE', 
-                                KD_CONT_JENIS = '$JNS_MUAT'");
+                                $this->db->update(
+                                    't_permit_cont',
+                                    array(
+                                        'KD_CONT_UKURAN' => $SIZE,
+                                        'KD_CONT_JENIS'  => $JNS_MUAT,
+                                        'FL_PERIKSA'     => $FL_PERIKSA,
+                                        'TGL_STATUS'    => $datenow
+                                    )
+                                );
                             }
                         }
                     }
+                    // ======================================================
+                    // SUCCESS
+                    // ======================================================
+                    $responget = 'success';
+                } elseif ($code === '01') {
+                    // ======================================================
+                    // DATA NOT FOUND
+                    // ======================================================
+                    $responget = isset($json->message)
+                        ? trim((string) $json->message)
+                        : 'Data Tidak Ditemukan';
                 } else {
-                    echo 'Data Tidak Ditemukan';
+                    // ======================================================
+                    // OTHER ERROR
+                    // ======================================================
+                    $responget = isset($json->message)
+                        ? trim((string) $json->message)
+                        : 'API Error';
                 }
 
                 $userondemand = $_SESSION['USERLOGIN'];
@@ -861,6 +1516,7 @@ class PortalDashboard extends CI_Controller
                 ),
             )
         );
+
         $response = curl_exec($curl);
         if (!curl_errno($curl)) {
             $info = curl_getinfo($curl);
@@ -871,47 +1527,143 @@ class PortalDashboard extends CI_Controller
             die();
         }
         curl_close($curl);
-        $xml1 = str_replace('<?xml version="1.0"?>', "", $response);
-        $xml2 = str_replace('&apos;', "", $xml1);
+        // ==========================================================
+        // PARSE JSON RESPONSE
+        // ==========================================================
+        $json = json_decode($response);
 
-        $xml = simplexml_load_string($xml2);
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            $datenow = date('Y-m-d H:i:s');
+            $responget = 'Invalid JSON Response: ' . json_last_error_msg();
 
-        $code = (string) $xml->code;
+            $this->db->query("
+                INSERT INTO `tpk_ipc`.`solver_req_dokumen_log`
+                (`url`, `tipe`, `no_dok`, `tgl_dok`, `npwp`, `data_respons`)
+                VALUES (
+                    'https://api.npct1.co.id:9443/api/v1/get-customs-ondemand',
+                    'spjm',
+                    '$nosppb',
+                    '$tglsppb',
+                    '$npwpsppb',
+                    '$responget'
+                )
+            ");
 
-        if ($code == '0') {
-            //proses sukses
-            $car = (string) $xml->DOCUMENT->SPJM->HEADER->CAR;
-            $kd_kantor = (string) $xml->DOCUMENT->SPJM->HEADER->KD_KANTOR;
-            $no_pib = (string) $xml->DOCUMENT->SPJM->HEADER->NO_PIB;
-            $tgl_pib = date('Y-m-d', strtotime(str_replace('/', '-', (string) $xml->DOCUMENT->SPJM->HEADER->TGL_PIB)));
-            $npwp_imp = (string) $xml->DOCUMENT->SPJM->HEADER->NPWP_IMP;
-            $nama_imp = (string) $xml->DOCUMENT->SPJM->HEADER->NAMA_IMP;
-            $npwp_ppjk = (string) $xml->DOCUMENT->SPJM->HEADER->NPWP_PPJK;
-            $nama_ppjk = (string) $xml->DOCUMENT->SPJM->HEADER->NAMA_PPJK;
-            $gudang = (string) $xml->DOCUMENT->SPJM->HEADER->GUDANG;
-            $jml_cont = (string) $xml->DOCUMENT->SPJM->HEADER->JML_CONT;
-            $no_bc11 = (string) $xml->DOCUMENT->SPJM->HEADER->NO_BC11;
-            $tgl_bc11 = date('Y-m-d', strtotime(str_replace('/', '-', (string) $xml->DOCUMENT->SPJM->HEADER->TGL_BC11)));
-            $no_pos_bc11 = (string) $xml->DOCUMENT->SPJM->HEADER->NO_POS_BC11;
-            $fl_karantina = (string) $xml->DOCUMENT->SPJM->HEADER->FL_KARANTINA;
-            $nm_angkut = (string) $xml->DOCUMENT->SPJM->HEADER->NM_ANGKUT;
-            $no_voy_flight = (string) $xml->DOCUMENT->SPJM->HEADER->NO_VOY_FLIGHT;
+            $this->db->query("
+                INSERT INTO `tpk_ipc`.`log_services`
+                (`METHOD`, `XML_REQUEST`, `XML_RESPONSE`, `WK_REKAM`, `FL_NPCT1`, `FL_SENT_RIZKI`)
+                VALUES (
+                    'ONDEMAND SPJM',
+                    '$addXML',
+                    '$response',
+                    '$datenow',
+                    'N',
+                    'N'
+                )
+            ");
 
-            // Accessing DOK elements
-            $no_dok = (string) $xml->DOCUMENT->SPJM->DETIL->DOK->NO_DOK;
-            $tgl_dok = date('Y-m-d', strtotime(str_replace('/', '-', (string) $xml->DOCUMENT->SPJM->DETIL->DOK->TGL_DOK)));
+            echo $responget;
+            die();
+        }
 
-            // Check if NO_DOK_INOUT and TGL_DOK_INOUT already exist in t_permit_hdr
+        // ==========================================================
+        // CEK RESPONSE CODE
+        // ==========================================================
+        $code = isset($json->response) ? (string) $json->response : '';
+
+        // ==========================================================
+        // SUCCESS
+        // response = 00
+        // ==========================================================
+        if ($code == '00' && isset($json->data)) {
+            $header = $json->data->header;
+            // ------------------------------------------------------
+            // HEADER
+            // ------------------------------------------------------
+            $car = isset($header->car) ? (string) $header->car : '';
+            $kd_kantor = isset($header->kpbc) ? (string) $header->kpbc : '';
+            $no_pib = isset($header->document_no)
+                ? (string) $header->document_no
+                : '';
+
+            $tgl_pib = isset($header->document_date)
+                ? date(
+                    'Y-m-d',
+                    strtotime(str_replace('/', '-', (string) $header->document_date))
+                )
+                : null;
+
+            $npwp_imp = isset($header->customer_id)
+                ? (string) $header->customer_id
+                : '';
+
+            $nama_imp = isset($header->customer_name)
+                ? (string) $header->customer_name
+                : '';
+
+            $npwp_ppjk = isset($header->ppjk_id)
+                ? (string) $header->ppjk_id
+                : '';
+
+            $nama_ppjk = isset($header->ppjk_name)
+                ? (string) $header->ppjk_name
+                : '';
+
+            $gudang = isset($header->warehouse_origin)
+                ? (string) $header->warehouse_origin
+                : '';
+
+            $jml_cont = isset($header->total_cont)
+                ? (string) $header->total_cont
+                : '0';
+
+            $no_bc11 = isset($header->bc11_no)
+                ? (string) $header->bc11_no
+                : '';
+
+            $tgl_bc11 = isset($header->bc11_date)
+                ? date(
+                    'Y-m-d',
+                    strtotime(str_replace('/', '-', (string) $header->bc11_date))
+                )
+                : null;
+
+            $no_pos_bc11 = isset($header->bc11_pos)
+                ? (string) $header->bc11_pos
+                : '';
+
+            $fl_karantina = isset($header->quarantine_indicator)
+                ? (string) $header->quarantine_indicator
+                : '';
+
+            $nm_angkut = isset($header->vessel_name)
+                ? (string) $header->vessel_name
+                : '';
+
+            $no_voy_flight = isset($header->voyage)
+                ? (string) $header->voyage
+                : '';
+            // ------------------------------------------------------
+            // DOKUMEN
+            // ------------------------------------------------------
+            $no_dok = $no_pib;
+            $tgl_dok = $tgl_pib;
+            // ======================================================
+            // CHECK EXISTING HEADER
+            // ======================================================
             $this->db->where('NO_DOK_INOUT', $no_pib);
             $this->db->where('TGL_DOK_INOUT', $tgl_pib);
+
             $query = $this->db->get('t_permit_hdr');
 
             if ($query->num_rows() > 0) {
-                // Record exists, get the ID
+                // Record exists
                 $row = $query->row();
                 $insert_id = $row->ID;
             } else {
-                // Prepare the array for insertion
+                // ==================================================
+                // INSERT HEADER
+                // ==================================================
                 $tmpData = array(
                     "CAR" => $car,
                     "KD_KANTOR" => $kd_kantor,
@@ -934,54 +1686,135 @@ class PortalDashboard extends CI_Controller
                     "FL_KARANTINA" => $fl_karantina,
                     "TGL_STATUS" => date('Y-m-d H:i:s')
                 );
-
-                // Insert into t_permit_hdr and get the insert ID
                 $this->db->insert('t_permit_hdr', $tmpData);
-                $insert_id = $this->db->insert_id(); // Get the last inserted ID
+                $insert_id = $this->db->insert_id();
             }
-
-            // Loop through CONT elements and insert into t_permit_cont
-            foreach ($xml->DOCUMENT->SPJM->DETIL->CONT as $cont) {
-                $no_cont = (string) $cont->NO_CONT;
-
-                // Check if the CONT with the same NO_CONT and ID already exists
-                $this->db->where('ID', $insert_id);
-                $this->db->where('NO_CONT', $no_cont);
-                $query = $this->db->get('t_permit_cont');
-
-                if ($query->num_rows() == 0) {
-                    // Prepare the array for t_permit_cont
-                    $tmpContData = array(
-                        "ID" => $insert_id,
-                        "NO_CONT" => $no_cont,
-                        "KD_CONT_UKURAN" => (string) $cont->SIZE,
-                        "FL_PERIKSA" => (string) $cont->FL_PERIKSA,
-                        "TGL_STATUS" => date('Y-m-d H:i:s') // Current timestamp
-                    );
-
-                    // Insert into t_permit_cont
-                    $this->db->insert('t_permit_cont', $tmpContData);
+            // ======================================================
+            // INSERT CONTAINERS
+            // ======================================================
+            if (isset($json->data->containers) && is_array($json->data->containers)) {
+                foreach ($json->data->containers as $cont) {
+                    $no_cont = isset($cont->cont_no)
+                        ? (string) $cont->cont_no
+                        : '';
+                    // Check existing container
+                    $this->db->where('ID', $insert_id);
+                    $this->db->where('NO_CONT', $no_cont);
+                    $query = $this->db->get('t_permit_cont');
+                    if ($query->num_rows() == 0) {
+                        $tmpContData = array(
+                            "ID" => $insert_id,
+                            "NO_CONT" => $no_cont,
+                            "KD_CONT_UKURAN" => isset($cont->cont_size)
+                                ? (string) $cont->cont_size
+                                : '',
+                            "FL_PERIKSA" => isset($cont->check_indicator)
+                                ? (string) $cont->check_indicator
+                                : '',
+                            "TGL_STATUS" => date('Y-m-d H:i:s')
+                        );
+                        $this->db->insert('t_permit_cont', $tmpContData);
+                    }
                 }
-                $datenow = date('Y-m-d H:i:s');
-                $responget = 'Sukses Ondemand Data';
-                $this->db->query("INSERT INTO `tpk_ipc`.`solver_req_dokumen_log` (`url`, `tipe`, `no_dok`, `tgl_dok`, `npwp`, `data_respons`) VALUES ('https://api.npct1.co.id:9443/api/v1/get-customs-ondemand', 'spjm', '$nosppb', '$tglsppb', '$npwpsppb', '$responget')");
-
-                $this->db->query("INSERT INTO `tpk_ipc`.`log_services` (`METHOD`, `XML_REQUEST`, `XML_RESPONSE`, `WK_REKAM`, `FL_NPCT1`, `FL_SENT_RIZKI`) VALUES ('ONDEMAND SPJM', '$addXML', '$response', '$datenow', 'N', 'N')");
             }
+
+            // ======================================================
+            // LOG SUCCESS
+            // ======================================================
+            $datenow = date('Y-m-d H:i:s');
+            $responget = 'Sukses Ondemand Data';
+            $this->db->query("
+                INSERT INTO `tpk_ipc`.`solver_req_dokumen_log`
+                (`url`, `tipe`, `no_dok`, `tgl_dok`, `npwp`, `data_respons`)
+                VALUES (
+                    'https://api.npct1.co.id:9443/api/v1/get-customs-ondemand',
+                    'spjm',
+                    '$nosppb',
+                    '$tglsppb',
+                    '$npwpsppb',
+                    '$responget'
+                )
+            ");
+
+            $this->db->query("
+                INSERT INTO `tpk_ipc`.`log_services`
+                (`METHOD`, `XML_REQUEST`, `XML_RESPONSE`, `WK_REKAM`, `FL_NPCT1`, `FL_SENT_RIZKI`)
+                VALUES (
+                    'ONDEMAND SPJM',
+                    '$addXML',
+                    '$response',
+                    '$datenow',
+                    'N',
+                    'N'
+                )
+            ");
+            // ==========================================================
+            // FAILED - RECORD NOT FOUND
+            // ==========================================================
         } elseif ($code == '01') {
             $datenow = date('Y-m-d H:i:s');
-            // Failed
-            $responget = (string) $xml->description;
-            $this->db->query("INSERT INTO `tpk_ipc`.`solver_req_dokumen_log` (`url`, `tipe`, `no_dok`, `tgl_dok`, `npwp`, `data_respons`) VALUES ('https://api.npct1.co.id:9443/api/v1/get-customs-ondemand', 'spjm', '$nosppb', '$tglsppb', '$npwpsppb', '$responget')");
+            $responget = isset($json->message)
+                ? (string) $json->message
+                : 'Records not found';
+            $this->db->query("
+                INSERT INTO `tpk_ipc`.`solver_req_dokumen_log`
+                (`url`, `tipe`, `no_dok`, `tgl_dok`, `npwp`, `data_respons`)
+                VALUES (
+                    'https://api.npct1.co.id:9443/api/v1/get-customs-ondemand',
+                    'spjm',
+                    '$nosppb',
+                    '$tglsppb',
+                    '$npwpsppb',
+                    '$responget'
+                )
+            ");
 
-            $this->db->query("INSERT INTO `tpk_ipc`.`log_services` (`METHOD`, `XML_REQUEST`, `XML_RESPONSE`, `WK_REKAM`, `FL_NPCT1`, `FL_SENT_RIZKI`) VALUES ('GET DOKUMEN SPPB MANUAL', '$addXML', '$response', '$datenow', 'N', 'N')");
+            $this->db->query("
+                INSERT INTO `tpk_ipc`.`log_services`
+                (`METHOD`, `XML_REQUEST`, `XML_RESPONSE`, `WK_REKAM`, `FL_NPCT1`, `FL_SENT_RIZKI`)
+                VALUES (
+                    'GET DOKUMEN SPPB MANUAL',
+                    '$addXML',
+                    '$response',
+                    '$datenow',
+                    'N',
+                    'N'
+                )
+            ");
+            // ==========================================================
+            // OTHER ERROR
+            // ==========================================================
         } else {
             $datenow = date('Y-m-d H:i:s');
-            // Failed
-            $responget = (string) $xml->description;
-            $this->db->query("INSERT INTO `tpk_ipc`.`solver_req_dokumen_log` (`url`, `tipe`, `no_dok`, `tgl_dok`, `npwp`, `data_respons`) VALUES ('https://api.npct1.co.id:9443/api/v1/get-customs-ondemand', 'spjm', '$nosppb', '$tglsppb', '$npwpsppb', '$responget')");
+            $responget = isset($json->message)
+                ? (string) $json->message
+                : 'Unknown API Error';
 
-            $this->db->query("INSERT INTO `tpk_ipc`.`log_services` (`METHOD`, `XML_REQUEST`, `XML_RESPONSE`, `WK_REKAM`, `FL_NPCT1`, `FL_SENT_RIZKI`) VALUES ('GET DOKUMEN SPPB MANUAL', '$addXML', '$response', '$datenow', 'N', 'N')");
+            $this->db->query("
+                INSERT INTO `tpk_ipc`.`solver_req_dokumen_log`
+                (`url`, `tipe`, `no_dok`, `tgl_dok`, `npwp`, `data_respons`)
+                VALUES (
+                    'https://api.npct1.co.id:9443/api/v1/get-customs-ondemand',
+                    'spjm',
+                    '$nosppb',
+                    '$tglsppb',
+                    '$npwpsppb',
+                    '$responget'
+                )
+            ");
+
+            $this->db->query("
+                INSERT INTO `tpk_ipc`.`log_services`
+                (`METHOD`, `XML_REQUEST`, `XML_RESPONSE`, `WK_REKAM`, `FL_NPCT1`, `FL_SENT_RIZKI`)
+                VALUES (
+                    'GET DOKUMEN SPPB MANUAL',
+                    '$addXML',
+                    '$response',
+                    '$datenow',
+                    'N',
+                    'N'
+                )
+            ");
         }
         redirect("/PortalDashboard/dokspjm");
     }
