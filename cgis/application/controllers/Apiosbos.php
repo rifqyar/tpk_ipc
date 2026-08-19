@@ -15,43 +15,50 @@ class Apiosbos extends CI_Controller
         echo json_encode($msg);
     }
 
-    public function gantiformattglgblk($tgl){
-        $date=date_create_from_format("m/d/Y",$tgl);
-        $date1 = date_format($date,"Y-m-d");
+    public function gantiformattglgblk($tgl)
+    {
+        $date = date_create_from_format("m/d/Y", $tgl);
+        $date1 = date_format($date, "Y-m-d");
         return $date1;
     }
 
     public function getSppbOndemand()
     {
+        header('Content-Type: application/json; charset=utf-8');
+
         $no_dok = $this->input->post('no_dok');
         $tgl_dok = $this->input->post('tgl_dok');
         $npwp    = $this->input->post('npwp');
         $type    = 'sppb_osbos';
+
+        if (empty($no_dok) || empty($tgl_dok) || empty($npwp)) {
+            echo json_encode(array(
+                'success' => false,
+                'code'    => '99',
+                'message' => 'Parameter tidak lengkap: no_dok, tgl_dok, dan npwp harus diisi',
+                'data'    => null
+            ));
+            return;
+        }
 
         $url  = "https://api.npct1.co.id:9443/api/v1/get-customs-ondemand";
         $user = "BEHANDLE";
         $key  = "5d3a2ffcb778f4b1c224f2447c048c8f";
 
         /*
-        |--------------------------------------------------------------------------
-        | REQUEST
-        |--------------------------------------------------------------------------
-        */
+    |--------------------------------------------------------------------------
+    | REQUEST TETAP XML
+    |--------------------------------------------------------------------------
+    */
 
         $addXML = '<request>
-                    <document_code>1</document_code>
-                    <document_no>' . $no_dok . '</document_no>
-                    <document_date>' . $tgl_dok . '</document_date>
-                    <npwp>' . $npwp . '</npwp>
-                </request>';
+        <document_code>1</document_code>
+        <document_no>' . $no_dok . '</document_no>
+        <document_date>' . $tgl_dok . '</document_date>
+        <npwp>' . $npwp . '</npwp>
+    </request>';
 
-        $addXML = trim(
-            preg_replace(
-                '/\s\s+/',
-                '',
-                str_replace("\n", " ", $addXML)
-            )
-        );
+        $addXML = trim(preg_replace('/\s\s+/', '', str_replace("\n", " ", $addXML)));
 
         $curl = curl_init();
 
@@ -91,64 +98,47 @@ class Apiosbos extends CI_Controller
 
         curl_close($curl);
 
-
         /*
-        |--------------------------------------------------------------------------
-        | PARSING JSON RESPONSE
-        |--------------------------------------------------------------------------
-        */
+    |--------------------------------------------------------------------------
+    | RESPONSE JSON
+    |--------------------------------------------------------------------------
+    */
+
         $responseData = json_decode($response, true);
-        if (json_last_error() !== JSON_ERROR_NONE) {
+
+        if (!is_array($responseData)) {
             $datenow = date("Y-m-d H:i:s");
             $userondemand = 'OSBOS API';
             $responget = 'Invalid JSON response from HUB';
-            $this->db->query("
-                INSERT INTO `tpk_ipc`.`solver_req_dokumen_log`
-                (
-                    `url`,
-                    `tipe`,
-                    `no_dok`,
-                    `tgl_dok`,
-                    `npwp`,
-                    `data_respons`,
-                    `tambahan`,
-                    `response_log`,
-                    `user`
-                )
-                VALUES
-                (
-                    '$url',
-                    '$type',
-                    '$no_dok',
-                    '$tgl_dok',
-                    '$npwp',
-                    '$responget',
-                    '$addXML',
-                    '$response',
-                    '$userondemand'
-                )
-            ");
 
-            $this->db->query("
-                INSERT INTO `tpk_ipc`.`log_services`
-                (
-                    `METHOD`,
-                    `XML_REQUEST`,
-                    `XML_RESPONSE`,
-                    `WK_REKAM`,
-                    `FL_NPCT1`,
-                    `FL_SENT_RIZKI`
+            $this->db->query(
+                "INSERT INTO `tpk_ipc`.`solver_req_dokumen_log`
+            (`url`, `tipe`, `no_dok`, `tgl_dok`, `npwp`, `data_respons`, `tambahan`, `response_log`, `user`)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                array(
+                    $url,
+                    $type,
+                    $no_dok,
+                    $tgl_dok,
+                    $npwp,
+                    $responget,
+                    $addXML,
+                    $response,
+                    $userondemand
                 )
-                VALUES
-                (
+            );
+
+            $this->db->query(
+                "INSERT INTO `tpk_ipc`.`log_services`
+            (`METHOD`, `XML_REQUEST`, `XML_RESPONSE`, `WK_REKAM`, `FL_NPCT1`, `FL_SENT_RIZKI`)
+            VALUES (?, ?, ?, ?, 'N', 'N')",
+                array(
                     'GET DOKUMEN SPPB FROM API',
-                    '$addXML',
-                    '$response',
-                    '$datenow',
-                    'N',
-                    'N'
+                    $addXML,
+                    $response,
+                    $datenow
                 )
-            ");
+            );
 
             echo json_encode(array(
                 'success' => false,
@@ -160,63 +150,48 @@ class Apiosbos extends CI_Controller
         }
 
         /*
-        |--------------------------------------------------------------------------
-        | CEK RESPONSE API
-        |--------------------------------------------------------------------------
-        */
+    |--------------------------------------------------------------------------
+    | AMBIL STATUS RESPONSE
+    |--------------------------------------------------------------------------
+    */
 
-        $apiStatus   = isset($responseData['status'])
-            ? $responseData['status']
-            : false;
+        $status  = isset($responseData['status']) ? $responseData['status'] : false;
+        $code    = isset($responseData['response']) ? (string) $responseData['response'] : null;
+        $message = isset($responseData['message']) ? $responseData['message'] : '';
 
-        $apiCode     = isset($responseData['response'])
-            ? $responseData['response']
-            : null;
-
-        $apiMessage  = isset($responseData['message'])
-            ? $responseData['message']
-            : '';
-
-        $datenow     = date("Y-m-d H:i:s");
+        $datenow = date("Y-m-d H:i:s");
         $userondemand = 'OSBOS API';
 
         /*
-        |--------------------------------------------------------------------------
-        | SUCCESS
-        |--------------------------------------------------------------------------
-        */
-        if ($apiStatus === true && $apiCode === '00') {
-            /*
-            |--------------------------------------------------------------------------
-            | AMBIL DATA HEADER
-            |--------------------------------------------------------------------------
-            */
+    |--------------------------------------------------------------------------
+    | SUCCESS
+    |--------------------------------------------------------------------------
+    */
+
+        if ($status === true && $code === '00') {
+
             $header = isset($responseData['data']['header'])
                 ? $responseData['data']['header']
                 : array();
-            /*
-            |--------------------------------------------------------------------------
-            | AMBIL DATA CONTAINER
-            |--------------------------------------------------------------------------
-            */
+
             $containers = isset($responseData['data']['containers'])
                 ? $responseData['data']['containers']
                 : array();
+
             /*
-            |--------------------------------------------------------------------------
-            | MAPPING HEADER JSON -> VARIABLE LAMA
-            |--------------------------------------------------------------------------
-            */
-            $CAR = isset($header['car'])
-                ? $header['car']
-                : null;
+        |--------------------------------------------------------------------------
+        | HEADER JSON
+        |--------------------------------------------------------------------------
+        */
+
+            $CAR = isset($header['car']) ? $header['car'] : null;
 
             $NO_SPPB = isset($header['document_no'])
                 ? $header['document_no']
                 : null;
 
             $TGL_SPPB = isset($header['document_date'])
-                ? $this->normalizeDateNpct($header['document_date'])
+                ? date('Y-m-d', strtotime(str_replace('-', '/', $header['document_date'])))
                 : null;
 
             $KD_KPBC = isset($header['kpbc'])
@@ -228,11 +203,11 @@ class Apiosbos extends CI_Controller
                 : null;
 
             $TGL_PIB = isset($header['pabean_date'])
-                ? $this->normalizeDateNpct($header['pabean_date'])
+                ? date('Y-m-d', strtotime(str_replace('-', '/', $header['pabean_date'])))
                 : null;
 
             $NPWP_IMP = isset($header['customer_id'])
-                ? $this->normalizeNpwp($header['customer_id'])
+                ? $header['customer_id']
                 : null;
 
             $NAMA_IMP = isset($header['customer_name'])
@@ -288,7 +263,7 @@ class Apiosbos extends CI_Controller
                 : null;
 
             $TGL_BC11 = isset($header['bc11_date'])
-                ? $this->normalizeDateNpct($header['bc11_date'])
+                ? date('Y-m-d', strtotime(str_replace('-', '/', $header['bc11_date'])))
                 : null;
 
             $NO_POS_BC11 = isset($header['bc11_pos'])
@@ -300,7 +275,7 @@ class Apiosbos extends CI_Controller
                 : null;
 
             $TG_BL_AWB = isset($header['bl_date'])
-                ? $this->normalizeDateNpct($header['bl_date'])
+                ? date('Y-m-d', strtotime(str_replace('-', '/', $header['bl_date'])))
                 : null;
 
             $NO_MASTER_BL_AWB = isset($header['master_bl_no'])
@@ -308,95 +283,99 @@ class Apiosbos extends CI_Controller
                 : null;
 
             $TG_MASTER_BL_AWB = isset($header['master_bl_date'])
-                ? $this->normalizeDateNpct($header['master_bl_date'])
+                ? date('Y-m-d', strtotime(str_replace('-', '/', $header['master_bl_date'])))
                 : null;
 
             /*
-            |--------------------------------------------------------------------------
-            | SIMPAN HEADER
-            |--------------------------------------------------------------------------
-            */
+        |--------------------------------------------------------------------------
+        | CEK HEADER SUDAH ADA
+        |--------------------------------------------------------------------------
+        */
+
             $query = $this->db->query(
-                "
-                SELECT *
-                FROM t_permit_hdr
-                WHERE NO_DOK_INOUT = ?
-                AND TGL_DOK_INOUT = ?
-                ",
+                "SELECT ID
+             FROM t_permit_hdr
+             WHERE NO_DOK_INOUT = ?
+             AND TGL_DOK_INOUT = ?",
                 array(
                     $NO_SPPB,
                     $TGL_SPPB
                 )
             );
-            $count = $query->num_rows();
-            if ($count === 0) {
+
+            if ($query->num_rows() === 0) {
+
+                /*
+            |--------------------------------------------------------------------------
+            | INSERT HEADER
+            |--------------------------------------------------------------------------
+            */
+
                 $this->db->query(
-                    "
-                    INSERT INTO t_permit_hdr
-                    (
-                        CAR,
-                        NO_DOK_INOUT,
-                        KD_DOK_INOUT,
-                        TGL_DOK_INOUT,
-                        KD_KANTOR,
-                        NO_DAFTAR_PABEAN,
-                        TGL_DAFTAR_PABEAN,
-                        ID_CONSIGNEE,
-                        CONSIGNEE,
-                        ALAMAT_CONSIGNEE,
-                        NPWP_PPJK,
-                        NAMA_PPJK,
-                        ALAMAT_PPJK,
-                        NM_ANGKUT,
-                        NO_VOY_FLIGHT,
-                        BRUTO,
-                        NETTO,
-                        KD_GUDANG,
-                        STATUS_JALUR,
-                        JML_CONT,
-                        NO_BC11,
-                        TGL_BC11,
-                        NO_POS_BC11,
-                        NO_BL_AWB,
-                        TGL_BL_AWB,
-                        NO_MASTER_BL_AWB,
-                        TGL_MASTER_BL_AWB,
-                        OPERATOR,
-                        TGL_STATUS
-                    )
-                    VALUES
-                    (
-                        ?,
-                        ?,
-                        '1',
-                        ?,
-                        ?,
-                        ?,
-                        ?,
-                        ?,
-                        ?,
-                        ?,
-                        ?,
-                        ?,
-                        ?,
-                        ?,
-                        ?,
-                        ?,
-                        ?,
-                        ?,
-                        ?,
-                        ?,
-                        ?,
-                        ?,
-                        ?,
-                        ?,
-                        ?,
-                        ?,
-                        ?,
-                        'AUTO ONDEMAND SPPB VIA OSBOS',
-                        ?
-                    )
-                    ",
+                    "INSERT INTO t_permit_hdr
+                (
+                    CAR,
+                    NO_DOK_INOUT,
+                    KD_DOK_INOUT,
+                    TGL_DOK_INOUT,
+                    KD_KANTOR,
+                    NO_DAFTAR_PABEAN,
+                    TGL_DAFTAR_PABEAN,
+                    ID_CONSIGNEE,
+                    CONSIGNEE,
+                    ALAMAT_CONSIGNEE,
+                    NPWP_PPJK,
+                    NAMA_PPJK,
+                    ALAMAT_PPJK,
+                    NM_ANGKUT,
+                    NO_VOY_FLIGHT,
+                    BRUTO,
+                    NETTO,
+                    KD_GUDANG,
+                    STATUS_JALUR,
+                    JML_CONT,
+                    NO_BC11,
+                    TGL_BC11,
+                    NO_POS_BC11,
+                    NO_BL_AWB,
+                    TGL_BL_AWB,
+                    NO_MASTER_BL_AWB,
+                    TGL_MASTER_BL_AWB,
+                    OPERATOR,
+                    TGL_STATUS
+                )
+                VALUES
+                (
+                    ?,
+                    ?,
+                    '1',
+                    ?,
+                    ?,
+                    ?,
+                    ?,
+                    ?,
+                    ?,
+                    ?,
+                    ?,
+                    ?,
+                    ?,
+                    ?,
+                    ?,
+                    ?,
+                    ?,
+                    ?,
+                    ?,
+                    ?,
+                    ?,
+                    ?,
+                    ?,
+                    ?,
+                    ?,
+                    ?,
+                    ?,
+                    'AUTO ONDEMAND SPPB VIA OSBOS',
+                    ?
+                )",
                     array(
                         $CAR,
                         $NO_SPPB,
@@ -429,43 +408,57 @@ class Apiosbos extends CI_Controller
                 );
 
                 $insert_id = $this->db->insert_id();
-                /*
-                |--------------------------------------------------------------------------
-                | SIMPAN CONTAINER
-                |--------------------------------------------------------------------------
-                */
-                foreach ($containers as $contdata) {
-                    $NO_CONT = isset($contdata['cont_no'])
-                        ? $contdata['cont_no']
-                        : null;
+            } else {
 
-                    $SIZE = isset($contdata['cont_size'])
-                        ? $contdata['cont_size']
-                        : null;
+                $existing = $query->row();
+                $insert_id = $existing->ID;
+            }
 
-                    $JNS_MUAT = isset($contdata['full_empty'])
-                        ? $contdata['full_empty']
-                        : null;
-                    if (!empty($NO_CONT)) {
+            /*
+            |--------------------------------------------------------------------------
+            | INSERT CONTAINER
+            |--------------------------------------------------------------------------
+            */
+
+            foreach ($containers as $contdata) {
+
+                $NO_CONT = isset($contdata['cont_no'])
+                    ? $contdata['cont_no']
+                    : null;
+
+                $SIZE = isset($contdata['cont_size'])
+                    ? $contdata['cont_size']
+                    : null;
+
+                $JNS_MUAT = isset($contdata['full_empty'])
+                    ? $contdata['full_empty']
+                    : null;
+
+                if (!empty($NO_CONT)) {
+
+                    $queryCont = $this->db->query(
+                        "SELECT 1
+                     FROM t_permit_cont
+                     WHERE ID = ?
+                     AND NO_CONT = ?",
+                        array(
+                            $insert_id,
+                            $NO_CONT
+                        )
+                    );
+
+                    if ($queryCont->num_rows() === 0) {
+
                         $this->db->query(
-                            "
-                            INSERT IGNORE INTO t_permit_cont
-                            (
-                                ID,
-                                NO_CONT,
-                                KD_CONT_UKURAN,
-                                KD_CONT_JENIS,
-                                TGL_STATUS
-                            )
-                            VALUES
-                            (
-                                ?,
-                                ?,
-                                ?,
-                                ?,
-                                ?
-                            )
-                            ",
+                            "INSERT INTO t_permit_cont
+                        (
+                            ID,
+                            NO_CONT,
+                            KD_CONT_UKURAN,
+                            KD_CONT_JENIS,
+                            TGL_STATUS
+                        )
+                        VALUES (?, ?, ?, ?, ?)",
                             array(
                                 $insert_id,
                                 $NO_CONT,
@@ -483,34 +476,23 @@ class Apiosbos extends CI_Controller
             | LOG SUCCESS
             |--------------------------------------------------------------------------
             */
+
             $responget = 'Sukses Ondemand Data';
+
             $this->db->query(
-                "
-                INSERT INTO `tpk_ipc`.`solver_req_dokumen_log`
-                (
-                    `url`,
-                    `tipe`,
-                    `no_dok`,
-                    `tgl_dok`,
-                    `npwp`,
-                    `data_respons`,
-                    `tambahan`,
-                    `response_log`,
-                    `user`
-                )
-                VALUES
-                (
-                    ?,
-                    ?,
-                    ?,
-                    ?,
-                    ?,
-                    ?,
-                    ?,
-                    ?,
-                    ?
-                )
-                ",
+                "INSERT INTO `tpk_ipc`.`solver_req_dokumen_log`
+            (
+                `url`,
+                `tipe`,
+                `no_dok`,
+                `tgl_dok`,
+                `npwp`,
+                `data_respons`,
+                `tambahan`,
+                `response_log`,
+                `user`
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
                 array(
                     $url,
                     $type,
@@ -523,28 +505,20 @@ class Apiosbos extends CI_Controller
                     $userondemand
                 )
             );
+
             $this->db->query(
-                "
-                INSERT INTO `tpk_ipc`.`log_services`
-                (
-                    `METHOD`,
-                    `XML_REQUEST`,
-                    `XML_RESPONSE`,
-                    `WK_REKAM`,
-                    `FL_NPCT1`,
-                    `FL_SENT_RIZKI`
-                )
-                VALUES
-                (
-                    'GET DOKUMEN SPPB FROM API',
-                    ?,
-                    ?,
-                    ?,
-                    'N',
-                    'N'
-                )
-                ",
+                "INSERT INTO `tpk_ipc`.`log_services`
+            (
+                `METHOD`,
+                `XML_REQUEST`,
+                `XML_RESPONSE`,
+                `WK_REKAM`,
+                `FL_NPCT1`,
+                `FL_SENT_RIZKI`
+            )
+            VALUES (?, ?, ?, ?, 'N', 'N')",
                 array(
+                    'GET DOKUMEN SPPB FROM API',
                     $addXML,
                     $response,
                     $datenow
@@ -553,13 +527,14 @@ class Apiosbos extends CI_Controller
 
             /*
             |--------------------------------------------------------------------------
-            | RESPONSE KE CLIENT
+            | RETURN SUCCESS
             |--------------------------------------------------------------------------
             */
+
             echo json_encode(array(
                 'success' => true,
                 'code'    => '00',
-                'message' => $responget,
+                'message' => $message,
                 'data'    => array(
                     'no_sppb'  => $NO_SPPB,
                     'tgl_sppb' => $TGL_SPPB,
@@ -571,41 +546,30 @@ class Apiosbos extends CI_Controller
 
         /*
         |--------------------------------------------------------------------------
-        | FAILED
+        | RESPONSE CODE 01
         |--------------------------------------------------------------------------
         */
-        elseif ($apiCode === '01') {
-            $responget = !empty($apiMessage)
-                ? $apiMessage
+
+        if ($code === '01') {
+
+            $responget = !empty($message)
+                ? $message
                 : 'Dokumen tidak ditemukan';
 
             $this->db->query(
-                "
-                INSERT INTO `tpk_ipc`.`solver_req_dokumen_log`
-                (
-                    `url`,
-                    `tipe`,
-                    `no_dok`,
-                    `tgl_dok`,
-                    `npwp`,
-                    `data_respons`,
-                    `tambahan`,
-                    `response_log`,
-                    `user`
-                )
-                VALUES
-                (
-                    ?,
-                    ?,
-                    ?,
-                    ?,
-                    ?,
-                    ?,
-                    ?,
-                    ?,
-                    ?
-                )
-                ",
+                "INSERT INTO `tpk_ipc`.`solver_req_dokumen_log`
+            (
+                `url`,
+                `tipe`,
+                `no_dok`,
+                `tgl_dok`,
+                `npwp`,
+                `data_respons`,
+                `tambahan`,
+                `response_log`,
+                `user`
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
                 array(
                     $url,
                     $type,
@@ -620,27 +584,18 @@ class Apiosbos extends CI_Controller
             );
 
             $this->db->query(
-                "
-                INSERT INTO `tpk_ipc`.`log_services`
-                (
-                    `METHOD`,
-                    `XML_REQUEST`,
-                    `XML_RESPONSE`,
-                    `WK_REKAM`,
-                    `FL_NPCT1`,
-                    `FL_SENT_RIZKI`
-                )
-                VALUES
-                (
-                    'GET DOKUMEN SPPB MANUAL',
-                    ?,
-                    ?,
-                    ?,
-                    'N',
-                    'N'
-                )
-                ",
+                "INSERT INTO `tpk_ipc`.`log_services`
+            (
+                `METHOD`,
+                `XML_REQUEST`,
+                `XML_RESPONSE`,
+                `WK_REKAM`,
+                `FL_NPCT1`,
+                `FL_SENT_RIZKI`
+            )
+            VALUES (?, ?, ?, ?, 'N', 'N')",
                 array(
+                    'GET DOKUMEN SPPB MANUAL',
                     $addXML,
                     $response,
                     $datenow
@@ -655,92 +610,68 @@ class Apiosbos extends CI_Controller
             ));
             return;
         }
+
         /*
         |--------------------------------------------------------------------------
-        | UNKNOWN ERROR
+        | UNKNOWN RESPONSE
         |--------------------------------------------------------------------------
         */
-        else {
-            $responget = !empty($apiMessage)
-                ? $apiMessage
-                : 'Unknown error from HUB service';
+        $responget = !empty($message)
+            ? $message
+            : 'Unknown error from HUB service';
 
-            $this->db->query(
-                "
-                INSERT INTO `tpk_ipc`.`solver_req_dokumen_log`
-                (
-                    `url`,
-                    `tipe`,
-                    `no_dok`,
-                    `tgl_dok`,
-                    `npwp`,
-                    `data_respons`,
-                    `tambahan`,
-                    `response_log`,
-                    `user`
-                )
-                VALUES
-                (
-                    ?,
-                    ?,
-                    ?,
-                    ?,
-                    ?,
-                    ?,
-                    ?,
-                    ?,
-                    ?
-                )
-                ",
-                array(
-                    $url,
-                    $type,
-                    $no_dok,
-                    $tgl_dok,
-                    $npwp,
-                    $responget,
-                    $addXML,
-                    $response,
-                    $userondemand
-                )
-            );
+        $this->db->query(
+            "INSERT INTO `tpk_ipc`.`solver_req_dokumen_log`
+        (
+            `url`,
+            `tipe`,
+            `no_dok`,
+            `tgl_dok`,
+            `npwp`,
+            `data_respons`,
+            `tambahan`,
+            `response_log`,
+            `user`
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            array(
+                $url,
+                $type,
+                $no_dok,
+                $tgl_dok,
+                $npwp,
+                $responget,
+                $addXML,
+                $response,
+                $userondemand
+            )
+        );
 
-            $this->db->query(
-                "
-                INSERT INTO `tpk_ipc`.`log_services`
-                (
-                    `METHOD`,
-                    `XML_REQUEST`,
-                    `XML_RESPONSE`,
-                    `WK_REKAM`,
-                    `FL_NPCT1`,
-                    `FL_SENT_RIZKI`
-                )
-                VALUES
-                (
-                    'GET DOKUMEN SPPB MANUAL',
-                    ?,
-                    ?,
-                    ?,
-                    'N',
-                    'N'
-                )
-                ",
-                array(
-                    $addXML,
-                    $response,
-                    $datenow
-                )
-            );
+        $this->db->query(
+            "INSERT INTO `tpk_ipc`.`log_services`
+        (
+            `METHOD`,
+            `XML_REQUEST`,
+            `XML_RESPONSE`,
+            `WK_REKAM`,
+            `FL_NPCT1`,
+            `FL_SENT_RIZKI`
+        )
+        VALUES (?, ?, ?, ?, 'N', 'N')",
+            array(
+                'GET DOKUMEN SPPB MANUAL',
+                $addXML,
+                $response,
+                $datenow
+            )
+        );
 
-            echo json_encode(array(
-                'success' => false,
-                'code'    => $apiCode !== null ? $apiCode : '-',
-                'message' => $responget,
-                'data'    => null
-            ));
-
-            return;
-        }
+        echo json_encode(array(
+            'success' => false,
+            'code'    => $code !== null ? $code : '-',
+            'message' => $responget,
+            'data'    => null
+        ));
+        return;
     }
 }
