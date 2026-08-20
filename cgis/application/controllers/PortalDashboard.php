@@ -1056,6 +1056,10 @@ class PortalDashboard extends CI_Controller
                     ) {
                         $responget = 'Data JSON tidak lengkap';
                         echo $responget;
+                        $userondemand = $_SESSION['USERLOGIN'];
+                        $this->db->query("INSERT INTO `tpk_ipc`.`solver_req_dokumen_log` (`url`, `tipe`, `no_dok`, `tgl_dok`, `npwp`, `data_respons`,`tambahan`,`response_log`, `user`) VALUES ('https://api.npct1.co.id:9443/api/v1/get-customs-ondemand', '$type', '$no_dok', '$tgl_dok', '$npwp', '$responget', '$addXML', '$response', '$userondemand')");
+
+                        $this->db->query("INSERT INTO `tpk_ipc`.`log_services` (`METHOD`, `XML_REQUEST`, `XML_RESPONSE`, `WK_REKAM`, `FL_NPCT1`, `FL_SENT_RIZKI`) VALUES ('GET DOKUMEN MANUAL', '$addXML', '$response', '$datenow', 'N', 'N')");
                         die();
                     }
                     // ======================================================
