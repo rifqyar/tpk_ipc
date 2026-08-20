@@ -110,10 +110,10 @@
 		<div class="alert alert-info">
 			<p class="ycustom1ptop">BLOK BEFORE</p>
 			<hr class="ycustom1hr">
-			<p class="ycustom1pbot">Total Teus Tersedia : 330</p>
+			<p class="ycustom1pbot">Total Teus Tersedia : 441</p>
 			<p class="ycustom1pbot">Total Kontainer yang ada : <?php echo $jmlcont_before;?></p>
 			<p class="ycustom1pbot">Total Teus Terpakai : <?php echo $jmlteus_before;?></p>
-			<p class="ycustom1pbot">Total Persentase Terpakai : <?php $jml2 = $jmlteus_before / 330 * 100; echo round($jml2,2).'%';?></p>
+			<p class="ycustom1pbot">Total Persentase Terpakai : <?php $jml2 = $jmlteus_before / 441 * 100; echo round($jml2,2).'%';?></p>
 		</div>
 		<div id="kanan">
 			<div align="Center">
