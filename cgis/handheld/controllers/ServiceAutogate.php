@@ -408,7 +408,7 @@ class ServiceAutogate extends CI_Controller
 
                     // Setelah curl_exec
                     echo "<h3>Raw Response:</h3>";
-                    echo "<pre>" . htmlspecialchars($raw_response) . "</pre>";
+                    echo "<pre>" . htmlspecialchars($response) . "</pre>";
                 }
         }
 
