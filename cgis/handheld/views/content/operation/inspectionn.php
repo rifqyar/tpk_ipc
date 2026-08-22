@@ -80,6 +80,12 @@ echo form_close();
       STATUS SPK TIDAK SAMA DENGAN PICKUP
       </div>";
       break;
+      case 9:
+      echo "<br>
+      <div class= 'alert alert-danger' style='font-size:14px; font-family:sant-serif; font-weight:bold; ' >
+      CONTAINER ON HOLD DENGAN ATENSI P2
+      </div>";
+      break;
       default:
       echo "
       <br>
@@ -349,6 +355,12 @@ if(isset($status)){
           echo "<br>
           <div class= 'alert alert-danger' style='font-size:16px; font-family:sant-serif; font-weight:bold; ' >
           WARNING ! NO CONT : $nilai NOT FOUND
+          </div>";
+          break;
+          case 9:
+          echo "<br>
+          <div class= 'alert alert-danger' style='font-size:16px; font-family:sant-serif; font-weight:bold; ' >
+          WARNING ! NO CONT : $nilai ON HOLD DENGAN ATENSI P2
           </div>";
           break;
           default:

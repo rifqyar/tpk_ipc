@@ -102,6 +102,12 @@ if(isset($status)){
                 WARNING ! NO JOB SLIP : $jobs NOT FOUND
                 </div>";
                 break;
+                case 9:
+                echo "<br>
+                <div class= 'alert alert-danger' style='font-size:16px; font-family:sant-serif; font-weight:bold; ' >
+                WARNING ! NO CONT : $jobs ON HOLD ATENSI P2
+                </div>";
+                break;
                 default:
                 echo "";
                 break;
