@@ -1862,6 +1862,8 @@ class M_operation extends CI_Model{
 
 		if($cekdokumen[0]->ID != ''){
 			$data = $this->db->query("UPDATE t_spk_cont SET FL_HOLD='N', FL_WARNA_HOLD='N' WHERE ID='$ID' AND NO_CONT ='$NO_CONT' ");
+
+			$updateAtensi = $this->db->query("UPDATE t_atensi_p2 SET STATUS_HOLD='N', RELEASE_AT='".date('Y-m-d H:i:s')."' WHERE NO_SPK='$NO_SPK' AND NO_CONT ='$NO_CONT' ");
 		}else{
 			echo "Error";
 		}
