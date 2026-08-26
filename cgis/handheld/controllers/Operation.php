@@ -1021,7 +1021,7 @@ class Operation extends CI_Controller
 		$data['menuu'] = 'HANDHELD';
 		$keyword    =   $this->input->post('search_js');
 		$cekHold = $this->M_AtensiP2->cek_hold($keyword)->result_array();
-		if (count($cekHold) == 0) {
+		if (count($cekHold) > 0) {
 			$data['jobs'] = $keyword;
 			$data['kode'] = 9;
 			$this->content = $this->load->view('content/operation/marshallingcic', $data, true);
