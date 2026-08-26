@@ -39,6 +39,14 @@ class Apiosbos extends CI_Controller
                 'data'    => null
             ));
             return;
+        } else if (strlen($npwp) < 16) {
+            echo json_encode(array(
+                'success' => false,
+                'code'    => '98',
+                'message' => 'Format NPWP tidak valid. NPWP harus terdiri dari 16 digit.',
+                'data'    => null
+            ));
+            return;
         }
 
         $url  = "https://api.npct1.co.id:9443/api/v1/get-customs-ondemand";
@@ -99,10 +107,10 @@ class Apiosbos extends CI_Controller
         curl_close($curl);
 
         /*
-    |--------------------------------------------------------------------------
-    | RESPONSE JSON
-    |--------------------------------------------------------------------------
-    */
+        |--------------------------------------------------------------------------
+        | RESPONSE JSON
+        |--------------------------------------------------------------------------
+        */
 
         $responseData = json_decode($response, true);
 
@@ -113,8 +121,8 @@ class Apiosbos extends CI_Controller
 
             $this->db->query(
                 "INSERT INTO `tpk_ipc`.`solver_req_dokumen_log`
-            (`url`, `tipe`, `no_dok`, `tgl_dok`, `npwp`, `data_respons`, `tambahan`, `response_log`, `user`)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                (`url`, `tipe`, `no_dok`, `tgl_dok`, `npwp`, `data_respons`, `tambahan`, `response_log`, `user`)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
                 array(
                     $url,
                     $type,
@@ -130,8 +138,8 @@ class Apiosbos extends CI_Controller
 
             $this->db->query(
                 "INSERT INTO `tpk_ipc`.`log_services`
-            (`METHOD`, `XML_REQUEST`, `XML_RESPONSE`, `WK_REKAM`, `FL_NPCT1`, `FL_SENT_RIZKI`)
-            VALUES (?, ?, ?, ?, 'N', 'N')",
+                (`METHOD`, `XML_REQUEST`, `XML_RESPONSE`, `WK_REKAM`, `FL_NPCT1`, `FL_SENT_RIZKI`)
+                VALUES (?, ?, ?, ?, 'N', 'N')",
                 array(
                     'GET DOKUMEN SPPB FROM API',
                     $addXML,
@@ -142,148 +150,73 @@ class Apiosbos extends CI_Controller
 
             echo json_encode(array(
                 'success' => false,
-                'code'    => 'INVALID_JSON',
+                'code' => 'INVALID_JSON',
                 'message' => 'Invalid JSON response from HUB service',
-                'data'    => null
+                'data' => null
             ));
             return;
         }
 
-        /*
-    |--------------------------------------------------------------------------
-    | AMBIL STATUS RESPONSE
-    |--------------------------------------------------------------------------
-    */
-
-        $status  = isset($responseData['status']) ? $responseData['status'] : false;
-        $code    = isset($responseData['response']) ? (string) $responseData['response'] : null;
+        $status = isset($responseData['status']) ? $responseData['status'] : false;
+        $code = isset($responseData['response']) ? (string) $responseData['response'] : '';
         $message = isset($responseData['message']) ? $responseData['message'] : '';
 
         $datenow = date("Y-m-d H:i:s");
         $userondemand = 'OSBOS API';
 
-        /*
-    |--------------------------------------------------------------------------
-    | SUCCESS
-    |--------------------------------------------------------------------------
-    */
-
         if ($status === true && $code === '00') {
-
-            $header = isset($responseData['data']['header'])
+            $header = isset($responseData['data']['header']) && is_array($responseData['data']['header'])
                 ? $responseData['data']['header']
                 : array();
 
-            $containers = isset($responseData['data']['containers'])
+            $containers = isset($responseData['data']['containers']) && is_array($responseData['data']['containers'])
                 ? $responseData['data']['containers']
                 : array();
 
-            /*
-        |--------------------------------------------------------------------------
-        | HEADER JSON
-        |--------------------------------------------------------------------------
-        */
-
-            $CAR = isset($header['car']) ? $header['car'] : null;
-
-            $NO_SPPB = isset($header['document_no'])
-                ? $header['document_no']
+            $CAR = isset($header['car']) ? $header['car'] : '';
+            $NO_SPPB = isset($header['document_no']) ? $header['document_no'] : '';
+            $TGL_SPPB = !empty($header['document_date'])
+                ? DateTime::createFromFormat('d-m-Y', $header['document_date'])->format('Y-m-d')
                 : null;
 
-            $TGL_SPPB = isset($header['document_date'])
-                ? date('Y-m-d', strtotime(str_replace('-', '/', $header['document_date'])))
+            $KD_KPBC = isset($header['kpbc']) ? $header['kpbc'] : '';
+            $NO_PIB = isset($header['pabean_no']) ? $header['pabean_no'] : '';
+            $TGL_PIB = !empty($header['pabean_date'])
+                ? DateTime::createFromFormat('d-m-Y', $header['pabean_date'])->format('Y-m-d')
                 : null;
 
-            $KD_KPBC = isset($header['kpbc'])
-                ? $header['kpbc']
+            $NPWP_IMP = isset($header['customer_id']) ? $header['customer_id'] : '';
+            $NAMA_IMP = isset($header['customer_name']) ? $header['customer_name'] : '';
+            $ALAMAT_IMP = isset($header['customer_address']) ? $header['customer_address'] : '';
+
+            $NPWP_PPJK = isset($header['ppjk_id']) ? $header['ppjk_id'] : '';
+            $NAMA_PPJK = isset($header['ppjk_name']) ? $header['ppjk_name'] : '';
+            $ALAMAT_PPJK = isset($header['ppjk_address']) ? $header['ppjk_address'] : '';
+
+            $NM_ANGKUT = isset($header['vessel_name']) ? $header['vessel_name'] : '';
+            $NO_VOY_FLIGHT = isset($header['voyage']) ? $header['voyage'] : '';
+            $BRUTO = isset($header['bruto']) ? $header['bruto'] : '';
+            $NETTO = isset($header['netto']) ? $header['netto'] : '';
+            $GUDANG = isset($header['warehouse_origin']) ? $header['warehouse_origin'] : '';
+            $STATUS_JALUR = isset($header['path_status']) ? $header['path_status'] : '';
+            $JML_CONT = isset($header['total_cont']) ? $header['total_cont'] : 0;
+
+            $NO_BC11 = isset($header['bc11_no']) ? $header['bc11_no'] : '';
+            $TGL_BC11 = !empty($header['bc11_date'])
+                ? DateTime::createFromFormat('d-m-Y', $header['bc11_date'])->format('Y-m-d')
                 : null;
 
-            $NO_PIB = isset($header['pabean_no'])
-                ? $header['pabean_no']
+            $NO_POS_BC11 = isset($header['bc11_pos']) ? $header['bc11_pos'] : '';
+            $NO_BL_AWB = isset($header['bl_no']) ? $header['bl_no'] : '';
+
+            $TG_BL_AWB = !empty($header['bl_date'])
+                ? DateTime::createFromFormat('d-m-Y', $header['bl_date'])->format('Y-m-d')
                 : null;
 
-            $TGL_PIB = isset($header['pabean_date'])
-                ? date('Y-m-d', strtotime(str_replace('-', '/', $header['pabean_date'])))
-                : null;
+            $NO_MASTER_BL_AWB = isset($header['master_bl_no']) ? $header['master_bl_no'] : '';
 
-            $NPWP_IMP = isset($header['customer_id'])
-                ? $header['customer_id']
-                : null;
-
-            $NAMA_IMP = isset($header['customer_name'])
-                ? $header['customer_name']
-                : null;
-
-            $ALAMAT_IMP = isset($header['customer_address'])
-                ? $header['customer_address']
-                : null;
-
-            $NPWP_PPJK = isset($header['ppjk_id'])
-                ? $header['ppjk_id']
-                : null;
-
-            $NAMA_PPJK = isset($header['ppjk_name'])
-                ? $header['ppjk_name']
-                : null;
-
-            $ALAMAT_PPJK = isset($header['ppjk_address'])
-                ? $header['ppjk_address']
-                : null;
-
-            $NM_ANGKUT = isset($header['vessel_name'])
-                ? $header['vessel_name']
-                : null;
-
-            $NO_VOY_FLIGHT = isset($header['voyage'])
-                ? $header['voyage']
-                : null;
-
-            $BRUTO = isset($header['bruto'])
-                ? $header['bruto']
-                : null;
-
-            $NETTO = isset($header['netto'])
-                ? $header['netto']
-                : null;
-
-            $GUDANG = isset($header['warehouse_origin'])
-                ? $header['warehouse_origin']
-                : null;
-
-            $STATUS_JALUR = isset($header['path_status'])
-                ? $header['path_status']
-                : null;
-
-            $JML_CONT = isset($header['total_cont'])
-                ? $header['total_cont']
-                : 0;
-
-            $NO_BC11 = isset($header['bc11_no'])
-                ? $header['bc11_no']
-                : null;
-
-            $TGL_BC11 = isset($header['bc11_date'])
-                ? date('Y-m-d', strtotime(str_replace('-', '/', $header['bc11_date'])))
-                : null;
-
-            $NO_POS_BC11 = isset($header['bc11_pos'])
-                ? $header['bc11_pos']
-                : null;
-
-            $NO_BL_AWB = isset($header['bl_no'])
-                ? $header['bl_no']
-                : null;
-
-            $TG_BL_AWB = isset($header['bl_date'])
-                ? date('Y-m-d', strtotime(str_replace('-', '/', $header['bl_date'])))
-                : null;
-
-            $NO_MASTER_BL_AWB = isset($header['master_bl_no'])
-                ? $header['master_bl_no']
-                : null;
-
-            $TG_MASTER_BL_AWB = isset($header['master_bl_date'])
-                ? date('Y-m-d', strtotime(str_replace('-', '/', $header['master_bl_date'])))
+            $TG_MASTER_BL_AWB = !empty($header['master_bl_date'])
+                ? DateTime::createFromFormat('d-m-Y', $header['master_bl_date'])->format('Y-m-d')
                 : null;
 
             /*
@@ -304,12 +237,11 @@ class Apiosbos extends CI_Controller
             );
 
             if ($query->num_rows() === 0) {
-
                 /*
-            |--------------------------------------------------------------------------
-            | INSERT HEADER
-            |--------------------------------------------------------------------------
-            */
+                |--------------------------------------------------------------------------
+                | INSERT HEADER
+                |--------------------------------------------------------------------------
+                */
 
                 $this->db->query(
                     "INSERT INTO t_permit_hdr
@@ -421,26 +353,16 @@ class Apiosbos extends CI_Controller
             */
 
             foreach ($containers as $contdata) {
-
-                $NO_CONT = isset($contdata['cont_no'])
-                    ? $contdata['cont_no']
-                    : null;
-
-                $SIZE = isset($contdata['cont_size'])
-                    ? $contdata['cont_size']
-                    : null;
-
-                $JNS_MUAT = isset($contdata['full_empty'])
-                    ? $contdata['full_empty']
-                    : null;
+                $NO_CONT = isset($contdata['cont_no']) ? $contdata['cont_no'] : '';
+                $SIZE = isset($contdata['cont_size']) ? $contdata['cont_size'] : '';
+                $JNS_MUAT = isset($contdata['full_empty']) ? $contdata['full_empty'] : '';
 
                 if (!empty($NO_CONT)) {
-
                     $queryCont = $this->db->query(
                         "SELECT 1
-                     FROM t_permit_cont
-                     WHERE ID = ?
-                     AND NO_CONT = ?",
+                            FROM t_permit_cont
+                            WHERE ID = ?
+                            AND NO_CONT = ?",
                         array(
                             $insert_id,
                             $NO_CONT
@@ -448,17 +370,10 @@ class Apiosbos extends CI_Controller
                     );
 
                     if ($queryCont->num_rows() === 0) {
-
                         $this->db->query(
                             "INSERT INTO t_permit_cont
-                        (
-                            ID,
-                            NO_CONT,
-                            KD_CONT_UKURAN,
-                            KD_CONT_JENIS,
-                            TGL_STATUS
-                        )
-                        VALUES (?, ?, ?, ?, ?)",
+                            (ID, NO_CONT, KD_CONT_UKURAN, KD_CONT_JENIS, TGL_STATUS)
+                            VALUES (?, ?, ?, ?, ?)",
                             array(
                                 $insert_id,
                                 $NO_CONT,
@@ -481,18 +396,18 @@ class Apiosbos extends CI_Controller
 
             $this->db->query(
                 "INSERT INTO `tpk_ipc`.`solver_req_dokumen_log`
-            (
-                `url`,
-                `tipe`,
-                `no_dok`,
-                `tgl_dok`,
-                `npwp`,
-                `data_respons`,
-                `tambahan`,
-                `response_log`,
-                `user`
-            )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                    (
+                        `url`,
+                        `tipe`,
+                        `no_dok`,
+                        `tgl_dok`,
+                        `npwp`,
+                        `data_respons`,
+                        `tambahan`,
+                        `response_log`,
+                        `user`
+                    )
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
                 array(
                     $url,
                     $type,
@@ -508,15 +423,15 @@ class Apiosbos extends CI_Controller
 
             $this->db->query(
                 "INSERT INTO `tpk_ipc`.`log_services`
-            (
-                `METHOD`,
-                `XML_REQUEST`,
-                `XML_RESPONSE`,
-                `WK_REKAM`,
-                `FL_NPCT1`,
-                `FL_SENT_RIZKI`
-            )
-            VALUES (?, ?, ?, ?, 'N', 'N')",
+                    (
+                        `METHOD`,
+                        `XML_REQUEST`,
+                        `XML_RESPONSE`,
+                        `WK_REKAM`,
+                        `FL_NPCT1`,
+                        `FL_SENT_RIZKI`
+                    )
+                    VALUES (?, ?, ?, ?, 'N', 'N')",
                 array(
                     'GET DOKUMEN SPPB FROM API',
                     $addXML,
