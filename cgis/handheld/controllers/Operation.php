@@ -1958,5 +1958,71 @@ class Operation extends CI_Controller
 		echo json_encode($data);
 	}
 
+	public function strip_stuf()
+	{
+		if (!$this->session->userdata('LOGGED')) {
+			$this->index();
+			return;
+		}
+		$data['menuu'] = 'Stripping Stuffing';
+		
+    $sessionInsert = $this->session->flashdata('notif');
+		$data['notif'] = $sessionInsert['notif'];
+		$this->content = $this->load->view('content/operation/stripstuff', $data, true);
+		$this->index();
+	}
+
+	public function search_reexport()
+	{
+		$keyw    =   $this->input->post('search_cont');
+		$keyword = strtoupper($keyw);
+		$re  =   $this->M_operation->SearchReExport($keyword, 'search');
+
+		if (count($re) == 0) {
+			$data['status'] = 0;
+			$data['NOCONT'] = $keyword;
+			$data['notif'] = 2;
+		} else {
+			$data['nilai'] = $re;
+			$data['status'] = 2;
+		}
+		$this->content = $this->load->view('content/operation/stripstuff', $data, true);
+		$this->index();
+	}
+
+	public function detail_reexport()
+	{
+		$keyw    =   $this->input->post('submitman2');
+		$keyword = strtoupper($keyw);
+		$re  =   $this->M_operation->SearchReExport($keyword, 'detail');
+		$data['nilai'] = $re;
+		$data['status'] = 1;
+
+		$this->content = $this->load->view('content/operation/stripstuff', $data, true);
+		$this->index();
+	}
+
+	public function do_stripstuff()
+	{
+		$postData    =   $this->input->post();
+		$this->load->helper('form');
+		$this->load->library('form_validation');
+		$this->form_validation->set_rules('nomerkon', 'NO. CONTAINER', 'required');
+		$this->form_validation->set_rules('no_dok', 'NO. DOKUMEN', 'required');
+		$this->form_validation->set_rules('no_cont_lama', 'NO. CONTAINER LAMA', 'required');
+		$this->form_validation->set_rules('no_dok_lama', 'NO. DOKUMEN LAMA', 'required');
+
+		if ($this->form_validation->run() === false) {
+			$data['notif'] = 3;
+			$this->content = $this->load->view('content/operation/stripstuff', $data, true);
+			$this->index();
+		}
+
+		$execInsertStripStuff = $this->M_operation->ExecStripStuff($postData);
+
+    $this->session->set_flashdata('notif', $execInsertStripStuff);
+    redirect('Operation/strip_stuf/');
+	}
+
 	//end class
 }
