@@ -116,8 +116,9 @@ class Online extends CI_Controller
 		if ($act == "add_data") {
 			$data['id'] = $id;
 			//echo $data['id'];die();
-			$data['arrdata'] = $this->db->query("SELECT ID, ID_DOKUMEN, NO_DOK, TGL_DOK, TYPE_DOK,  NOTE, FL_STATUS FROM list_dokumens WHERE ID = '" . $id . "'")->row();
-			//echo $data['arrdata'];die();
+			$data['arrdata'] = $this->db->query("SELECT ID, ID_USER, ID_DOKUMEN, NO_DOK, TGL_DOK, TYPE_DOK,  NOTE, FL_STATUS FROM list_dokumens WHERE ID = '" . $id . "'")->row();
+			$data['contasal'] = $this->db->query("SELECT ID, ID_USER, ID_DOKUMEN, NO_DOK, TGL_DOK, TYPE_DOK,  NOTE, FL_STATUS FROM list_dokumens WHERE FL_STATUS = 'Y' AND ID_USER = '" . $data['arrdata']->ID_USER . "' AND ID <> '" . $id . "' AND TGL_NHI IS NULL ORDER BY ID DESC")->result();
+
 			echo $this->content = $this->load->view('content/dokumen/form_proses', $data);
 		} else if ($act == "add_data_tolak") {
 			$data['id'] = $id;
@@ -136,6 +137,21 @@ class Online extends CI_Controller
 			// $id = $arrid;die();
 
 			echo $this->content = $this->load->view('content/dokumen/list_dokumen', $data);
+		} else if ($act == "old_container") {
+			$data['id'] = $id;
+			$listDokumen = $this->db->query("SELECT NO_DOK, TGL_DOK FROM list_dokumens WHERE ID_DOKUMEN = '" . $id . "'")->row();
+			$data['arrdata'] = $this->db->query("
+				SELECT
+					trc.NO_CONT,
+					trc.UKR_CONT,
+					trc.TIPE_CONT
+				FROM t_request tr 
+				inner join t_request_cont trc on tr.ID = trc.ID
+				WHERE tr.NO_DOK = '" . $listDokumen->NO_DOK . "' and tr.TGL_DOK = '" . $listDokumen->TGL_DOK . "'
+				order by tr.ID DESC
+			")->result();
+
+			echo $this->content = $this->load->view('content/dokumen/detail_cont', $data);
 		} else {
 			$this->load->model("m_display");
 			$arrdata = $this->m_display->getresponrequestonline($act, $id);
@@ -158,6 +174,7 @@ class Online extends CI_Controller
 		$note = $this->input->post('NOTE');
 		$id_dokumen = $this->input->post('ID_DOKUMEN');
 		//echo "$fl_status";die();
+		$idDokAsal = $this->input->post('ID_DOKUMEN_ASAL');
 
 		try {
 
@@ -195,6 +212,26 @@ class Online extends CI_Controller
 				$json = json_encode($response);
 				if (preg_match("/success/i", $json)) {
 					$this->db->query("UPDATE tpk_ipc.list_dokumens SET  NOTE ='$note', FL_STATUS ='Y' WHERE ID=$id");
+
+					// Re Export
+					if ($idDokAsal != '' || $idDokAsal != null) {
+						$dokAsal = $this->db->query("SELECT NO_DOK FROM tpk_ipc.list_dokumens WHERE ID_DOKUMEN = $idDokAsal")->row();
+						$contAsal = $this->input->post('CONTAINER_LAMA');
+
+						for ($i = 0; $i < count($contAsal); $i++) {
+							$query = "INSERT INTO tpk_ipc.t_re_export (NO_DOK, TGL_DOK, NO_DOK_AWAL, NO_CONT_AWAL) VALUES (?, ?, ?, ?)";
+
+							$params = array(
+								$this->input->post('no_dok'),
+								$this->input->post('tgl_dok'),
+								$dokAsal->NO_DOK,
+								$contAsal[$i]
+							);
+
+							$execInsert = $this->db->query($query, $params);
+						}
+					}
+
 					echo "MSG#OK#Data berhasil diproses#";
 				} else if (preg_match("/data tidak di temukan/i", $json)) {
 					$this->db->delete('tpk_ipc.list_dokumens', array('ID' => $id));
