@@ -94,6 +94,7 @@ class AtensiP2 extends CI_Controller
     $data['menuu'] = 'HANDHELD';
     $keyw    =   $this->input->post('search');
     $sessionFromHold = $this->session->flashdata('keyword_search');
+    $successInsert = $this->session->flashdata('success');
     if (empty($keyw)) {
       $keyw = $sessionFromHold;
     }
@@ -109,10 +110,22 @@ class AtensiP2 extends CI_Controller
       $data['status'] = 1;
       $this->content = $this->load->view('content/operation/atensip2', $data, true);
       $this->index();
+    } else if (!empty($successInsert)) {
+      if($successInsert){
+        $notif = 1;
+        $nilai = $keyword;
+      } else {
+        $notif = 2;
+        $nilai = $keyword;
+      }
+      $data['nilai'] = $nilai;
+      $data['notif'] = $notif;
+      $this->content = $this->load->view('content/operation/atensip2', $data, true);
+      $this->index();
     } else {
       $data['status'] = 2;
       $data['nilai'] = $keyword;
-      $data['kode'] = 2;
+      $data['notif'] = 2;
       $this->content = $this->load->view('content/operation/atensip2', $data, true);
       $this->index();
     }
@@ -151,8 +164,9 @@ class AtensiP2 extends CI_Controller
       // $this->session->set_flashdata('error_msg', 'Gagal hold: Data tidak ditemukan.');
     }
 
-    $keyword = $NO_SPK;
+    $keyword = $NO_CONT;
     $this->session->set_flashdata('keyword_search', $keyword);
+    $this->session->set_flashdata('success', true);
     redirect('AtensiP2/search/');
   }
 }

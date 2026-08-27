@@ -26,21 +26,28 @@ echo form_close();
         echo "
            <br>
            <div class= 'alert alert-primary' style='font-size:16px; font-family:sant-serif; font-weight:bold; ' >
-              NO CONT : $NOCONT SUCCESS SUBMIT ATENSI
+              NO CONT : $nilai SUCCESS SUBMIT ATENSI
            </div>";
         break;
       case 2:
         echo "
            <br>
            <div class= 'alert alert-danger' style='font-size:16px; font-family:sant-serif; font-weight:bold; ' >
-              NO CONT : $NOCONT NOT FOUND
+              NO CONT : $nilai NOT FOUND
+           </div>";
+        break;
+      case 3:
+        echo "
+           <br>
+           <div class= 'alert alert-danger' style='font-size:16px; font-family:sant-serif; font-weight:bold; ' >
+              NO CONT : $nilai GAGAL DILAKUKAN HOLD ATENSI P2, HUBUNGI IT
            </div>";
         break;
       default:
         echo "
             <br>
             <div class= 'alert alert-danger' style='font-size:16px; font-family:sant-serif; font-weight:bold; ' >
-               NO CONT : $NOCONT NOT FOUND
+               NO CONT : $nilai NOT FOUND
             </div>";
         break;
     } ?>
