@@ -1574,7 +1574,9 @@ class ServiceNpct1New extends CI_Controller
             join t_spk B on A.NO_SPK = B.NO_SPK
             join t_spk_cont C on C.ID = B.ID and C.NO_CONT = A.NO_CONT
             where A.WK_TERMINAL_IN is null and B.WK_REQ > '2025-01-01'
-            and C.STATUS_CONT != 900 $where");
+            and C.STATUS_CONT != 900 $where
+            order by RAND()
+            limit 5");
 
         foreach ($q->result() as $key => $value1) {
             echo "KONTAINER : " . $value1->NO_CONT . " SPK " . $value1->NO_SPK . "; ";
@@ -1595,7 +1597,7 @@ class ServiceNpct1New extends CI_Controller
                 CURLOPT_RETURNTRANSFER => true,
                 CURLOPT_ENCODING => '',
                 CURLOPT_MAXREDIRS => 10,
-                CURLOPT_TIMEOUT => 0,
+                CURLOPT_TIMEOUT => 60,
                 CURLOPT_SSL_VERIFYPEER => false,
                 CURLOPT_SSL_VERIFYHOST => false,
                 CURLOPT_FOLLOWLOCATION => true,
