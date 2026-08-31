@@ -791,7 +791,7 @@ class Apibos extends CI_Controller
             where C.JENIS = 'RELEASE' and A.FL_MANUAL = 'N' and A.NO_DOK_INOUT = '$no_dok' and B.NO_CONT in ($arrnocont2)")->result();
 
 			if (!$ceksppb) {
-				$url    = "http://10.244.20.14:83/api/v1/get-customs-ondemand";
+				$url    = "https://api.npct1.co.id:9443/api/v1/get-customs-ondemand";
 				$user   = "BEHANDLE";
 				$key    = "5d3a2ffcb778f4b1c224f2447c048c8f";
 				$addXML = '<request>
