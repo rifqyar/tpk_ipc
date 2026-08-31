@@ -103,10 +103,10 @@ class AtensiP2 extends CI_Controller
     $dan = $re->result_array();
     if (count($dan) > 0) {
       if (isset($sessionFromHold)) {
-        $data['nilai'] = $keyword;
+        $data['nilai'] = $dan;
         $data['status'] = 1;
       }
-      $data['nilai'] = $keyword;
+      $data['nilai'] = $dan;
       $data['status'] = 1;
       $this->content = $this->load->view('content/operation/atensip2', $data, true);
       $this->index();
