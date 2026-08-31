@@ -103,21 +103,22 @@ class AtensiP2 extends CI_Controller
     $dan = $re->result_array();
     if (count($dan) > 0) {
       if (isset($sessionFromHold)) {
-        $data['nilai'] = $dan;
+        $data['nilai'] = $keyword;
         $data['status'] = 1;
       }
-      $data['nilai'] = $dan;
+      $data['nilai'] = $keyword;
       $data['status'] = 1;
       $this->content = $this->load->view('content/operation/atensip2', $data, true);
       $this->index();
     } else if (!empty($successInsert)) {
-      if($successInsert){
+      if ($successInsert == 'true') {
         $notif = 1;
         $nilai = $keyword;
       } else {
-        $notif = 2;
+        $notif = 3;
         $nilai = $keyword;
       }
+      $data['status'] = 2;
       $data['nilai'] = $nilai;
       $data['notif'] = $notif;
       $this->content = $this->load->view('content/operation/atensip2', $data, true);
@@ -139,34 +140,36 @@ class AtensiP2 extends CI_Controller
     $NO_DOK   = strtoupper($this->input->post('nodok', TRUE));
     $WARNA    = 'M';
 
-    $cekdokumen = $this->db->query("SELECT * FROM t_spk_cont WHERE ID = ? AND NO_CONT = ?", array($ID, $NO_CONT))->result();
+    // $cekdokumen = $this->db->query("SELECT * FROM t_spk_cont WHERE ID = ? AND NO_CONT = ?", array($ID, $NO_CONT))->result();
 
-    if (!empty($cekdokumen)) {
-      $data_update = array(
-        'FL_HOLD'       => 'Y',
-        'FL_WARNA_HOLD' => $WARNA
-      );
-      $this->db->where('ID', $ID);
-      $this->db->where('NO_CONT', $NO_CONT);
-      $this->db->update('t_spk_cont', $data_update);
+    // if (!empty($cekdokumen)) {
+    //   $data_update = array(
+    //     'FL_HOLD'       => 'Y',
+    //     'FL_WARNA_HOLD' => $WARNA
+    //   );
+    //   $this->db->where('ID', $ID);
+    //   $this->db->where('NO_CONT', $NO_CONT);
+    //   $this->db->update('t_spk_cont', $data_update);
 
-      $data_insert = array(
-        'NO_DOK'      => $NO_DOK,
-        'NO_CONT'     => $NO_CONT,
-        'NO_SPK'      => $NO_SPK,
-        'UKR_CONT' => isset($cekdokumen[0]->UKR_CONT) ? $cekdokumen[0]->UKR_CONT : NULL,
-        'STATUS_HOLD' => 'Y',
-        'HOLD_AT'     => date('Y-m-d H:i:s')
-      );
-      $this->db->insert('t_atensi_p2', $data_insert);
-    } else {
-      echo "Error: Data tidak ditemukan";
-      // $this->session->set_flashdata('error_msg', 'Gagal hold: Data tidak ditemukan.');
-    }
+    //   $data_insert = array(
+    //     'NO_DOK'      => $NO_DOK,
+    //     'NO_CONT'     => $NO_CONT,
+    //     'NO_SPK'      => $NO_SPK,
+    //     'UKR_CONT' => isset($cekdokumen[0]->UKR_CONT) ? $cekdokumen[0]->UKR_CONT : NULL,
+    //     'STATUS_HOLD' => 'Y',
+    //     'HOLD_AT'     => date('Y-m-d H:i:s')
+    //   );
+    //   $exec = $this->db->insert('t_atensi_p2', $data_insert);
+    //   $return = $exec ? 'true' : 'false';
+    //   $this->session->set_flashdata('success', $return);
+    // } else {
+    //   echo "Error: Data tidak ditemukan";
+    //   $this->session->set_flashdata('success', 'false');
+    // }
 
     $keyword = $NO_CONT;
     $this->session->set_flashdata('keyword_search', $keyword);
-    $this->session->set_flashdata('success', true);
+    $this->session->set_flashdata('success', 'false');
     redirect('AtensiP2/search/');
   }
 }
