@@ -951,12 +951,12 @@ class Apibos extends CI_Controller
 				| AMBIL DATA CONTAINER
 				|--------------------------------------------------------------------------
 				*/
-				$containers = isset($json['data']['containers'])
+				$returnCont = isset($json['data']['containers'])
 					? $json['data']['containers']
 					: array();
 
-				if (isset($containers['cont_no'])) {
-					$containers = array($containers);
+				if (isset($returnCont['cont_no'])) {
+					$returnCont = array($returnCont);
 				}
 
 				$CAR = isset($header['car'])
@@ -1192,7 +1192,7 @@ class Apibos extends CI_Controller
             | INSERT CONTAINER
             |--------------------------------------------------------------------------
             */
-						foreach ($containers as $contdata) {
+						foreach ($returnCont as $contdata) {
 
 							$NO_CONT = isset($contdata['cont_no'])
 								? $contdata['cont_no']
