@@ -301,7 +301,7 @@ class Apibos extends CI_Controller
 			$NO_CONT = $this->db->query($SQLUpdtGatePass)->row()->NO_CONT;
 			$NO_DOK = $this->db->query($SQLCekGatePass)->row()->NO_DOK;
 			$totalCont = count($result);
-			echo "Total : $totalCont";
+			// echo "Total : $totalCont";
 			for ($i = 0; $i <= $totalCont; $i++) {
 				$tmpData = array(
 					"EXPIRED_DATE" => $EXPRIED,
