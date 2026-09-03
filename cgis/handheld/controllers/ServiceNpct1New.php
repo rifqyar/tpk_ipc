@@ -1566,8 +1566,8 @@ class ServiceNpct1New extends CI_Controller
         $key    = "5d3a2ffcb778f4b1c224f2447c048c8f";
 
         $where = '';
-        if($no_cont != null){
-            $where ="AND C.NO_CONT = '$no_cont'";
+        if ($no_cont != null) {
+            $where = "AND C.NO_CONT = '$no_cont'";
         }
 
         $q = $this->db->query("SELECT A.NO_SPK, A.NO_CONT from t_operation A
@@ -1643,21 +1643,22 @@ class ServiceNpct1New extends CI_Controller
         }
     }
 
-    public function get_terminal_in_out_manual(string $no_cont)
+    public function get_terminal_in_out_manual(string $no_cont = '')
     {
         $url    = "https://api.npct1.co.id:9443/api/v1/tracking";
         $user   = "BEHANDLE";
         $key    = "5d3a2ffcb778f4b1c224f2447c048c8f";
 
-        if($no_cont == null || $no_cont == ""){
-            echo "Error: parameter 'no_cont' wajib diisi, contoh: ?no_cont=TGHU1234567\r\n";die();
+        $where = '';
+        if ($no_cont != null) {
+            $where = "AND C.NO_CONT = '$no_cont'";
         }
 
         $q = $this->db->query("SELECT A.NO_SPK, A.NO_CONT from t_operation A
             join t_spk B on A.NO_SPK = B.NO_SPK
             join t_spk_cont C on C.ID = B.ID and C.NO_CONT = A.NO_CONT
             where A.WK_TERMINAL_IN is null and B.WK_REQ > '2025-01-01'
-            AND C.NO_CONT = '$no_cont'");
+            AND C.STATUS_CONT = 900 $where order by B.ID desc limit 5");
 
         foreach ($q->result() as $key => $value1) {
             echo "KONTAINER : " . $value1->NO_CONT . " SPK " . $value1->NO_SPK . "; ";
