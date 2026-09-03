@@ -1643,7 +1643,7 @@ class ServiceNpct1New extends CI_Controller
         }
     }
 
-    public function get_terminal_in_out_manual($no_cont = '')
+    public function get_terminal_in_out_manual($no_cont = null)
     {
         $url    = "https://api.npct1.co.id:9443/api/v1/tracking";
         $user   = "BEHANDLE";
