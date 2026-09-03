@@ -1576,7 +1576,7 @@ class ServiceNpct1New extends CI_Controller
             where A.WK_TERMINAL_IN is null and B.WK_REQ > '2025-01-01'
             and C.STATUS_CONT != 900 $where
             order by B.ID desc
-            limit 20");
+            limit 5");
 
         foreach ($q->result() as $key => $value1) {
             echo "KONTAINER : " . $value1->NO_CONT . " SPK " . $value1->NO_SPK . "; ";
