@@ -1643,6 +1643,87 @@ class ServiceNpct1New extends CI_Controller
         }
     }
 
+    public function get_terminal_in_out_manual(string $no_cont)
+    {
+        $url    = "https://api.npct1.co.id:9443/api/v1/tracking";
+        $user   = "BEHANDLE";
+        $key    = "5d3a2ffcb778f4b1c224f2447c048c8f";
+
+        if($no_cont == null || $no_cont == ""){
+            echo "Error: parameter 'no_cont' wajib diisi, contoh: ?no_cont=TGHU1234567\r\n";die();
+        }
+
+        $q = $this->db->query("SELECT A.NO_SPK, A.NO_CONT from t_operation A
+            join t_spk B on A.NO_SPK = B.NO_SPK
+            join t_spk_cont C on C.ID = B.ID and C.NO_CONT = A.NO_CONT
+            where A.WK_TERMINAL_IN is null and B.WK_REQ > '2025-01-01'
+            AND C.NO_CONT = '$no_cont'");
+
+        foreach ($q->result() as $key => $value1) {
+            echo "KONTAINER : " . $value1->NO_CONT . " SPK " . $value1->NO_SPK . "; ";
+            $nocon11 = $value1->NO_CONT;
+            $addXML = '<request> 
+            <containers>
+                <cont_no>' . $value1->NO_CONT . '</cont_no> 
+            </containers>';
+            $addXML .= '</request>';
+            // print_r($addXML);die();
+            $addXML = trim(preg_replace('/\s\s+/', '', str_replace("\n", " ", $addXML)));
+
+            $curl = curl_init();
+            curl_setopt_array($curl, array(
+                CURLOPT_URL => $url,
+                CURLOPT_SSL_VERIFYPEER => false,
+                CURLOPT_SSL_VERIFYHOST => false,
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_ENCODING => '',
+                CURLOPT_MAXREDIRS => 10,
+                CURLOPT_TIMEOUT => 60,
+                CURLOPT_SSL_VERIFYPEER => false,
+                CURLOPT_SSL_VERIFYHOST => false,
+                CURLOPT_FOLLOWLOCATION => true,
+                CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+                CURLOPT_CUSTOMREQUEST => 'POST',
+                CURLOPT_POSTFIELDS => $addXML,
+                CURLOPT_HTTPHEADER => array(
+                    'User-ID: ' . $user,
+                    'NPCT-API-Key: ' . $key,
+                    'Content-Type: application/xml'
+                ),
+            ));
+            $response = curl_exec($curl);
+            if (!curl_errno($curl)) {
+                $info = curl_getinfo($curl);
+                echo "Connection Success , This is Url : ", $info['url'], "\r\n";
+            } else {
+                echo "Connection Failed =" . curl_error($curl);
+            }
+            curl_close($curl);
+            $xml = simplexml_load_string($response);
+            $GATEOUT = $xml->response->containers->gateout;
+            $GATEIN = $xml->response->containers->gatein;
+
+            if ($GATEOUT != null) {
+                $GATEOUT = date_format(new DateTime($GATEOUT), 'Y-m-d H:i:s');
+                $GATEOUT_MOD = "WK_TERMINAL_OUT='$GATEOUT'";
+            } else {
+                $GATEOUT = NULL;
+                $GATEOUT_MOD = "WK_TERMINAL_OUT=NULL";
+            }
+
+            if ($GATEIN != null) {
+                $GATEIN = date_format(new DateTime($GATEIN), 'Y-m-d H:i:s');
+                $GATEIN_MOD = "WK_TERMINAL_IN='$GATEIN'";
+            } else {
+                $GATEIN = NULL;
+                $GATEIN_MOD = "WK_TERMINAL_IN=NULL";
+            }
+            $SQL = "UPDATE t_operation SET $GATEOUT_MOD, $GATEIN_MOD WHERE NO_CONT = '" . $nocon11 . "' AND NO_SPK = '" . $value1->NO_SPK . "'";
+            $this->db->query($SQL);
+            echo date("d-m-Y H:i:s") . " # " . "WK TERMINAL IN = " . $GATEIN . ". # WK TERMINAL OUT = " . $GATEOUT . "\r\n";
+        }
+    }
+
     public function getYardNpctStatus()
     {
         $q = $this->db->query("SELECT
