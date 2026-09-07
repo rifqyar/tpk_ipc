@@ -1361,7 +1361,7 @@ class ServiceNpct1New extends CI_Controller
             //die();
         }
     }
-    public function get_discharge()
+    public function get_discharge($no_cont = null)
     {
         $url    = "https://api.npct1.co.id:9443/api/v1/tracking";
         $user   = "BEHANDLE";
@@ -1374,6 +1374,10 @@ class ServiceNpct1New extends CI_Controller
         // var_dump($q);die();
 
         // Baru limit 100 data tiap cron
+        $whereNoCont = '';
+        if($no_cont != null){
+            $whereNoCont = " AND NO_CONT = '$no_cont' ";
+        }
         $q = $this->db->query("SELECT
                                     *
                                 from
@@ -1381,6 +1385,7 @@ class ServiceNpct1New extends CI_Controller
                                 where
                                     DATE(tgl_status) >= DATE_ADD(NOW(), interval -35 day)
                                     and DISCHARGE is null
+                                    $whereNoCont
                                 ORDER BY RAND()
                                 limit 10");
 
