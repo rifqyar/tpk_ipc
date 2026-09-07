@@ -1392,6 +1392,7 @@ class ServiceNpct1New extends CI_Controller
         $nocon11 = "";
         foreach ($q->result() as $key => $value1) {
             $nocon11 = $value1->NO_CONT;
+            echo "Processing container: " . $nocon11 . "\r\n";
             $addXML = '<request> 
             <containers>
                 <cont_no>' . $value1->NO_CONT . '</cont_no> 
@@ -1430,7 +1431,7 @@ class ServiceNpct1New extends CI_Controller
                 echo "Connection Failed =" . curl_error($curl);
             }
             curl_close($curl);
-            // echo $response;die;
+            var_dump($response);
             // print_r($response);die();
             $xml = simplexml_load_string($response);
             // var_dump((string) $xml->response->containers->vessel_name);die();
@@ -1506,6 +1507,7 @@ class ServiceNpct1New extends CI_Controller
             } else {
                 $SQL = "UPDATE t_request_cont SET FL_TRACK='Y' WHERE ID = '" . $ID . "' AND NO_CONT = '" . $NO_CONT . "'";
             }
+            echo $SQL . "\r\n";
             $this->db->query($SQL);
             echo date("d-m-Y H:i:s") . " # " . $response . "\r\n";
         }
