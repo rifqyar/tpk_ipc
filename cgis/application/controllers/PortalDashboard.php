@@ -395,7 +395,7 @@ class PortalDashboard extends CI_Controller
                     $manual = $rawResponse['data']['manual'][1];
 
                     // Mapping ke schema JSON awal
-                    $json = [
+                    $json = array(
                         'status' => true,
                         'response' => '00',
                         'message' => 'Successfully',
@@ -440,7 +440,7 @@ class PortalDashboard extends CI_Controller
                             ],
                             'containers' => []
                         ]
-                    ];
+                    );
 
                     // Mapping container
                     foreach ($manual['kontainer'] ?? [] as $container) {
