@@ -392,6 +392,7 @@ class PortalDashboard extends CI_Controller
                     $rawResponse = json_decode($json->xml, true);
 
                     // Ambil data manual index ke-2
+                    // PHP array dimulai dari index 0, jadi data kedua = index 1
                     $manual = $rawResponse['data']['manual'][1];
 
                     // Mapping ke schema JSON awal
@@ -403,54 +404,109 @@ class PortalDashboard extends CI_Controller
                         'data' => array(
                             'header' => array(
                                 'car' => '',
-                                'kpbc' => $manual['header']['kodeKantor'] ?? '',
-                                'document_id' => $manual['header']['kodeDokumenInout'] ?? '',
-                                'document_no' => $manual['header']['nomorDokumenInout'] ?? '',
-                                'document_date' => $manual['header']['tanggalDokumenInout'] ?? '',
+                                'kpbc' => isset($manual['header']['kodeKantor'])
+                                    ? $manual['header']['kodeKantor'] : '',
+
+                                'document_id' => isset($manual['header']['kodeDokumenInout'])
+                                    ? $manual['header']['kodeDokumenInout'] : '',
+
+                                'document_no' => isset($manual['header']['nomorDokumenInout'])
+                                    ? $manual['header']['nomorDokumenInout'] : '',
+
+                                'document_date' => isset($manual['header']['tanggalDokumenInout'])
+                                    ? $manual['header']['tanggalDokumenInout'] : '',
+
                                 'pabean_no' => '',
                                 'pabean_date' => '',
-                                'customer_id' => $manual['header']['idConsignee'] ?? '',
-                                'customer_name' => $manual['header']['consignee'] ?? '',
+
+                                'customer_id' => isset($manual['header']['idConsignee'])
+                                    ? $manual['header']['idConsignee'] : '',
+
+                                'customer_name' => isset($manual['header']['consignee'])
+                                    ? $manual['header']['consignee'] : '',
+
                                 'customer_address' => '',
-                                'ppjk_id' => $manual['header']['npwpPpjk'] ?? '',
-                                'ppjk_name' => $manual['header']['namaPpjk'] ?? '',
+
+                                'ppjk_id' => isset($manual['header']['npwpPpjk'])
+                                    ? $manual['header']['npwpPpjk'] : '',
+
+                                'ppjk_name' => isset($manual['header']['namaPpjk'])
+                                    ? $manual['header']['namaPpjk'] : '',
+
                                 'ppjk_address' => '',
-                                'vessel_name' => $manual['header']['nmAngkut'] ?? '',
+
+                                'vessel_name' => isset($manual['header']['nmAngkut'])
+                                    ? $manual['header']['nmAngkut'] : '',
+
                                 'call_sign' => '',
-                                'voyage' => $manual['header']['nomorVoyFlight'] ?? '',
+
+                                'voyage' => isset($manual['header']['nomorVoyFlight'])
+                                    ? $manual['header']['nomorVoyFlight'] : '',
+
                                 'eta' => '',
-                                'warehouse_origin' => $manual['header']['kodeGudang'] ?? '',
+
+                                'warehouse_origin' => isset($manual['header']['kodeGudang'])
+                                    ? $manual['header']['kodeGudang'] : '',
+
                                 'warehouse_destination' => '',
-                                'total_cont' => $manual['header']['jumlahKontainer'] ?? '',
+
+                                'total_cont' => isset($manual['header']['jumlahKontainer'])
+                                    ? $manual['header']['jumlahKontainer'] : '',
+
                                 'bruto' => '',
                                 'netto' => '',
-                                'bc11_no' => $manual['header']['nomorBc11'] ?? '',
-                                'bc11_date' => $manual['header']['tanggalBc11'] ?? '',
-                                'bc11_pos' => $manual['header']['nomorPosBc11'] ?? '',
-                                'bl_no' => $manual['header']['nomorBlAwb'] ?? '',
-                                'bl_date' => $manual['header']['tanggalBlAwb'] ?? '',
+
+                                'bc11_no' => isset($manual['header']['nomorBc11'])
+                                    ? $manual['header']['nomorBc11'] : '',
+
+                                'bc11_date' => isset($manual['header']['tanggalBc11'])
+                                    ? $manual['header']['tanggalBc11'] : '',
+
+                                'bc11_pos' => isset($manual['header']['nomorPosBc11'])
+                                    ? $manual['header']['nomorPosBc11'] : '',
+
+                                'bl_no' => isset($manual['header']['nomorBlAwb'])
+                                    ? $manual['header']['nomorBlAwb'] : '',
+
+                                'bl_date' => isset($manual['header']['tanggalBlAwb'])
+                                    ? $manual['header']['tanggalBlAwb'] : '',
+
                                 'master_bl_no' => '',
                                 'master_bl_date' => '',
                                 'kpbc_pic' => '',
                                 'kpbc_discharge' => '',
-                                'seal_indicator' => $manual['header']['flagSegel'] ?? '',
+
+                                'seal_indicator' => isset($manual['header']['flagSegel'])
+                                    ? $manual['header']['flagSegel'] : '',
+
                                 'path_status' => '',
                                 'quarantine_indicator' => '',
                                 'record_time' => date('Y-m-d H:i:s')
                             ),
+
                             'containers' => array()
                         )
                     );
 
                     // Mapping container
-                    foreach ($manual['kontainer'] ?? [] as $container) {
-                        $json['data']['containers'][] = [
-                            'cont_no' => $container['nomorKontainer'] ?? '',
-                            'cont_size' => $container['size'] ?? '',
-                            'full_empty' => $container['jenisMuat'] ?? '',
-                            'check_indicator' => '',
-                            'approve_indicator' => ''
-                        ];
+                    if (isset($manual['kontainer']) && is_array($manual['kontainer'])) {
+
+                        foreach ($manual['kontainer'] as $container) {
+
+                            $json['data']['containers'][] = array(
+                                'cont_no' => isset($container['nomorKontainer'])
+                                    ? $container['nomorKontainer'] : '',
+
+                                'cont_size' => isset($container['size'])
+                                    ? $container['size'] : '',
+
+                                'full_empty' => isset($container['jenisMuat'])
+                                    ? $container['jenisMuat'] : '',
+
+                                'check_indicator' => '',
+                                'approve_indicator' => ''
+                            );
+                        }
                     }
 
                     var_dump($json);
