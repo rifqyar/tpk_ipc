@@ -400,8 +400,8 @@ class PortalDashboard extends CI_Controller
                         'response' => '00',
                         'message' => 'Successfully',
                         'msgref' => '',
-                        'data' => [
-                            'header' => [
+                        'data' => array(
+                            'header' => array(
                                 'car' => '',
                                 'kpbc' => $manual['header']['kodeKantor'] ?? '',
                                 'document_id' => $manual['header']['kodeDokumenInout'] ?? '',
@@ -437,9 +437,9 @@ class PortalDashboard extends CI_Controller
                                 'path_status' => '',
                                 'quarantine_indicator' => '',
                                 'record_time' => date('Y-m-d H:i:s')
-                            ],
-                            'containers' => []
-                        ]
+                            ),
+                            'containers' => array()
+                        )
                     );
 
                     // Mapping container
