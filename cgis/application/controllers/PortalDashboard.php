@@ -386,6 +386,76 @@ class PortalDashboard extends CI_Controller
                 // PARSE JSON RESPONSE
                 // ==========================================================
                 $json = json_decode($response);
+                if ($no_dok == 'S-1862/KPU.1/KPU.104/2026') {
+
+                    // Decode JSON yang ada di property xml
+                    $rawResponse = json_decode($json->xml, true);
+
+                    // Ambil data manual index ke-2
+                    $manual = $rawResponse['data']['manual'][1];
+
+                    // Mapping ke schema JSON awal
+                    $json = [
+                        'status' => true,
+                        'response' => '00',
+                        'message' => 'Successfully',
+                        'msgref' => '',
+                        'data' => [
+                            'header' => [
+                                'car' => '',
+                                'kpbc' => $manual['header']['kodeKantor'] ?? '',
+                                'document_id' => $manual['header']['kodeDokumenInout'] ?? '',
+                                'document_no' => $manual['header']['nomorDokumenInout'] ?? '',
+                                'document_date' => $manual['header']['tanggalDokumenInout'] ?? '',
+                                'pabean_no' => '',
+                                'pabean_date' => '',
+                                'customer_id' => $manual['header']['idConsignee'] ?? '',
+                                'customer_name' => $manual['header']['consignee'] ?? '',
+                                'customer_address' => '',
+                                'ppjk_id' => $manual['header']['npwpPpjk'] ?? '',
+                                'ppjk_name' => $manual['header']['namaPpjk'] ?? '',
+                                'ppjk_address' => '',
+                                'vessel_name' => $manual['header']['nmAngkut'] ?? '',
+                                'call_sign' => '',
+                                'voyage' => $manual['header']['nomorVoyFlight'] ?? '',
+                                'eta' => '',
+                                'warehouse_origin' => $manual['header']['kodeGudang'] ?? '',
+                                'warehouse_destination' => '',
+                                'total_cont' => $manual['header']['jumlahKontainer'] ?? '',
+                                'bruto' => '',
+                                'netto' => '',
+                                'bc11_no' => $manual['header']['nomorBc11'] ?? '',
+                                'bc11_date' => $manual['header']['tanggalBc11'] ?? '',
+                                'bc11_pos' => $manual['header']['nomorPosBc11'] ?? '',
+                                'bl_no' => $manual['header']['nomorBlAwb'] ?? '',
+                                'bl_date' => $manual['header']['tanggalBlAwb'] ?? '',
+                                'master_bl_no' => '',
+                                'master_bl_date' => '',
+                                'kpbc_pic' => '',
+                                'kpbc_discharge' => '',
+                                'seal_indicator' => $manual['header']['flagSegel'] ?? '',
+                                'path_status' => '',
+                                'quarantine_indicator' => '',
+                                'record_time' => date('Y-m-d H:i:s')
+                            ],
+                            'containers' => []
+                        ]
+                    ];
+
+                    // Mapping container
+                    foreach ($manual['kontainer'] ?? [] as $container) {
+                        $json['data']['containers'][] = [
+                            'cont_no' => $container['nomorKontainer'] ?? '',
+                            'cont_size' => $container['size'] ?? '',
+                            'full_empty' => $container['jenisMuat'] ?? '',
+                            'check_indicator' => '',
+                            'approve_indicator' => ''
+                        ];
+                    }
+
+                    var_dump($json);
+                    die();
+                }
 
                 // ==========================================================
                 // VALIDATE JSON
