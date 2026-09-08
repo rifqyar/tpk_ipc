@@ -168,7 +168,7 @@ class Apibehandle extends CI_Controller
 				left join t_op_inspection G on G.NO_CONT = A.NO_CONT and G.NO_SPK = C.NO_SPK
 				left join (select * from t_job_slip tjs where tjs.JENIS = 'EX BEHANDLE 1' and STATUS = 'DONE' and KD_STATUS = '50') H
 				on H.NO_CONT = A.NO_CONT and H.NO_SPK = C.NO_SPK
-				left join t_gatepass I on I.NO_CONT = A.NO_CONT and I.NO_SPK = C.NO_SPK
+				left join t_gatepass I on I.NO_CONT = A.NO_CONT AND (I.NO_SPK = C.NO_SPK OR TRIM(TRAILING '.' FROM I.NO_DOK) = TRIM(TRAILING '.' FROM B.NO_DOK))
 				left join (SELECT t1.*
 							FROM t_op_delivery t1
 							INNER JOIN (
