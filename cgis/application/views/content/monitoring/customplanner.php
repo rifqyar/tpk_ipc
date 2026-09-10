@@ -246,7 +246,7 @@
 						$status = "<span class='label label-success'>SELESAI PERIKSA</span>";
 					}
 
-					if ($value->RESPON == 'PPK LONGROOM') {
+					if ($value->RESPON == 'PPK LONGROOM' || $value->RESPON == 'PPK MINI LR') {
 						$responbc = "<span class='label label-danger'>PPK LONGROOM</span>";
 						$wk_responbc = $value->WK_RESPON;
 					} else if ($value->RESPON == 'PPK YARD') {
