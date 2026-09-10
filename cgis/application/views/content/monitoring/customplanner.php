@@ -247,7 +247,7 @@
 					}
 
 					if ($value->RESPON == 'PPK LONGROOM' || $value->RESPON == 'PPK MINI LR') {
-						$responbc = "<span class='label label-danger'>PPK LONGROOM</span>";
+						$responbc = "<span class='label label-danger'>".$value->RESPON."</span>";
 						$wk_responbc = $value->WK_RESPON;
 					} else if ($value->RESPON == 'PPK YARD') {
 						$responbc = "<span class='label label-success'>PPK YARD</span>";
