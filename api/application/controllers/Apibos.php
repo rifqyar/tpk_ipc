@@ -50,7 +50,7 @@ class Apibos extends CI_Controller
             left join t_spk c on a.TGL_DOK = c.TGL_DOK and a.NO_DOK = c.NO_DOK
             left join t_spk_cont d  on c.ID = d.ID and b.NO_CONT = d.NO_CONT
 			left join reff_kode_dok_bc e on c.JNS_DOK = e.ID
-            where a.NO_DOK = '$nodok' and a.TGL_DOK = '$tgdok' and a.KD_REQ in ('INQUIRY')
+            where a.NO_DOK = '$nodok' and a.TGL_DOK = '$tgdok' and a.KD_REQ in ('INQUIRY') and b.REQ_PILIH = 'Y'
             order by a.ID desc")->result();
 			if ($q) {
 				$this->httpres(200, 'success', $q, '');
