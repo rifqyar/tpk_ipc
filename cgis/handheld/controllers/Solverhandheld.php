@@ -2039,57 +2039,170 @@ class Solverhandheld extends CI_Controller
 
     }
 
-    public function autoStockOpnameContainerOut()
+    public function stockOpnameBlokAfter()
     {
         $sql = "SELECT
-                    a.*,
-                    b.NO_CONT,
-                    b.LOKASI,
-                    tod.WK_GATEOUT,
-                    d.NO_SPK,
-                    d.NO_DOK
-                from
-                    t_denah_lapangan a
-                left join t_spk_cont b on
-                    a.NM_BLOK = b.LOKASI
-                    and a.LEVEL_4 = b.TIER
-                    and b.STATUS_CONT != '900'
-                inner join t_spk d on
-                    b.ID = d.ID
-                left join reff_status_spk c on
-                    c.ID = b.STATUS_CONT 
-                left join t_op_delivery tod on b.NO_CONT = tod.NO_CONT
-                where b.NO_CONT is not null and tod.WK_GATEOUT is not null
-                order by
-                    a.TGL_STATUS ASC
-                LIMIT 10";
+                tsc.*,
+                ts.NO_SPK,
+                ts.NO_DOK,
+                tg.ID as ID_GATEPASS
+            FROM t_spk_cont tsc
+            INNER JOIN t_spk ts
+                ON tsc.ID = ts.ID
+            INNER JOIN t_gatepass tg 
+            ON tg.NO_CONT = tsc.NO_CONT
+                AND tg.NO_SPK = ts.NO_SPK
+                AND tg.JNS_KEGIATAN = '3'
+            WHERE
+                EXISTS (
+                    SELECT 1
+                    FROM t_op_pickup p
+                    WHERE p.NO_CONT = tsc.NO_CONT
+                    AND p.NO_SPK = ts.NO_SPK
+                )
+                AND EXISTS (
+                    SELECT 1
+                    FROM t_op_behandlein bh
+                    WHERE bh.NO_CONT = tsc.NO_CONT
+                    AND bh.NO_SPK = ts.NO_SPK
+                )
+                AND EXISTS (
+                    SELECT 1
+                    FROM t_op_inspection i
+                    WHERE i.NO_CONT = tsc.NO_CONT
+                    AND i.NO_SPK = ts.NO_SPK
+                    AND i.FINISH_INSP IS NOT NULL
+                )
+                AND NOT EXISTS (
+                    SELECT 1
+                    FROM t_op_delivery tod
+                    WHERE tod.NO_CONT = tsc.NO_CONT
+                    AND tod.NO_SPK = ts.NO_SPK
+                    AND tod.WK_GATEOUT IS NOT NULL
+                )
+                AND EXISTS (
+                    SELECT 1
+                    FROM req_behandle_hdr rbh
+                    INNER JOIN t_log_kode_bayar_sap sap
+                        ON rbh.ID_REQ = sap.PROFORMA
+                    WHERE rbh.NO_DOK = ts.NO_DOK
+                    AND sap.SAP_TGL_PELUNASAN IS NOT NULL
+                )
+                AND EXISTS (
+                    SELECT 1
+                    FROM req_delivery_dtl rdd
+                    INNER JOIN req_delivery_hdr rdh
+                        ON rdd.ID_REQ = rdh.ID_REQ
+                    INNER JOIN t_log_kode_bayar_sap sap
+                        ON rdh.ID_REQ = sap.PROFORMA
+                    WHERE rdd.NO_CONT = tsc.NO_CONT
+                    AND sap.SAP_TGL_PELUNASAN IS NOT NULL
+                    AND rdh.EXPIRED < DATE_SUB(NOW(), INTERVAL 2 MONTH)
+                )
+                AND YEAR(ts.WK_REQ) >= '2026'
+                AND tsc.LOKASI IS NOT NULL
+                AND tsc.LOKASI LIKE '1A%'
+                AND tsc.LOKASI <> 'SAMPAH'
+            ORDER BY tsc.ID ASC LIMIT 10";
 
         $data = $this->db->query($sql)->result();
+
+        echo "Total data ditemukan: " . count($data) . "\r\n<br><br>";
+
         foreach ($data as $key => $value) {
+
+            $id = $value->ID;
             $no_spk = $value->NO_SPK;
             $no_cont = $value->NO_CONT;
             $no_dok = $value->NO_DOK;
-            $SQL = "UPDATE t_spk ts
-                    INNER JOIN t_spk_cont tsc ON ts.ID = tsc.ID
-                    SET ts.KD_STATUS = '500'
-                    WHERE ts.NO_SPK = ? AND ts.NO_DOK = ? AND tsc.NO_CONT = ?";
-            $execUpdateSpk = $this->db->query($SQL, array($no_spk, $no_dok, $no_cont));
-            if($execUpdateSpk){
-                echo "SPK $no_spk with container $no_cont has been updated to status 500 \r\n<br>";
-            } else {
-                echo "Failed to update SPK $no_spk with container $no_cont \r\n<br>"; die();
+
+            echo "Processing ID: $id | SPK: $no_spk | Container: $no_cont | Dok: $no_dok <br>";
+
+            /*
+            * =====================================================
+            * AUTO INSERT T_OP_DELIVERY
+            * =====================================================
+            */
+            // $SQL = "INSERT INTO t_op_delivery (NO_CONT, UKR_CONT, NO_TRUCK, WK_TRUCKIN, WK_CHASSIS, WK_INSPECT, WK_GATEOUT, OPERATOR_T, OPERATOR_O, OPERATOR_G, NO_SPK, GATE_T, GATE_O)
+            //     VALUES (?, ?, ?, NOW())";
+
+            /*
+            * =====================================================
+            * UPDATE T_SPK
+            * =====================================================
+            *
+            * Gunakan ID hasil SELECT.
+            *
+            * Ini lebih aman daripada mencari kembali berdasarkan
+            * NO_SPK + NO_DOK + NO_CONT.
+            */
+            $SQL = "UPDATE t_spk
+                SET KD_STATUS = '500'
+                WHERE ID = ?
+                AND NO_SPK = ?
+                AND NO_DOK = ?";
+
+            $execUpdateSpk = $this->db->query(
+                $SQL,
+                array(
+                    $id,
+                    $no_spk,
+                    $no_dok
+                )
+            );
+
+            if (!$execUpdateSpk) {
+                echo "Failed to update SPK $no_spk with container $no_cont <br>";
+                die();
             }
 
-            $sql_update_spk_cont = "UPDATE t_spk_cont tsc
-                    INNER JOIN t_spk ts ON ts.ID = tsc.ID
-                    SET tsc.STATUS_CONT = '900', tsc.LOKASI = NULL, tsc.TIER = NULL
-                    WHERE ts.NO_SPK = ? AND ts.NO_DOK = ? AND tsc.NO_CONT = ?";
-            $execUpdateCont = $this->db->query($sql_update_spk_cont, array($no_spk, $no_dok, $no_cont));
-            if($execUpdateCont){
-                echo "Container $no_cont has been updated to status 900 \r\n<br><br>";
-            } else {
-                echo "Failed to update container $no_cont \r\n<br><br>"; die();
+            // echo "WOULD UPDATE:<br>";
+            // echo "SPK ID      : " . $id . "<br>";
+            // echo "NO SPK      : " . $no_spk . "<br>";
+            // echo "NO DOK      : " . $no_dok . "<br>";
+            // echo "NO CONT     : " . $no_cont . "<br>";
+            // echo "STATUS SPK  : 500<br>";
+            // echo "STATUS CONT : 900<br>";
+            // echo "LOKASI      : NULL<br>";
+            // echo "TIER        : NULL<br>";
+            // echo "--------------------------------<br>";
+
+            // echo "SPK $no_spk with container $no_cont has been updated to status 500 <br>";
+
+
+            /*
+            * =====================================================
+            * UPDATE T_SPK_CONT
+            * =====================================================
+            *
+            * Gunakan ID record t_spk_cont yang didapat dari SELECT.
+            *
+            * Karena tsc.ID = ts.ID, kita perlu hati-hati:
+            * ID pada t_spk_cont yang SELECT adalah ID relasi ke t_spk.
+            *
+            * Jadi container dibatasi lagi dengan NO_CONT.
+            */
+            $SQL = "UPDATE t_spk_cont
+                SET STATUS_CONT = '900',
+                    LOKASI = NULL,
+                    TIER = NULL
+                WHERE ID = ?
+                AND NO_CONT = ?";
+
+            $execUpdateCont = $this->db->query(
+                $SQL,
+                array(
+                    $id,
+                    $no_cont
+                )
+            );
+
+            if (!$execUpdateCont) {
+                echo "Failed to update container $no_cont <br>";
+                die();
             }
+
+            echo "Container $no_cont has been updated to status 900 <br><br>";
         }
     }
 }
