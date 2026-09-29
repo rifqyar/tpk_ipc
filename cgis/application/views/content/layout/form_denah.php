@@ -95,10 +95,10 @@
 		<div class="alert alert-info">
 			<p class="ycustom1ptop">BLOK AFTER</p>
 			<hr class="ycustom1hr">
-			<p class="ycustom1pbot">Total Teus Tersedia : 837</p>
+			<p class="ycustom1pbot">Total Teus Tersedia : 564</p>
 			<p class="ycustom1pbot">Total Kontainer yang ada : <?php echo $jmlcont_after;?></p>
 			<p class="ycustom1pbot">Total Teus Terpakai : <?php echo $jmlteus_after;?></p>
-			<p class="ycustom1pbot">Total Persentase Terpakai : <?php $jml1 = $jmlteus_after / 837 * 100; echo round($jml1,2).'%';?></p>
+			<p class="ycustom1pbot">Total Persentase Terpakai : <?php $jml1 = $jmlteus_after / 564 * 100; echo round($jml1,2).'%';?></p>
 		</div>
 		<div id="kiri">
 			<div align="Center">

@@ -442,6 +442,317 @@ class PortalHelpdesk extends CI_Controller
 		echo $this->load->view("content/portalhelpdesk/set_announce", $data, true);
 	}
 
+	public function resendbhdbilling()
+	{
+		$data = null;
+		$dbOsbos = $this->load->database('osbos', TRUE);
+		$query = $dbOsbos->query("SELECT * FROM bhd_billings bb where bb.fl_status = 'N' and bb.id_req IS NULL order by bb.created_at desc");
+		$data = array(
+			'data' => $query->result()
+		);
+
+		echo $this->load->view("content/portalhelpdesk/resendbhdbilling", $data, true);
+	}
+
+	public function prosesresendbhd()
+	{
+		$input = $this->input->post();
+		$dbOsbos = $this->load->database('osbos', TRUE);
+		$listDocuments = $dbOsbos->query("SELECT ld.nm_angkut, ld.voyage, ld.type_dok from list_dokumens ld where ld.no_dok = ?", $input['no_dok']);
+		$listDocuments = $listDocuments->row();
+
+		$billBehandle = $dbOsbos->query("SELECT * FROM bhd_billings bb where bb.id_bhd_billing = ?", $input['id']);
+		$billBehandle = $billBehandle->row();
+
+		$tglDok = new DateTime($billBehandle->tgl_dok);
+		$tglDokFormatted = $tglDok->format('Y-m-d');
+
+		$request = array(
+			'TOKEN'          => 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJuYW1lIjoibXRpIiwicGFzcyI6IjEyMzQ1Nm10aSJ9.oHROW6uCudtJ0c9DZznabKXqgDOv6jTCallpBEOH-qk',
+			'NM_KAPAL'       => $listDocuments->nm_angkut,
+			'NO_VOY'         => $listDocuments->voyage,
+			'JNS_DOK'        => strtoupper($listDocuments->type_dok),
+			'NO_DOK'         => $billBehandle->no_dok,
+			'TGL_DOK'        => $tglDokFormatted,
+			'ID_BHD_BILLING' => $billBehandle->id_bhd_billing,
+			'ID_DOKUMEN'     => $input['id'],
+			'CUSTOMER'       => strtoupper($billBehandle->nama),
+			'CONTAINERS'     => $billBehandle->containers,
+			'NPWP'           => $billBehandle->npwp,
+			'ALAMAT'         => $billBehandle->alamat,
+			'NO_DO'          => '',
+			'NO_BL'          => ''
+		);
+
+		$request2 = array(
+			'DATA' => $request
+		);
+
+		$url = 'http://localhost/tpk_ipc/api/index.php/apibos/billingbhd';
+
+		$ch = curl_init();
+
+		curl_setopt($ch, CURLOPT_URL, $url);
+		curl_setopt($ch, CURLOPT_POST, true);
+		curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($request2));
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+		curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10);
+		curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+		curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+			'Content-Type: application/x-www-form-urlencoded'
+		));
+
+		$apiResponse = curl_exec($ch);
+		$curlError = curl_error($ch);
+		$curlErrorCode = curl_errno($ch);
+		$httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+
+		curl_close($ch);
+
+		// Gagal terhubung ke API
+		if ($apiResponse === false) {
+			$this->output
+				->set_status_header(500)
+				->set_content_type('application/json')
+				->set_output(json_encode(array(
+					'status'  => 'error',
+					'message' => 'Gagal menghubungi API. Error '
+						. $curlErrorCode . ': ' . $curlError
+				)));
+			return;
+		}
+
+		// API mengembalikan HTTP error
+		if ($httpCode < 200 || $httpCode >= 300) {
+			$decodedResponse = json_decode($apiResponse, true);
+
+			$message = 'API mengembalikan HTTP status ' . $httpCode;
+
+			if (
+				is_array($decodedResponse) &&
+				isset($decodedResponse['message'])
+			) {
+				$message = $decodedResponse['message'];
+			}
+
+			$this->output
+				->set_status_header(500)
+				->set_content_type('application/json')
+				->set_output(json_encode(array(
+					'status'       => 'error',
+					'message'      => $message,
+					'api_response' => $apiResponse
+				)));
+			return;
+		}
+
+		// Baca response JSON dari API
+		$decodedResponse = json_decode($apiResponse, true);
+
+		/*
+     * Sesuaikan kondisi ini dengan format response API.
+     * Misalnya API mengembalikan:
+     * {"status":"success","message":"Billing berhasil dikirim"}
+     */
+		if (
+			is_array($decodedResponse) &&
+			isset($decodedResponse['status']) &&
+			strtolower($decodedResponse['status']) !== 'success'
+		) {
+			$this->output
+				->set_status_header(400)
+				->set_content_type('application/json')
+				->set_output(json_encode(array(
+					'status'  => 'error',
+					'message' => isset($decodedResponse['message'])
+						? $decodedResponse['message']
+						: 'API gagal memproses billing.'
+				)));
+			return;
+		}
+
+		// Berhasil
+		$message = 'Status billing berhasil dikirim ulang.';
+
+		if (
+			is_array($decodedResponse) &&
+			isset($decodedResponse['message'])
+		) {
+			$message = $decodedResponse['message'];
+		}
+
+		$this->output
+			->set_status_header(200)
+			->set_content_type('application/json')
+			->set_output(json_encode(array(
+				'status'  => 'success',
+				'message' => $message,
+				'data'    => $decodedResponse
+			)));
+	}
+
+	public function resenddelbilling()
+	{
+		$data = null;
+		$dbOsbos = $this->load->database('osbos', TRUE);
+		$query = $dbOsbos->query("SELECT * FROM del_billings bb where bb.fl_status = 'N' and bb.id_req IS NULL order by bb.created_at desc");
+		$data = array(
+			'data' => $query->result()
+		);
+
+		echo $this->load->view("content/portalhelpdesk/resenddelbilling", $data, true);
+	}
+
+	public function prosesresenddel()
+	{
+		$input = $this->input->post();
+		$dbOsbos = $this->load->database('osbos', TRUE);
+
+		$billDel = $dbOsbos->query("SELECT * FROM del_billings bb where bb.id_del_billing = ? and bb.fl_status = 'N' and bb.id_req IS NULL", $input['id']);
+		$billDel = $billDel->row();
+
+		$listDocuments = $dbOsbos->query("SELECT ld.nm_angkut, ld.voyage, ld.type_dok from list_dokumens ld where ld.id_dokumen = ?", $billDel->id_dokumen);
+		$listDocuments = $listDocuments->row();
+
+		$paidtru = new DateTime($billDel->tgl_delivery);
+
+		if ($input['is_nhi'] != '1') {
+			$data['nhi'] = null;
+			$data['nhi_unseal'] = null;
+		} else {
+			$data['nhi'] = $input['nhi_date'];
+			$data['nhi_unseal'] = $input['nhi_unsealing_date'];
+		}
+
+		$request = array(
+			'NM_KAPAL'       => $listDocuments->nm_angkut,
+			'VOYAGE'         => $listDocuments->voyage,
+			'NO_DOK'         => $billDel->no_dok,
+			'FILE_DOK'       => $billDel->file_dok,
+			'TGL_DOK'        => $billDel->tgl_dok,
+			'JNS_DOK'        => strtoupper($listDocuments->type_dok),
+			'ID_DEL_BILLING' => $billDel->id_del_billing,
+			'ID_DOKUMEN'     => $input['id'],
+			'CUSTOMER'       => strtoupper($billDel->nama),
+			'NPWP'           => $billDel->npwp,
+			'ALAMAT'         => $billDel->alamat,
+			'NO_DO'          => $input['no_do'],
+			'NO_BL'          => $input['no_bl'],
+			'PAIDTHRU' => $paidtru->format('Y-m-d'),
+			'TGL_NHI' => $data['nhi'],
+			'TGL_BK_SEGEL' => $data['nhi_unseal'],
+		);
+
+		$request2 = array(
+			'TOKEN'          => 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJuYW1lIjoibXRpIiwicGFzcyI6IjEyMzQ1Nm10aSJ9.oHROW6uCudtJ0c9DZznabKXqgDOv6jTCallpBEOH-qk',
+			'arrnocont'    	 => $billDel->containers,
+			'unplugrefer1' => $paidtru->format('Y-m-d H:i:s'),
+			'DATA' => $request,
+		);
+
+		$url = 'http://10.1.5.49/tpk_ipc/api/index.php/apibos/billingdelivery';
+
+		$ch = curl_init();
+
+		curl_setopt($ch, CURLOPT_URL, $url);
+		curl_setopt($ch, CURLOPT_POST, true);
+		curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($request2));
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+		curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10);
+		curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+		curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+			'Content-Type: application/x-www-form-urlencoded'
+		));
+
+		$apiResponse = curl_exec($ch);
+		$curlError = curl_error($ch);
+		$curlErrorCode = curl_errno($ch);
+		$httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+
+		curl_close($ch);
+
+		// Gagal terhubung ke API
+		if ($apiResponse === false) {
+			$this->output
+				->set_status_header(500)
+				->set_content_type('application/json')
+				->set_output(json_encode(array(
+					'status'  => 'error',
+					'message' => 'Gagal menghubungi API. Error '
+						. $curlErrorCode . ': ' . $curlError
+				)));
+			return;
+		}
+
+		// API mengembalikan HTTP error
+		if ($httpCode < 200 || $httpCode >= 300) {
+			$decodedResponse = json_decode($apiResponse, true);
+
+			$message = 'API mengembalikan HTTP status ' . $httpCode;
+
+			if (
+				is_array($decodedResponse) &&
+				isset($decodedResponse['message'])
+			) {
+				$message = $decodedResponse['message'];
+			}
+
+			$this->output
+				->set_status_header(500)
+				->set_content_type('application/json')
+				->set_output(json_encode(array(
+					'status'       => 'error',
+					'message'      => $message,
+					'api_response' => $apiResponse
+				)));
+			return;
+		}
+
+		// Baca response JSON dari API
+		$decodedResponse = json_decode($apiResponse, true);
+
+		/*
+     * Sesuaikan kondisi ini dengan format response API.
+     * Misalnya API mengembalikan:
+     * {"status":"success","message":"Billing berhasil dikirim"}
+     */
+		if (
+			is_array($decodedResponse) &&
+			isset($decodedResponse['status']) &&
+			strtolower($decodedResponse['status']) !== 'success'
+		) {
+			$this->output
+				->set_status_header(400)
+				->set_content_type('application/json')
+				->set_output(json_encode(array(
+					'status'  => 'error',
+					'message' => isset($decodedResponse['message'])
+						? $decodedResponse['message']
+						: 'API gagal memproses billing.'
+				)));
+			return;
+		}
+
+		// Berhasil
+		$message = 'Status billing berhasil dikirim ulang.';
+
+		if (
+			is_array($decodedResponse) &&
+			isset($decodedResponse['message'])
+		) {
+			$message = $decodedResponse['message'];
+		}
+
+		$this->output
+			->set_status_header(200)
+			->set_content_type('application/json')
+			->set_output(json_encode(array(
+				'status'  => 'success',
+				'message' => $message,
+				'data'    => $decodedResponse
+			)));
+	}
+
 	public function tes()
 	{
 		$all_data = $this->session->all_userdata();
