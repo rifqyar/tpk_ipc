@@ -2342,7 +2342,9 @@ class Solverhandheld extends CI_Controller
 
     public function revertAutoSO()
     {
-        $sql = "SELECT
+        $no_cont = $this->input->get('no_cont');
+        if($no_cont == null){
+            $sql = "SELECT
                     ts.ID,
                     ts.NO_DOK,
                     ts.TGL_DOK,
@@ -2386,7 +2388,43 @@ class Solverhandheld extends CI_Controller
                 )
                 ORDER BY ts.ID ASC
                 LIMIT 50";
-
+        } else {
+            $sql = "SELECT
+                    ts.ID,
+                    ts.NO_DOK,
+                    ts.TGL_DOK,
+                    ts.NO_SPK,
+                    tsc.NO_CONT,
+                    tjs_asli.LOKASI_AKHIR, 
+                    tjs_asli.TIER_AKHIR,    
+                    CASE 
+                        WHEN tjs_asli.LOKASI_AKHIR LIKE '1A%' THEN '450'
+                        WHEN tjs_asli.LOKASI_AKHIR LIKE 'CIC%' THEN '460'
+                    END AS STATUS_CONT,
+                    CASE
+                        WHEN tjs_asli.LOKASI_AKHIR LIKE '1A%' THEN '500'
+                        WHEN tjs_asli.LOKASI_AKHIR LIKE 'CIC%' THEN '400' 
+                    END AS KD_STATUS
+                FROM t_spk_cont tsc
+                INNER JOIN t_spk ts 
+                    ON tsc.ID = ts.ID
+                LEFT JOIN t_job_slip tjs_asli 
+                    ON tjs_asli.NO_SPK = ts.NO_SPK 
+                    AND tjs_asli.NO_CONT = tsc.NO_CONT 
+                    AND tjs_asli.KD_STATUS = 50
+                LEFT JOIN t_job_slip tjs_newer 
+                    ON tjs_newer.NO_SPK = tjs_asli.NO_SPK 
+                    AND tjs_newer.NO_CONT = tjs_asli.NO_CONT 
+                    AND tjs_newer.KD_STATUS = 50
+                    AND tjs_newer.WK_STATUS > tjs_asli.WK_STATUS
+                WHERE tjs_newer.NO_SPK IS NULL 
+                AND ts.WK_REQ >= DATE_SUB(NOW(), INTERVAL 7 DAY)
+                AND tsc.LOKASI IS NULL
+                AND tsc.STATUS_CONT = 900
+                AND tsc.NO_CONT = '$no_cont'
+                ORDER BY ts.ID ASC
+                LIMIT 1";
+        }
         $data = $this->db->query($sql)->result();
 
         echo "Total data ditemukan: " . count($data) . "\r\n<br><br>";
