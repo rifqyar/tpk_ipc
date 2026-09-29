@@ -2371,7 +2371,7 @@ class Solverhandheld extends CI_Controller
                     AND tjs_newer.KD_STATUS = 50
                     AND tjs_newer.WK_STATUS > tjs_asli.WK_STATUS
                 WHERE tjs_newer.NO_SPK IS NULL 
-                AND ts.WK_REQ >= DATE_SUB(NOW(), INTERVAL 5 DAY)
+                AND ts.WK_REQ >= DATE_SUB(NOW(), INTERVAL 7 DAY)
                 AND tsc.LOKASI IS NULL
                 AND tsc.STATUS_CONT = 900
                 AND NOT EXISTS (
