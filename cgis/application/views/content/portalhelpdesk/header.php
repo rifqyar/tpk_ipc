@@ -107,6 +107,20 @@
                                 <span>Kirim Ulang Autogate</span>
                             </a>
                         </li>
+                        <li class="sidebar-item">
+                            <a href="<?php echo base_url(); ?>application.php/PortalHelpdesk/resendbhdbilling"
+                                class='sidebar-link'>
+                                <i class="bi bi-grid-1x2-fill"></i>
+                                <span>Kirim Ulang Billing Behandle</span>
+                            </a>
+                        </li>
+                        <li class="sidebar-item">
+                            <a href="<?php echo base_url(); ?>application.php/PortalHelpdesk/resenddelbilling"
+                                class='sidebar-link'>
+                                <i class="bi bi-grid-1x2-fill"></i>
+                                <span>Kirim Ulang Billing Delivery</span>
+                            </a>
+                        </li>
 <!--
 
                         <li class="sidebar-item">
