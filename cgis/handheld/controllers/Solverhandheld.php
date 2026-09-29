@@ -2205,4 +2205,325 @@ class Solverhandheld extends CI_Controller
             echo "Container $no_cont has been updated to status 900 <br><br>";
         }
     }
+
+    public function stockOpnameCICAfter()
+    {
+        $sql = "SELECT
+                    ts.ID,  
+                    ts.NO_SPK,
+                    tsc.NO_CONT,
+                    tsc.UKR_CONT,
+                    tsc.LOKASI,
+                    ts.NO_DOK
+                from t_spk_cont tsc
+                inner join t_spk ts on tsc.ID = ts.ID
+                where not exists(
+                    select 1 from t_so_yard tsy
+                    where tsy.NO_SPK = ts.NO_SPK
+                    and tsy.NO_CONT = tsc.NO_CONT
+                    and tsy.FL_CLEANSING = 'N'
+                    and tsy.LOKASI not like '1B%'
+                ) 
+                and tsc.LOKASI not like '1B%'
+                and tsc.STATUS_CONT <> '900'
+                and year(ts.WK_REQ) >= '2026'
+            ORDER BY tsc.ID ASC LIMIT 0";
+
+        $data = $this->db->query($sql)->result();
+
+        echo "Total data ditemukan: " . count($data) . "\r\n<br><br>";
+
+        foreach ($data as $key => $value) {
+
+            $id = $value->ID;
+            $no_spk = $value->NO_SPK;
+            $no_cont = $value->NO_CONT;
+            $no_dok = $value->NO_DOK;
+
+            echo "Processing ID: $id | SPK: $no_spk | Container: $no_cont | Dok: $no_dok <br>";
+
+            /*
+            * =====================================================
+            * AUTO UPDATE T_SO_YARD
+            * =====================================================
+            */
+            $SQL = "UPDATE t_so_yard
+                SET FL_CLEANSING = 'Y'
+                WHERE NO_SPK = ?
+                AND NO_CONT = ?";
+
+            $execUpdateSoYard = $this->db->query(
+                $SQL,
+                array(
+                    $no_spk,
+                    $no_cont
+                )
+            );
+
+            /*
+            * =====================================================
+            * UPDATE T_SPK
+            * =====================================================
+            *
+            * Gunakan ID hasil SELECT.
+            *
+            * Ini lebih aman daripada mencari kembali berdasarkan
+            * NO_SPK + NO_DOK + NO_CONT.
+            */
+            $SQL = "UPDATE t_spk
+                SET KD_STATUS = '500'
+                WHERE ID = ?
+                AND NO_SPK = ?
+                AND NO_DOK = ?";
+
+            $execUpdateSpk = $this->db->query(
+                $SQL,
+                array(
+                    $id,
+                    $no_spk,
+                    $no_dok
+                )
+            );
+
+            if (!$execUpdateSpk) {
+                echo "Failed to update SPK $no_spk with container $no_cont <br>";
+                die();
+            }
+
+            // echo "WOULD UPDATE:<br>";
+            // echo "SPK ID      : " . $id . "<br>";
+            // echo "NO SPK      : " . $no_spk . "<br>";
+            // echo "NO DOK      : " . $no_dok . "<br>";
+            // echo "NO CONT     : " . $no_cont . "<br>";
+            // echo "STATUS SPK  : 500<br>";
+            // echo "STATUS CONT : 900<br>";
+            // echo "LOKASI      : NULL<br>";
+            // echo "TIER        : NULL<br>";
+            // echo "--------------------------------<br>";
+
+            // echo "SPK $no_spk with container $no_cont has been updated to status 500 <br>";
+
+
+            /*
+            * =====================================================
+            * UPDATE T_SPK_CONT
+            * =====================================================
+            *
+            * Gunakan ID record t_spk_cont yang didapat dari SELECT.
+            *
+            * Karena tsc.ID = ts.ID, kita perlu hati-hati:
+            * ID pada t_spk_cont yang SELECT adalah ID relasi ke t_spk.
+            *
+            * Jadi container dibatasi lagi dengan NO_CONT.
+            */
+            $SQL = "UPDATE t_spk_cont
+                SET STATUS_CONT = '900',
+                    LOKASI = NULL,
+                    TIER = NULL
+                WHERE ID = ?
+                AND NO_CONT = ?";
+
+            $execUpdateCont = $this->db->query(
+                $SQL,
+                array(
+                    $id,
+                    $no_cont
+                )
+            );
+
+            if (!$execUpdateCont) {
+                echo "Failed to update container $no_cont <br>";
+                die();
+            }
+
+            echo "Container $no_cont has been updated to status 900 <br><br>";
+        }
+    }
+
+    public function revertAutoSO()
+    {
+        $sql = "SELECT
+                    ts.ID,
+                    ts.NO_DOK,
+                    ts.TGL_DOK,
+                    ts.NO_SPK,
+                    tsc.NO_CONT,
+                    tjs_asli.LOKASI_AKHIR, 
+                    tjs_asli.TIER_AKHIR,    
+                    CASE 
+                        WHEN tjs_asli.LOKASI_AKHIR LIKE '1A%' THEN '450'
+                        WHEN tjs_asli.LOKASI_AKHIR LIKE 'CIC%' THEN '460'
+                    END AS STATUS_CONT,
+                    CASE
+                        WHEN tjs_asli.LOKASI_AKHIR LIKE '1A%' THEN '500'
+                        WHEN tjs_asli.LOKASI_AKHIR LIKE 'CIC%' THEN '400' 
+                    END AS KD_STATUS
+                FROM t_spk_cont tsc
+                INNER JOIN t_spk ts 
+                    ON tsc.ID = ts.ID
+                LEFT JOIN t_job_slip tjs_asli 
+                    ON tjs_asli.NO_SPK = ts.NO_SPK 
+                    AND tjs_asli.NO_CONT = tsc.NO_CONT 
+                    AND tjs_asli.KD_STATUS = 50
+                LEFT JOIN t_job_slip tjs_newer 
+                    ON tjs_newer.NO_SPK = tjs_asli.NO_SPK 
+                    AND tjs_newer.NO_CONT = tjs_asli.NO_CONT 
+                    AND tjs_newer.KD_STATUS = 50
+                    AND tjs_newer.WK_STATUS > tjs_asli.WK_STATUS
+                WHERE tjs_newer.NO_SPK IS NULL 
+                AND ts.WK_REQ >= DATE_SUB(NOW(), INTERVAL 5 DAY)
+                AND tsc.LOKASI IS NULL
+                AND tsc.STATUS_CONT = 900
+                AND NOT EXISTS (
+                    SELECT 1 
+                    FROM req_delivery_dtl rdd
+                    INNER JOIN req_delivery_hdr rdh 
+                        ON rdd.ID_REQ = rdh.ID_REQ
+                    INNER JOIN t_log_kode_bayar_sap sap 
+                        ON rdh.ID_REQ = sap.PROFORMA
+                    WHERE rdd.NO_CONT = tsc.NO_CONT
+                        AND sap.SAP_TGL_PELUNASAN IS NOT NULL
+                )
+                ORDER BY ts.ID ASC
+                LIMIT 50";
+
+        $data = $this->db->query($sql)->result();
+
+        echo "Total data ditemukan: " . count($data) . "\r\n<br><br>";
+
+        $dbOsbos = $this->load->database('osbos', TRUE);
+        foreach ($data as $key => $value) {
+
+            $id = $value->ID;
+            $no_spk = $value->NO_SPK;
+            $no_cont = $value->NO_CONT;
+            $no_dok = $value->NO_DOK;
+            $tgl_dok = $value->TGL_DOK;
+            $status_cont = $value->STATUS_CONT;
+            $kd_status = $value->KD_STATUS;
+
+            echo "Processing ID: $id | SPK: $no_spk | Container: $no_cont | Dok: $no_dok <br>";
+
+            /*
+            * =====================================================
+            * AUTO UPDATE T_SO_YARD
+            * =====================================================
+            */
+            $SQL = "UPDATE t_so_yard
+                SET FL_CLEANSING = 'Y'
+                WHERE NO_SPK = ?
+                AND NO_CONT = ?";
+
+            $execUpdateSoYard = $this->db->query(
+                $SQL,
+                array(
+                    $no_spk,
+                    $no_cont
+                )
+            );
+
+            /*
+            * =====================================================
+            * UPDATE T_SPK
+            * =====================================================
+            *
+            * Gunakan ID hasil SELECT.
+            *
+            * Ini lebih aman daripada mencari kembali berdasarkan
+            * NO_SPK + NO_DOK + NO_CONT.
+            */
+            $SQL = "UPDATE t_spk
+                SET KD_STATUS = ?
+                WHERE ID = ?
+                AND NO_SPK = ?
+                AND NO_DOK = ?";
+
+            $execUpdateSpk = $this->db->query(
+                $SQL,
+                array(
+                    $kd_status,
+                    $id,
+                    $no_spk,
+                    $no_dok
+                )
+            );
+
+            if (!$execUpdateSpk) {
+                echo "Failed to update SPK $no_spk with container $no_cont <br>";
+                die();
+            }
+
+            // echo "WOULD UPDATE:<br>";
+            // echo "SPK ID      : " . $id . "<br>";
+            // echo "NO SPK      : " . $no_spk . "<br>";
+            // echo "NO DOK      : " . $no_dok . "<br>";
+            // echo "NO CONT     : " . $no_cont . "<br>";
+            // echo "STATUS SPK  : 500<br>";
+            // echo "STATUS CONT : 900<br>";
+            // echo "LOKASI      : NULL<br>";
+            // echo "TIER        : NULL<br>";
+            // echo "--------------------------------<br>";
+
+            // echo "SPK $no_spk with container $no_cont has been updated to status 500 <br>";
+
+
+            /*
+            * =====================================================
+            * UPDATE T_SPK_CONT
+            * =====================================================
+            *
+            * Gunakan ID record t_spk_cont yang didapat dari SELECT.
+            *
+            * Karena tsc.ID = ts.ID, kita perlu hati-hati:
+            * ID pada t_spk_cont yang SELECT adalah ID relasi ke t_spk.
+            *
+            * Jadi container dibatasi lagi dengan NO_CONT.
+            */
+            $SQL = "UPDATE t_spk_cont
+                SET STATUS_CONT = ?,
+                    LOKASI = ?,
+                    TIER = ?
+                WHERE ID = ?
+                AND NO_CONT = ?";
+
+            $execUpdateCont = $this->db->query(
+                $SQL,
+                array(
+                    $status_cont,
+                    $value->LOKASI_AKHIR,
+                    $value->TIER_AKHIR,
+                    $id,
+                    $no_cont
+                )
+            );
+
+            $SQL = "SELECT * FROM list_dokumens
+                WHERE no_dok = ?
+                AND DATE(tgl_dok) = ?";
+
+            $query = $dbOsbos->query($SQL, array($no_dok, $tgl_dok))->row();
+
+            $updateListDokumen = $dbOsbos->query(
+                "UPDATE list_dokumens
+                SET STATUS = ?
+                WHERE no_dok = ?
+                AND DATE(tgl_dok) = ?",
+                array($kd_status, $no_dok, $tgl_dok)
+            );
+
+            $updateContainer = $dbOsbos->query(
+                "UPDATE containers
+                SET STATUS = ?
+                WHERE no_cont = ? and id_dokumen = ?",
+                array($status_cont, $no_cont, $query->id_dokumen)
+            );
+
+            if (!$execUpdateCont) {
+                echo "Failed to update container $no_cont <br>";
+                die();
+            }
+
+            echo "Container $no_cont has been updated to status 900 <br><br>";
+        }
+    }
 }
