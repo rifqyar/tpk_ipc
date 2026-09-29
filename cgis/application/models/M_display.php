@@ -1570,29 +1570,50 @@ class M_display extends CI_Model
 
 		$check = (grant() == "W") ? true : false;
 
-		$SQL = "SELECT A.ID, E.NO_CONT, A.NO_DOK, A.TGL_DOK, A.TIPE as JENIS_DOKUMEN, A.TGL_NHI, B.KD_REQ, A.CREATED_AT,
-		(case when E.NO_CONT is not null then E.NO_CONT
-		when E.NO_CONT is NULL THEN 'Gatepass Behandle 2 Belum Dibuat'
-		END) AS 'NO CONTAINER',
-		CONCAT('<a style=\"color:blue;\">','Document : ' ,'</a>' ,(A.NO_DOK)) AS 'NO. DOKUMEN',
-		CONCAT('Tanggal Dokumen : ', '<a style=\"color:red;\">',(A.TGL_DOK),'</a>') AS 'TGL DOKUMEN',
-		CONCAT('Jenis Dokumen : ', '<a style=\"color:green;\">',(A.TIPE),'</a>') AS 'JENIS DOKUMEN',
-		CONCAT('Tanggal NHI : ','<a style=\"color:red;\">',(A.TGL_NHI),'</a>') AS 'Tanggal NHI',
-		(case when B.KD_REQ in('DRAFT','SENT','APPROVED','ERROR','REJECTED','INQUIRY','BYPASS','QUEUED') then '<span class=\"label label-success\">Dokumen Tersedia</span>' 
-		when B.KD_REQ is NULL THEN '<span class=\"label label-danger\">Dokumen Belum Tersedia</span>'
-		END) AS 'STATUS PENARIKAN',
-		(case when D.NO_DOK is not null then '<span class=\"label label-success\">SUDAH SPK</span>' 
-		when D.NO_DOK is NULL THEN '<span class=\"label label-danger\">Belum SPK</span>'
-		END) AS 'STATUS SPK',
-		(case when E.NO_DOK is not null then '<span class=\"label label-success\">Sudah Ada</span>' 
-		when E.NO_DOK is NULL THEN '<span class=\"label label-danger\">Belum Ada</span>'
-		END) AS 'STATUS GATEPASS',
-		CONCAT('Waktu Layanan Online : ','<a style=\"color:red;\">',(A.CREATED_AT),'</a>') AS 'WAKTU LAYANAN ONLINE'
-		from behandle2s A 
-		left join (select a.ID, a.NO_DOK, a.TGL_DOK, a.JNS_DOK, a.KD_REQ, c.NAMA from t_request a inner join reff_kode_dok_bc c on c.ID = a.JNS_DOK) B on right(B.NO_DOK,6) = A.NO_DOK and B.TGL_DOK = A.TGL_DOK  
-		left join (select c.ID, c.NO_DOK, c.TGL_DOK from t_spk_cont d inner join t_spk c on c.ID = d.ID) D on right(D.NO_DOK,6) = A.NO_DOK and D.TGL_DOK = A.TGL_DOK  
-		left join (select e.ID,e.NO_CONT, e.NO_DOK, e.TGL_DOK, e.JNS_KEGIATAN from t_gatepass e where e.JNS_KEGIATAN='2') E on right(E.NO_DOK,6) = A.NO_DOK and E.TGL_DOK = A.TGL_DOK 
-		where A.FL_STATUS ='N' and year(A.CREATED_AT) >= 2021";
+		$SQL = "SELECT 
+							A.ID, 
+							E.NO_CONT, 
+							A.NO_DOK, 
+							A.TGL_DOK, 
+							A.TIPE as JENIS_DOKUMEN, 
+							A.TGL_NHI, 
+							B.KD_REQ, 
+							A.CREATED_AT,
+							COALESCE(E.NO_CONT, 'Gatepass Behandle 2 Belum Dibuat') AS `NO CONTAINER`,
+							CONCAT('<a style=\"color:blue;\">Document : </a>', A.NO_DOK) AS `NO. DOKUMEN`,
+							CONCAT('Tanggal Dokumen : <a style=\"color:red;\">', A.TGL_DOK, '</a>') AS `TGL DOKUMEN`,
+							CONCAT('Jenis Dokumen : <a style=\"color:green;\">', A.TIPE, '</a>') AS `JENIS DOKUMEN`,
+							CONCAT('Tanggal NHI : <a style=\"color:red;\">', A.TGL_NHI, '</a>') AS `Tanggal NHI`,
+							CASE 
+									WHEN B.KD_REQ IN ('DRAFT','SENT','APPROVED','ERROR','REJECTED','INQUIRY','BYPASS','QUEUED') 
+											THEN '<span class=\"label label-success\">Dokumen Tersedia</span>' 
+									ELSE '<span class=\"label label-danger\">Dokumen Belum Tersedia</span>'
+							END AS `STATUS PENARIKAN`,
+							CASE 
+									WHEN D.NO_DOK IS NOT NULL 
+											THEN '<span class=\"label label-success\">SUDAH SPK</span>' 
+									ELSE '<span class=\"label label-danger\">Belum SPK</span>'
+							END AS `STATUS SPK`,
+							CASE 
+									WHEN E.NO_DOK IS NOT NULL 
+											THEN '<span class=\"label label-success\">Sudah Ada</span>' 
+									ELSE '<span class=\"label label-danger\">Belum Ada</span>'
+							END AS `STATUS GATEPASS`,
+							CONCAT('Waktu Layanan Online : <a style=\"color:red;\">', A.CREATED_AT, '</a>') AS `WAKTU LAYANAN ONLINE`
+					FROM behandle2s A 
+					LEFT JOIN t_request B 
+							ON B.TGL_DOK = A.TGL_DOK 
+							AND RIGHT(B.NO_DOK, 6) = A.NO_DOK 
+					LEFT JOIN t_spk D 
+							ON D.TGL_DOK = A.TGL_DOK 
+							AND RIGHT(D.NO_DOK, 6) = A.NO_DOK 
+							AND EXISTS (SELECT 1 FROM t_spk_cont d_cont WHERE d_cont.ID = D.ID)
+					LEFT JOIN t_gatepass E 
+							ON E.TGL_DOK = A.TGL_DOK 
+							AND E.JNS_KEGIATAN = '2' 
+							AND RIGHT(E.NO_DOK, 6) = A.NO_DOK 
+					WHERE A.FL_STATUS = 'N' 
+						AND A.CREATED_AT >= '2021-01-01 00:00:00'";
 
 		$proses = array('Lihat Dokumen'  => array('MODAL', "online/monitorOrderOnlinee/print", '1', '', 'md-eye', '', 'list'), 'TOLAK'  => array('MODAL', "online/monitorOrderOnlinee/add_data_tolak", '1', '', 'md-close-circle', '', 'list'), 'PROSES'  => array('MODAL', "online/monitorOrderOnlinee/add_data", '1', '', 'md-mail-send', '', 'list'));
 
