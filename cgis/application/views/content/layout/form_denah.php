@@ -127,10 +127,10 @@
 		<div class="alert alert-info">
 			<p class="ycustom1ptop">CIC</p>
 			<hr class="ycustom1hr">
-			<p class="ycustom1pbot">Total Blok Tersedia : 56</p>
+			<p class="ycustom1pbot">Total Blok Tersedia : 184</p>
 			<p class="ycustom1pbot">Total Kontainer yang ada : <?php echo $jmlcont_cic;?></p>
 			<p class="ycustom1pbot">Total Blok Terpakai : <?php echo $jmlteus_cic;?></p>
-			<p class="ycustom1pbot">Total Persentase Terpakai : <?php $jml3 = $jmlteus_cic / 56 * 100; echo round($jml3,2).'%';?></p>
+			<p class="ycustom1pbot">Total Persentase Terpakai : <?php $jml3 = $jmlteus_cic / 184 * 100; echo round($jml3,2).'%';?></p>
 		</div>
 			<div id="lay_cic">
 				<div align="Center">
