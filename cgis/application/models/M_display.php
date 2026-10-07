@@ -827,7 +827,7 @@ class M_display extends CI_Model
 					SELECT a.NO_DOK,a.TGL_DOK,a.NO_SPK,b.NO_CONT,b.STATUS_CONT FROM t_spk a JOIN t_spk_cont b ON a.ID = b.ID WHERE  b.STATUS_CONT NOT IN (100,200,900,950)) A
 				JOIN (
 					SELECT c.NO_DOK,c.TGL_DOK,d.NO_CONT,d.UKR_CONT,d.TIPE_CONT,d.KD_CONT_JENIS,d.FL_REEFER FROM t_request c JOIN t_request_cont d ON c.ID = d.ID) B ON A.NO_DOK = B.NO_DOK and A.TGL_DOK = B.TGL_DOK AND A.NO_CONT = B.NO_CONT
-				LEFT JOIN t_op_reefer C ON A.NO_SPK = C.NO_SPK AND A.NO_CONT = C.NO_CONT AND C.WAKTU IS NOT NULL
+				LEFT JOIN t_op_reefer C ON A.NO_SPK = C.NO_SPK AND A.NO_CONT = C.NO_CONT AND (C.WAKTU is not null and C.WAKTU_END is null)
 				LEFT JOIN (SELECT NO_CONT,NO_SPK,MAX(id) AS idmax FROM t_op_reefer GROUP BY NO_CONT,NO_SPK) D ON A.NO_SPK = D.NO_SPK and A.NO_CONT = D.NO_CONT
 				LEFT JOIN t_op_reefer E ON D.idmax = E.ID
 				WHERE B.TIPE_CONT = 'RFR' AND B.FL_REEFER = 'Y'
