@@ -25,12 +25,12 @@
                             <?php if (!empty($data)): ?>
                                 <?php foreach ($data as $key => $value): ?>
                                     <tr>
-                                        <td><?= $key + 1 ?></td>
-                                        <td><?= $value->no_dok ?></td>
-                                        <td><?= $value->tgl_dok ?></td>
-                                        <td><?= $value->containers ?></td>
-                                        <td><?= $value->id_req ?></td>
-                                        <td><a href="#" class="resend-link" data-id="<?= $value->id_bhd_billing ?>" data-no-dok="<?= $value->no_dok ?>">Kirim Ulang Data</a></td>
+                                        <td><?php echo $key + 1 ?></td>
+                                        <td><?php echo $value->no_dok ?></td>
+                                        <td><?php echo $value->tgl_dok ?></td>
+                                        <td><?php echo $value->containers ?></td>
+                                        <td><?php echo $value->id_req ?></td>
+                                        <td><a href="#" class="resend-link" data-id="<?php echo $value->id_bhd_billing ?>" data-no-dok="<?php echo $value->no_dok ?>">Kirim Ulang Data</a></td>
                                     </tr>
                                 <?php endforeach ?>
                             <?php endif ?>

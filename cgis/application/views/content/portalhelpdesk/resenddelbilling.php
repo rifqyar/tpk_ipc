@@ -29,12 +29,12 @@
                                     <?php if (!empty($data)): ?>
                                         <?php foreach ($data as $key => $value): ?>
                                             <tr>
-                                                <td><?= $key + 1 ?></td>
-                                                <td><?= $value->no_dok ?></td>
-                                                <td><?= $value->tgl_dok ?></td>
-                                                <td><?= $value->nama ?></td>
-                                                <td><?= $value->id_req ?></td>
-                                                <td><a href="#" class="resend-link" data-file="<?= $value->file_dok ?>" data-id="<?= $value->id_del_billing ?>" data-no-dok="<?= $value->no_dok ?>">Kirim Ulang Data</a></td>
+                                                <td><?php echo $key + 1 ?></td>
+                                                <td><?php echo $value->no_dok ?></td>
+                                                <td><?php echo $value->tgl_dok ?></td>
+                                                <td><?php echo $value->nama ?></td>
+                                                <td><?php echo $value->id_req ?></td>
+                                                <td><a href="#" class="resend-link" data-file="<?php echo $value->file_dok ?>" data-id="<?php echo $value->id_del_billing ?>" data-no-dok="<?php echo $value->no_dok ?>">Kirim Ulang Data</a></td>
                                             </tr>
                                         <?php endforeach ?>
                                     <?php endif ?>
