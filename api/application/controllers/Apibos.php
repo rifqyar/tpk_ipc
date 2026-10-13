@@ -735,10 +735,38 @@ class Apibos extends CI_Controller
 
 	public function gantiformattglgblk($tgl)
 	{
-		$date = DateTime::createFromFormat("m/d/Y", $tgl);
-		$date1 = date_format($date, "Y-m-d");
-		return $date1;
+		$tgl = trim($tgl);
+
+		$formats = array(
+			'm/d/Y',
+			'm-d-Y',
+			'd/m/Y',
+			'd-m-Y',
+			'Y-m-d',
+			'Y/m/d',
+			'Y.m.d',
+			'd.m.Y',
+			'm.d.Y'
+		);
+
+		foreach ($formats as $format) {
+			$date = DateTime::createFromFormat('!' . $format, $tgl);
+			$errors = DateTime::getLastErrors();
+
+			if (
+				$date !== false &&
+				($errors === false ||
+					($errors['warning_count'] == 0 &&
+						$errors['error_count'] == 0)) &&
+				$date->format($format) === $tgl
+			) {
+				return $date->format('Y-m-d');
+			}
+		}
+
+		return false;
 	}
+	
 	public function reformatinput($tgl)
 	{
 		$date = DateTime::createFromFormat("Y-m-d", $tgl);
