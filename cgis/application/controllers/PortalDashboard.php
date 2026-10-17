@@ -854,7 +854,6 @@ class PortalDashboard extends CI_Controller
                 // end sppbnew
             } elseif ($type == 'manual') {
                 // dokumen manual start
-                <?php
 $url = "https://api.npct1.co.id:9443/api/v1/get-customs-ondemand";
 $user = "BEHANDLE";
 $key = "5d3a2ffcb778f4b1c224f2447c048c8f";
