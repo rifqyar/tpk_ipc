@@ -2279,7 +2279,7 @@ class ServiceSAP extends CI_Controller
                                     LEFT JOIN t_spk D ON C.ID = D.ID
                                     LEFT JOIN reff_kode_dok_bc E ON A.KD_DOK_INOUT = E.ID
                                     INNER JOIN req_delivery_hdr F ON A.NO_DOK_INOUT = F.NO_DOK
-                                    INNER JOIN req_delivery_dtl G ON F.ID_REQ = G.ID_REQ
+                                    INNER JOIN req_delivery_dtl G ON F.ID_REQ = G.ID_REQ AND C.NO_CONT = G.NO_CONT
                                     WHERE  F.ID_REQ='$proforma' AND A.NO_DOK_INOUT = '$ceknodok' 
                                     AND D.NO_SPK IS NOT NULL AND G.NO_CONT IS NOT null 
                                     order by D.NO_SPK desc) AA
